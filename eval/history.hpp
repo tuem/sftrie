@@ -21,6 +21,7 @@ limitations under the License.
 #define SFTRIE_HISTORY_HPP
 
 #include <time.h>
+
 #include <chrono>
 #include <string>
 #include <vector>
@@ -31,11 +32,9 @@ class History
 public:
 	History();
 
-	void record(const std::string& task, int count = 1);
 	void refresh();
-
-	void dump(std::ostream& os = std::cout,
-			bool show_header = true, bool show_count = false) const;
+	void record(const std::string& task, int count = 1);
+	void dump(std::ostream& os = std::cout) const;
 
 private:
 	struct TimeRecord
