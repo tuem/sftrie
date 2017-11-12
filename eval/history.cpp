@@ -36,25 +36,27 @@ void History::refresh()
 	time_records.push_back({std::chrono::system_clock::now(), {}, -1});
 }
 
-void History::dump(std::ostream& os, bool show_header, bool show_count) const
+void History::dump(std::ostream& os) const
 {
-	if(show_header){
-		os << std::right << std::setw(26) << "task" << std::right << std::setw(12) << "time[us]";
-		if(show_count)
-			os << std::right << std::setw(12) << "count" << std::setw(16) << "average[ns]";
-		os << std::endl;
-	}
+	os <<
+		std::right << std::setw(26) << "task" <<
+		std::right << std::setw(12) << "time[us]" <<
+		std::right << std::setw(12) << "count" <<
+		std::right << std::setw(16) << "average[ns]" <<
+		std::endl;
 	for(size_t i = 1; i < time_records.size(); ++i){
 		if(time_records[i].count < 0)
 			continue;
 		auto t = std::chrono::duration_cast<std::chrono::microseconds>(
 				time_records[i].time - time_records[i - 1].time).count();
-		os << std::right << std::setw(26) << time_records[i].task <<
+		os <<
+			std::right << std::setw(26) << time_records[i].task <<
 			std::right << std::setw(12) << std::setprecision(8) << t;
-		if(show_count && time_records[i].count > 1)
-			os << std::right << std::setw(12) << time_records[i].count <<
+		if(time_records[i].count > 1)
+			os <<
+				std::right << std::setw(12) << time_records[i].count <<
 				std::right << std::setw(16) << std::setprecision(12) <<
 					(static_cast<double>(t * 1000) / time_records[i].count);
-		os << std::right << std::endl;
+		os << std::endl;
 	}
 }
