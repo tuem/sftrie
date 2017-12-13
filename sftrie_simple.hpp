@@ -85,16 +85,15 @@ private:
 
 		// reserve siblings first
 		std::vector<integer> head{start};
-		for(integer i = start; i < end;){
+		for(integer i = start; i < end; head.push_back(i)){
 			data.push_back({false, 0, texts[i][depth]});
 			for(integer next = i; i < end && texts[i][depth] == texts[next][depth]; ++i);
-			head.push_back(i);
 		}
 
 		// recursively construct subtries of siblings
 		for(integer i = 0; i < size(head) - 1; ++i){
 			integer child = data[current].index + i;
-			data[child ].index = size(data);
+			data[child].index = size(data);
 			construct(texts, head[i], head[i + 1], depth + 1, child);
 		}
 	}
