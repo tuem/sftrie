@@ -22,8 +22,14 @@ limitations under the License.
 
 #include <string>
 
-#include "sftrie_simple.hpp"
-template<typename text = std::string, typename integer = typename text::size_type>
-using sftrie = sftrie_simple<text, integer>;
+#ifdef SFTRIE_USE_SIMPLE
+	#include "sftrie_simple.hpp"
+	template<typename text = std::string, typename integer = typename text::size_type>
+	using sftrie = sftrie_simple<text, integer>;
+#else
+	#include "sftrie_tail.hpp"
+	template<typename text = std::string, typename integer = typename text::size_type>
+	using sftrie = sftrie_tail<text, integer>;
+#endif
 
 #endif
