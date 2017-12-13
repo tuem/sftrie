@@ -26,6 +26,12 @@ constexpr int bit_width()
 	return 8 * sizeof(integer);
 }
 
+template<typename integer, typename container>
+integer container_size(const container& t)
+{
+	return static_cast<integer>(t.size());
+}
+
 struct text_comparator
 {
 	template<typename text>
