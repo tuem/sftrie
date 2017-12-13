@@ -47,4 +47,10 @@ struct text_comparator
 	}
 };
 
+template<typename iterator>
+void sort_sftrie_texts(iterator begin, iterator end)
+{
+	std::sort(begin, end, text_comparator());
+}
+
 #endif
