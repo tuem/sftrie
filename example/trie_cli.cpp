@@ -21,6 +21,7 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
+//#define SFTRIE_USE_SIMPLE
 #include <sftrie.hpp>
 
 using text = std::string;
