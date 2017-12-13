@@ -74,9 +74,8 @@ private:
 	{
 		if(input[start].size() == depth){
 			data[current].match = true;
-			if(++start == end){
+			if(++start == end)
 				return;
-			}
 		}
 
 		std::vector<integer> split{start};
@@ -93,5 +92,4 @@ private:
 		}
 	}
 };
-
 #endif
