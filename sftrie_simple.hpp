@@ -30,7 +30,7 @@ class sftrie_simple
 public:
 	sftrie_simple(const std::vector<text>& texts): data(1, {false, 1, 0})
 	{
-		construct(texts, 0, static_cast<integer>(texts.size()), 0, 0);
+		construct(texts, 0, size(texts), 0, 0);
 		data.push_back({false, 0, {}});
 	}
 
@@ -70,16 +70,21 @@ private:
 	};
 	std::vector<element> data;
 
+	template<typename container> integer size(const container& t)
+	{
+		return static_cast<integer>(t.size());
+	}
+
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
-		if(depth == static_cast<integer>(texts[start].size())){
+		if(depth == size(texts[start])){
 			data[current].match = true;
 			if(++start == end)
 				return;
 		}
 
 		// reserve siblings first
-		std::vector<integer> head{start};
+		std::vector<integer> head{1, start};
 		for(integer i = start; i < end;){
 			data.push_back({false, 0, texts[i][depth]});
 			for(integer head = i; i < end && texts[i][depth] == texts[head][depth]; ++i);
@@ -87,11 +92,12 @@ private:
 		}
 
 		// recursively construct subtries of siblings
-		for(integer i = 0; i < static_cast<integer>(head.size()) - 1; ++i){
+		for(integer i = 0; i < size(head) - 1; ++i){
 			integer next = data[current].index + i;
-			data[next].index = static_cast<integer>(data.size());
+			data[next].index = size(data);
 			construct(texts, head[i], head[i + 1], depth + 1, next);
 		}
 	}
 };
+
 #endif

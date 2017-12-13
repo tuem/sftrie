@@ -21,7 +21,7 @@ limitations under the License.
 #define SFTRIE_UTIL_HPP
 
 template<typename integer>
-static constexpr int bit_width()
+constexpr int bit_width()
 {
 	return 8 * sizeof(integer);
 }
