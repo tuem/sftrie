@@ -84,7 +84,7 @@ private:
 		}
 
 		// reserve siblings first
-		std::vector<integer> head{1, start};
+		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
 			data.push_back({false, 0, texts[i][depth]});
 			for(integer head = i; i < end && texts[i][depth] == texts[head][depth]; ++i);
