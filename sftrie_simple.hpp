@@ -28,17 +28,17 @@ template<typename text, typename integer>
 class sftrie_simple
 {
 public:
-	sftrie_simple(const std::vector<text>& input): data(1, {{}, 1, false, false})
+	sftrie_simple(const std::vector<text>& input): data(1, {{}, 1, false})
 	{
 		construct(input, 0, static_cast<integer>(input.size()), 0, 0);
-		data.push_back({{}, static_cast<integer>(data.size()), true, false});
+		data.push_back({{}, 0, false});
 	}
 
 	bool exists(const text& pattern) const
 	{
 		integer current = 0;
 		for(symbol c: pattern){
-			if(data[current].leaf)
+			if(data[current].index == 0)
 				return false;
 			for(integer start = data[current].index, end = data[start].index - 1; start <= end;){
 				integer mid = (start + end) / 2;
@@ -65,8 +65,7 @@ private:
 	struct element
 	{
 		symbol label;
-		integer index: bit_width<integer>() - 2;
-		integer leaf: 1;
+		integer index: bit_width<integer>() - 1;
 		integer match: 1;
 	};
 	std::vector<element> data;
@@ -76,14 +75,13 @@ private:
 		if(input[start].size() == depth){
 			data[current].match = true;
 			if(++start == end){
-				data[current].leaf = true;
 				return;
 			}
 		}
 
 		std::vector<integer> split{start};
 		for(integer i = start; i < end;){
-			data.push_back({input[i][depth], 0, false, false});
+			data.push_back({input[i][depth], 0, false});
 			for(integer head = i; i < end && input[i][depth] == input[head][depth]; ++i);
 			split.push_back(i);
 		}
