@@ -72,7 +72,7 @@ private:
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
-		if(texts[start].size() == depth){
+		if(depth == static_cast<integer>(texts[start].size())){
 			data[current].match = true;
 			if(++start == end)
 				return;
