@@ -72,7 +72,7 @@ private:
 
 	template<typename container> integer container_size(const container& t)
 	{
-		return static_cast<integer>(t.container_size());
+		return static_cast<integer>(t.size());
 	}
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
