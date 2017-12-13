@@ -20,6 +20,8 @@ limitations under the License.
 #ifndef SFTRIE_UTIL_HPP
 #define SFTRIE_UTIL_HPP
 
+#include <algorithm>
+
 template<typename integer>
 constexpr int bit_width()
 {
