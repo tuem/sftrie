@@ -28,10 +28,10 @@ template<typename text, typename integer>
 class sftrie_simple
 {
 public:
-	sftrie_simple(const std::vector<text>& texts): data(1, {{}, 1, false})
+	sftrie_simple(const std::vector<text>& texts): data(1, {false, 1, 0})
 	{
 		construct(texts, 0, static_cast<integer>(texts.size()), 0, 0);
-		data.push_back({{}, 0, false});
+		data.push_back({false, 0, {}});
 	}
 
 	bool exists(const text& pattern) const
@@ -64,9 +64,9 @@ private:
 
 	struct element
 	{
-		symbol label;
-		integer index: bit_width<integer>() - 1;
 		integer match: 1;
+		integer index: bit_width<integer>() - 1;
+		symbol label;
 	};
 	std::vector<element> data;
 
@@ -80,7 +80,7 @@ private:
 
 		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
-			data.push_back({texts[i][depth], 0, false});
+			data.push_back({false, 0, texts[i][depth]});
 			for(integer head = i; i < end && texts[i][depth] == texts[head][depth]; ++i);
 			head.push_back(i);
 		}
