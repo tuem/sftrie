@@ -28,17 +28,17 @@ constexpr int bit_width()
 
 struct text_comparator
 {
-    template<typename text>
-    bool operator()(const text& a, const text& b) const
-    {
-        for(size_t i = 0; i < std::min(a.size(), b.size()); ++i){
-            if(a[i] < b[i])
-                return true;
-            else if(b[i] < a[i])
-                return false;
-        }
-        return a.size() < b.size();
-    }
+	template<typename text>
+	bool operator()(const text& a, const text& b) const
+	{
+		for(size_t i = 0; i < std::min(a.size(), b.size()); ++i){
+			if(a[i] < b[i])
+				return true;
+			else if(b[i] < a[i])
+				return false;
+		}
+		return a.size() < b.size();
+	}
 };
 
 #endif
