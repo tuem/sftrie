@@ -40,7 +40,7 @@ public:
 		for(symbol c: pattern){
 			if(data[current].leaf)
 				return false;
-			for(integer start = data[current].position, end = data[start].position - 1; start <= end;){
+			for(integer start = data[current].index, end = data[start].index - 1; start <= end;){
 				integer mid = (start + end) / 2;
 				if(data[mid].label < c){
 					start = mid + 1;
@@ -65,7 +65,7 @@ private:
 	struct element
 	{
 		symbol label;
-		integer position: bit_width<integer>() - 2;
+		integer index: bit_width<integer>() - 2;
 		integer leaf: 1;
 		integer match: 1;
 	};
@@ -89,8 +89,8 @@ private:
 		}
 
 		for(integer i = 0; i < static_cast<integer>(split.size()) - 1; ++i){
-			integer next = data[current].position + i;
-			data[next].position = static_cast<integer>(data.size());
+			integer next = data[current].index + i;
+			data[next].index = static_cast<integer>(data.size());
 			construct(input, split[i], split[i + 1], depth + 1, next);
 		}
 	}
