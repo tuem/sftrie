@@ -87,15 +87,15 @@ private:
 		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
 			data.push_back({false, 0, texts[i][depth]});
-			for(integer head = i; i < end && texts[i][depth] == texts[head][depth]; ++i);
+			for(integer next = i; i < end && texts[i][depth] == texts[next][depth]; ++i);
 			head.push_back(i);
 		}
 
 		// recursively construct subtries of siblings
 		for(integer i = 0; i < size(head) - 1; ++i){
-			integer next = data[current].index + i;
-			data[next].index = size(data);
-			construct(texts, head[i], head[i + 1], depth + 1, next);
+			integer child = data[current].index + i;
+			data[child ].index = size(data);
+			construct(texts, head[i], head[i + 1], depth + 1, child);
 		}
 	}
 };
