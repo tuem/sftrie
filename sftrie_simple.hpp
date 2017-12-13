@@ -38,15 +38,17 @@ public:
 	bool exists(const text& pattern) const
 	{
 		integer current = 0;
-		for(symbol c: pattern){
-			if(data[current].index == 0)
+		for(integer i = 0; i < pattern.size(); ++i){
+			integer start = data[current].index;
+			if(start == 0)
 				return false;
-			for(integer start = data[current].index, end = data[start].index - 1; start <= end;){
+			integer end = data[start].index - 1;
+			while(start <= end){
 				integer mid = (start + end) / 2;
-				if(data[mid].label < c){
+				if(data[mid].label < pattern[i]){
 					start = mid + 1;
 				}
-				else if(data[mid].label > c){
+				else if(data[mid].label > pattern[i]){
 					end = mid - 1;
 				}
 				else{

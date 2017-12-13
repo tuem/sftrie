@@ -23,17 +23,12 @@ limitations under the License.
 #include <vector>
 #include <unordered_map>
 
-#include <iostream>
-#include <iomanip>
-
 #include "util.hpp"
 
 template<typename text, typename integer>
 class sftrie_tail
 {
 public:
-	using symbol = typename text::value_type;
-
 	sftrie_tail(const std::vector<text>& texts)
 	{
 		data.push_back({false, 1, {}});
@@ -45,9 +40,10 @@ public:
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].index == 0)
+			integer start = data[current].index;
+			if(start == 0)
 				return check_tail(pattern, i, current);
-			integer start = data[current].index, end = data[start].index;
+			integer end = data[start].index;
 			if(end-- == 0)
 				return data[start].label == pattern[i] && check_tail(pattern, i + 1, start);
 			while(start <= end){
@@ -70,6 +66,8 @@ public:
 	}
 
 private:
+	using symbol = typename text::value_type;
+
 	struct element
 	{
 		integer match: 1;
