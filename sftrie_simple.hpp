@@ -87,7 +87,7 @@ private:
 		std::vector<integer> head{start};
 		for(integer i = start; i < end; head.push_back(i)){
 			data.push_back({false, 0, texts[i][depth]});
-			for(integer next = i; i < end && texts[i][depth] == texts[next][depth]; ++i);
+			for(integer old = i; i < end && texts[i][depth] == texts[old][depth]; ++i);
 		}
 
 		// recursively construct subtries of siblings
