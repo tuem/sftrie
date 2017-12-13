@@ -78,6 +78,7 @@ private:
 				return;
 		}
 
+		// reserve siblings first
 		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
 			data.push_back({false, 0, texts[i][depth]});
@@ -85,6 +86,7 @@ private:
 			head.push_back(i);
 		}
 
+		// recursively construct subtries of siblings
 		for(integer i = 0; i < static_cast<integer>(head.size()) - 1; ++i){
 			integer next = data[current].index + i;
 			data[next].index = static_cast<integer>(data.size());
