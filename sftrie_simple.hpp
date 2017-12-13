@@ -30,7 +30,7 @@ class sftrie_simple
 public:
 	sftrie_simple(const std::vector<text>& texts): data(1, {false, 1, 0})
 	{
-		construct(texts, 0, size(texts), 0, 0);
+		construct(texts, 0, container_size(texts), 0, 0);
 		data.push_back({false, 0, {}});
 	}
 
@@ -70,14 +70,14 @@ private:
 	};
 	std::vector<element> data;
 
-	template<typename container> integer size(const container& t)
+	template<typename container> integer container_size(const container& t)
 	{
-		return static_cast<integer>(t.size());
+		return static_cast<integer>(t.container_size());
 	}
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
-		if(depth == size(texts[start])){
+		if(depth == container_size(texts[start])){
 			data[current].match = true;
 			if(++start == end)
 				return;
@@ -91,9 +91,9 @@ private:
 		}
 
 		// recursively construct subtries of siblings
-		for(integer i = 0; i < size(head) - 1; ++i){
+		for(integer i = 0; i < container_size(head) - 1; ++i){
 			integer child = data[current].index + i;
-			data[child].index = size(data);
+			data[child].index = container_size(data);
 			construct(texts, head[i], head[i + 1], depth + 1, child);
 		}
 	}
