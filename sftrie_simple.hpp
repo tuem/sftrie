@@ -28,9 +28,9 @@ template<typename text, typename integer>
 class sftrie_simple
 {
 public:
-	sftrie_simple(const std::vector<text>& input): data(1, {{}, 1, false})
+	sftrie_simple(const std::vector<text>& texts): data(1, {{}, 1, false})
 	{
-		construct(input, 0, static_cast<integer>(input.size()), 0, 0);
+		construct(texts, 0, static_cast<integer>(texts.size()), 0, 0);
 		data.push_back({{}, 0, false});
 	}
 
@@ -70,25 +70,25 @@ private:
 	};
 	std::vector<element> data;
 
-	void construct(const std::vector<text>& input, integer start, integer end, integer depth, integer current)
+	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
-		if(input[start].size() == depth){
+		if(texts[start].size() == depth){
 			data[current].match = true;
 			if(++start == end)
 				return;
 		}
 
-		std::vector<integer> split{start};
+		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
-			data.push_back({input[i][depth], 0, false});
-			for(integer head = i; i < end && input[i][depth] == input[head][depth]; ++i);
-			split.push_back(i);
+			data.push_back({texts[i][depth], 0, false});
+			for(integer head = i; i < end && texts[i][depth] == texts[head][depth]; ++i);
+			head.push_back(i);
 		}
 
-		for(integer i = 0; i < static_cast<integer>(split.size()) - 1; ++i){
+		for(integer i = 0; i < static_cast<integer>(head.size()) - 1; ++i){
 			integer next = data[current].index + i;
 			data[next].index = static_cast<integer>(data.size());
-			construct(input, split[i], split[i + 1], depth + 1, next);
+			construct(texts, head[i], head[i + 1], depth + 1, next);
 		}
 	}
 };
