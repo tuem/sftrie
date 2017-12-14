@@ -31,7 +31,8 @@ class sftrie_decompaction
 public:
 	sftrie_decompaction(const std::vector<text>& texts,
 			integer decompaction_threshold = (1 << bit_width<symbol>()) / 2):
-		data(1, {false, false, false, 1, {}}), decompaction_threshold(decompaction_threshold)
+		data(1, {false, false, false, 1, {}}),
+		decompaction_threshold(decompaction_threshold)
 	{
 		for(symbol c = min_char<symbol>(); true; ++c){
 			all_symbols.push_back(c);
@@ -48,7 +49,7 @@ public:
 			if(data[current].leaf){
 				return check_tail(pattern, i, current);
 			}
-            else if(data[current].expanded){
+			else if(data[current].expanded){
 				current = data[current].index + static_cast<integer>(pattern[i] - min_char<symbol>());
 				continue;
 			}
