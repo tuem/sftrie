@@ -114,16 +114,15 @@ private:
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
 		auto p = tail.find(current);
-		if(p != std::end(tail)){
-			const auto& tailstr = p->second;
-			if(container_size<integer>(pattern) - i != container_size<integer>(tailstr))
+		if(p == std::end(tail))
+			return false;
+		const auto& tailstr = p->second;
+		if(container_size<integer>(pattern) - i != container_size<integer>(tailstr))
+			return false;
+		for(integer j = i; j < container_size<integer>(pattern); ++j)
+			if(pattern[j] != tailstr[j - i])
 				return false;
-			for(integer j = i; j < container_size<integer>(pattern); ++j)
-				if(pattern[j] != tailstr[j - i])
-					return false;
-			return true;
-		}
-		return false;
+		return true;
 	}
 };
 
