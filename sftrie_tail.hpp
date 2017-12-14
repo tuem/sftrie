@@ -67,7 +67,7 @@ private:
 	{
 		integer match: 1;
 		integer leaf: 1;
-		integer index: bit_width<integer>() - 1;
+		integer index: bit_width<integer>() - 2;
 		symbol label;
 	};
 	std::vector<element> data;
