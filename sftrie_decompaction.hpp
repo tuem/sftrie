@@ -110,6 +110,7 @@ private:
 			return;
 		}
 
+		// count children
 		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
 			for(integer old = i; i < end && texts[i][depth] == texts[old][depth]; ++i);
@@ -129,7 +130,7 @@ private:
 			alphabet_size = container_size<integer>(data) - alphabet_size;
 
 			// recursively construct subtries of siblings
-			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i){
+			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i, ++j){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
 				if(texts[head[j]][depth] != data[child].label){
@@ -137,7 +138,6 @@ private:
 					continue;
 				}
 				construct(texts, head[j], head[j + 1], depth + 1, child);
-				++j;
 			}
 		}
 		else{
