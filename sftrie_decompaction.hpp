@@ -64,13 +64,13 @@ public:
 				current = data[current].index + static_cast<integer>(pattern[i] - min_symbol);
 				continue;
 			}
-			for(integer l = data[current].index, r = data[l].index; start < end;){
+			for(integer l = data[current].index, r = data[l].index - 1; start <= end;){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
 					l = m + 1;
 				}
 				else if(data[m].label > pattern[i]){
-					r = m;
+					r = m - 1;
 				}
 				else{
 					current = m;
