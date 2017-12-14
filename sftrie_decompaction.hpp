@@ -28,7 +28,6 @@ limitations under the License.
 template<typename text, typename integer>
 class sftrie_decompaction
 {
-private:
 	using symbol = typename text::value_type;
 
 	struct element
