@@ -49,7 +49,7 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return false;
-			for(integer l = data[current].index, r = data[l].index - 1; start <= end;){
+			for(integer l = data[current].index, r = data[l].index - 1; l <= r;){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
 					l = m + 1;
