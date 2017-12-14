@@ -29,11 +29,9 @@ template<typename text, typename integer>
 class sftrie_tail
 {
 public:
-	sftrie_tail(const std::vector<text>& texts)
+	sftrie_tail(const std::vector<text>& texts): data(1, {false, false, 1, {}})
 	{
-		data.push_back({false, false, 1, {}});
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
-		data.push_back({false, true, 0, {}});
 	}
 
 	bool exists(const text& pattern) const
