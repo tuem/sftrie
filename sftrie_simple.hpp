@@ -34,7 +34,7 @@ private:
 	{
 		bool match: 1;
 		bool leaf: 1;
-		bool index: bit_width<integer>() - 2;
+		integer index: bit_width<integer>() - 2;
 		symbol label;
 	};
 
