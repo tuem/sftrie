@@ -28,6 +28,9 @@ limitations under the License.
 template<typename text, typename integer>
 class sftrie_tail
 {
+private:
+	using symbol = typename text::value_type;
+
 public:
 	sftrie_tail(const std::vector<text>& texts, integer min_tail = 4):
 		data(1, {false, false, 1, {}}), min_tail(min_tail)
@@ -62,8 +65,6 @@ public:
 	}
 
 private:
-	using symbol = typename text::value_type;
-
 	struct element
 	{
 		integer match: 1;

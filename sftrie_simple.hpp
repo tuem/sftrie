@@ -27,6 +27,9 @@ limitations under the License.
 template<typename text, typename integer>
 class sftrie_simple
 {
+private:
+	using symbol = typename text::value_type;
+
 public:
 	sftrie_simple(const std::vector<text>& texts): data(1, {false, false, 1, {}})
 	{
@@ -60,8 +63,6 @@ public:
 	}
 
 private:
-	using symbol = typename text::value_type;
-
 	struct element
 	{
 		integer match: 1;
