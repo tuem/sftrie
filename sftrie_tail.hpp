@@ -42,15 +42,14 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
-			integer start = data[current].index;
-			integer end = data[start].index - 1;
-			while(start <= end){
+			integer start = data[current].index, end = data[start].index;
+			while(start < end){
 				integer mid = (start + end) / 2;
 				if(data[mid].label < pattern[i]){
 					start = mid + 1;
 				}
 				else if(data[mid].label > pattern[i]){
-					end = mid - 1;
+					end = mid;
 				}
 				else{
 					current = mid;
