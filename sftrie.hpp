@@ -22,14 +22,21 @@ limitations under the License.
 
 #include <string>
 
-#ifdef SFTRIE_USE_SIMPLE
+#if defined SFTRIE_USE_SIMPLE
 	#include "sftrie_simple.hpp"
 	template<typename text = std::string, typename integer = typename text::size_type>
 	using sftrie = sftrie_simple<text, integer>;
-#else
+#elif defined SFTRIE_USE_TAIL
 	#include "sftrie_tail.hpp"
 	template<typename text = std::string, typename integer = typename text::size_type>
 	using sftrie = sftrie_tail<text, integer>;
+#else
+    #ifndef SFTRIE_USE_DECOMPACTION
+    #define SFTRIE_USE_DECOMPACTION
+    #endif
+	#include "sftrie_decompaction.hpp"
+	template<typename text = std::string, typename integer = typename text::size_type>
+	using sftrie = sftrie_decompaction<text, integer>;
 #endif
 
 #endif
