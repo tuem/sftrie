@@ -37,11 +37,6 @@ public:
 		min_decompaction(min_decompaction),
 		min_symbol(min_symbol), max_symbol(max_symbol)
 	{
-		for(symbol c = min_symbol; true; ++c){
-			all_symbols.push_back(c);
-			if(c == max_symbol)
-				break;
-		}
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
 	}
 
@@ -94,7 +89,6 @@ private:
 	std::unordered_map<integer, std::vector<symbol>> tail;
 	const integer min_tail;
 
-	std::vector<symbol> all_symbols;
 	const integer min_decompaction;
 	const symbol min_symbol;
 	const symbol max_symbol;
@@ -126,11 +120,16 @@ private:
 			data[current].expanded = true;
 
 			// reserve siblings first
-			for(symbol c: all_symbols)
+			integer alphabet_size = data.size(); // tmp
+			for(symbol c = min_symbol; true; ++c){
 				data.push_back({false, false, false, 0, c});
+				if(c == max_symbol)
+					break;
+			}
+			alphabet_size = container_size<integer>(data) - alphabet_size;
 
 			// recursively construct subtries of siblings
-			for(integer i = 0, j = 0; i < all_symbols.size() && head[j] < end; ++i){
+			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
 				if(texts[head[j]][depth] != data[child].label){
