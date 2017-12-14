@@ -30,6 +30,14 @@ class sftrie_simple
 private:
 	using symbol = typename text::value_type;
 
+	struct element
+	{
+		integer match: 1;
+		integer leaf: 1;
+		integer index: bit_width<integer>() - 2;
+		symbol label;
+	};
+
 public:
 	sftrie_simple(const std::vector<text>& texts): data(1, {false, false, 1, {}})
 	{
@@ -63,13 +71,6 @@ public:
 	}
 
 private:
-	struct element
-	{
-		integer match: 1;
-		integer leaf: 1;
-		integer index: bit_width<integer>() - 2;
-		symbol label;
-	};
 	std::vector<element> data;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
