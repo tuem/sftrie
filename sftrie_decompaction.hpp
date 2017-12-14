@@ -131,7 +131,7 @@ private:
 			alphabet_size = container_size<integer>(data) - alphabet_size;
 
 			// recursively construct subtries of siblings
-			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i, ++j){
+			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
 				if(texts[head[j]][depth] != data[child].label){
@@ -139,6 +139,7 @@ private:
 					continue;
 				}
 				construct(texts, head[j], head[j + 1], depth + 1, child);
+				++j;
 			}
 		}
 		else{
