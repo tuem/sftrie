@@ -33,9 +33,9 @@ private:
 
 	struct element
 	{
-		integer match: 1;
-		integer leaf: 1;
-		integer expanded: 1;
+		bool match: 1;
+		bool leaf: 1;
+		bool expanded: 1;
 		integer index: bit_width<integer>() - 3;
 		symbol label;
 	};
