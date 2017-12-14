@@ -22,6 +22,7 @@ limitations under the License.
 #include <string>
 
 //#define SFTRIE_USE_SIMPLE
+//#define SFTRIE_USE_TAIL
 #include <sftrie.hpp>
 
 using text = std::string;
@@ -49,9 +50,19 @@ int main(int argc, char* argv[])
 			break;
 		texts.push_back(line);
 	}
+	for(const auto& t: texts){
+		std::cerr << "TEXT" << std::endl;
+		for(auto c: t){
+			std::cerr << "int(c)=" << static_cast<int>(c) << std::endl;
+		}
+	}
 
 	sort_sftrie_texts(std::begin(texts), std::end(texts));
+#ifdef SFTRIE_USE_DECOMPACTION
+	sftrie<text, integer> trie(texts, 3);
+#else
 	sftrie<text, integer> trie(texts);
+#endif
 	texts.clear();
 	std::cerr << "done." << std::endl;
 
