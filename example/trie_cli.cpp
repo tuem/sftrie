@@ -58,11 +58,7 @@ int main(int argc, char* argv[])
 	}
 
 	sort_sftrie_texts(std::begin(texts), std::end(texts));
-#ifdef SFTRIE_USE_DECOMPACTION
-	sftrie<text, integer> trie(texts, 3);
-#else
 	sftrie<text, integer> trie(texts);
-#endif
 	texts.clear();
 	std::cerr << "done." << std::endl;
 
