@@ -31,21 +31,19 @@ class sftrie_tail
 public:
 	sftrie_tail(const std::vector<text>& texts)
 	{
-		data.push_back({false, 1, {}});
+		data.push_back({false, false, 1, {}});
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
-		data.push_back({false, 0, {}});
+		data.push_back({false, true, 0, {}});
 	}
 
 	bool exists(const text& pattern) const
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
-			integer start = data[current].index;
-			if(start == 0)
+			if(data[current].leaf)
 				return check_tail(pattern, i, current);
-			integer end = data[start].index;
-			if(end-- == 0)
-				return data[start].label == pattern[i] && check_tail(pattern, i + 1, start);
+			integer start = data[current].index;
+			integer end = data[start].index - 1;
 			while(start <= end){
 				integer mid = (start + end) / 2;
 				if(data[mid].label < pattern[i]){
@@ -71,6 +69,7 @@ private:
 	struct element
 	{
 		integer match: 1;
+		integer leaf: 1;
 		integer index: bit_width<integer>() - 1;
 		symbol label;
 	};
@@ -81,11 +80,13 @@ private:
 	{
 		if(depth == container_size<integer>(texts[start])){
 			data[current].match = true;
-			if(++start == end)
+			if(++start == end){
+				data[current].leaf = true;
 				return;
+			}
 		}
 		else if(start == end - 1){
-			data[current].index = 0;
+			data[current].leaf = true;
 			std::vector<symbol> tailstr;
 			std::copy(std::begin(texts[start]) + depth, std::end(texts[start]), std::back_inserter(tailstr));
 			tail[current] = tailstr;
@@ -95,7 +96,7 @@ private:
 		// reserve siblings first
 		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
-			data.push_back({false, 0, texts[i][depth]});
+			data.push_back({false, false, 0, texts[i][depth]});
 			for(integer old = i; i < end && texts[i][depth] == texts[old][depth]; ++i);
 			head.push_back(i);
 		}
