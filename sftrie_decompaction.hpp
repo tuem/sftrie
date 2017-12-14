@@ -65,17 +65,16 @@ public:
 				current = data[current].index + static_cast<integer>(pattern[i] - min_symbol);
 				continue;
 			}
-			integer start = data[current].index, end = data[start].index;
-			while(start < end){
-				integer mid = (start + end) / 2;
-				if(data[mid].label < pattern[i]){
-					start = mid + 1;
+			for(integer l = data[current].index, r = data[l].index; start < end;){
+				integer m = (l + r) / 2;
+				if(data[m].label < pattern[i]){
+					l = m + 1;
 				}
-				else if(data[mid].label > pattern[i]){
-					end = mid;
+				else if(data[m].label > pattern[i]){
+					r = m;
 				}
 				else{
-					current = mid;
+					current = m;
 					goto NEXT;
 				}
 			}
