@@ -29,7 +29,8 @@ template<typename text, typename integer>
 class sftrie_decompaction
 {
 public:
-	sftrie_decompaction(const std::vector<text>& texts, integer decompaction_threshold = (1 << bit_width<symbol>()) / 2):
+	sftrie_decompaction(const std::vector<text>& texts,
+			integer decompaction_threshold = (1 << bit_width<symbol>()) / 2):
 		data(1, {false, false, false, 1, {}}), decompaction_threshold(decompaction_threshold)
 	{
 		for(symbol c = min_char<symbol>(); true; ++c){
