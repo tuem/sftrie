@@ -129,7 +129,7 @@ private:
 			}
 			integer alphabet_size = container_size<integer>(data) - old_data_size;
 
-			// recursively construct subtries of siblings
+			// recursively construct subtries
 			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
@@ -146,7 +146,7 @@ private:
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i)
 				data.push_back({false, false, false, 0, texts[head[i]][depth]});
 
-			// recursively construct subtries of siblings
+			// recursively construct subtries
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
