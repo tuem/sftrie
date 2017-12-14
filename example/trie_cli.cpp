@@ -51,12 +51,6 @@ int main(int argc, char* argv[])
 			break;
 		texts.push_back(line);
 	}
-	for(const auto& t: texts){
-		std::cerr << "TEXT" << std::endl;
-		for(auto c: t){
-			std::cerr << "int(c)=" << static_cast<int>(c) << std::endl;
-		}
-	}
 
 	sort_sftrie_texts(std::begin(texts), std::end(texts));
 	sftrie<text, integer> trie(texts);
