@@ -72,8 +72,9 @@ private:
 		symbol label;
 	};
 	std::vector<element> data;
+
 	std::unordered_map<integer, std::vector<symbol>> tail;
-	integer min_tail;
+	const integer min_tail;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
