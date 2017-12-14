@@ -130,7 +130,7 @@ private:
 		}
 		else{
 			// reserve siblings first
-			for(size_t i = 0; i < head.size() - 1; ++i)
+			for(integer i = 0; i < container_size<integer>(head) - 1; ++i)
 				data.push_back({false, false, false, 0, texts[head[i]][depth]});
 
 			// recursively construct subtries of siblings
