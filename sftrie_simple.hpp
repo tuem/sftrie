@@ -27,7 +27,6 @@ limitations under the License.
 template<typename text, typename integer>
 class sftrie_simple
 {
-private:
 	using symbol = typename text::value_type;
 
 	struct element
