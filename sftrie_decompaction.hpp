@@ -30,13 +30,16 @@ class sftrie_decompaction
 {
 public:
 	sftrie_decompaction(const std::vector<text>& texts,
-			integer decompaction_threshold = (1 << bit_width<symbol>()) / 2):
+			integer decompaction_threshold = (1 << bit_width<symbol>()) / 2,
+			typename text::value_type min_symbol = min_char<symbol>(),
+			typename text::value_type max_symbol = max_char<symbol>()):
 		data(1, {false, false, false, 1, {}}),
-		decompaction_threshold(decompaction_threshold)
+		decompaction_threshold(decompaction_threshold),
+		min_symbol(min_symbol), max_symbol(max_symbol)
 	{
-		for(symbol c = min_char<symbol>(); true; ++c){
+		for(symbol c = min_symbol; true; ++c){
 			all_symbols.push_back(c);
-			if(c == max_char<symbol>())
+			if(c == max_symbol)
 				break;
 		}
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
@@ -50,7 +53,9 @@ public:
 				return check_tail(pattern, i, current);
 			}
 			else if(data[current].expanded){
-				current = data[current].index + static_cast<integer>(pattern[i] - min_char<symbol>());
+				if(pattern[i] < min_symbol || pattern[i] > max_symbol)
+					return false;
+				current = data[current].index + static_cast<integer>(pattern[i] - min_symbol);
 				continue;
 			}
 			integer start = data[current].index, end = data[start].index;
@@ -88,6 +93,8 @@ private:
 	std::unordered_map<integer, std::vector<symbol>> tail;
 	const integer decompaction_threshold;
 	std::vector<symbol> all_symbols;
+	const symbol min_symbol;
+	const symbol max_symbol;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
