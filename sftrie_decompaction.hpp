@@ -29,11 +29,11 @@ template<typename text, typename integer>
 class sftrie_decompaction
 {
 public:
-	sftrie_decompaction(const std::vector<text>& texts,
+	sftrie_decompaction(const std::vector<text>& texts, integer min_tail = 4,
 			integer decompaction_threshold = (1 << bit_width<symbol>()) / 2,
 			typename text::value_type min_symbol = min_char<symbol>(),
 			typename text::value_type max_symbol = max_char<symbol>()):
-		data(1, {false, false, false, 1, {}}),
+		data(1, {false, false, false, 1, {}}), min_tail(min_tail),
 		decompaction_threshold(decompaction_threshold),
 		min_symbol(min_symbol), max_symbol(max_symbol)
 	{
@@ -91,6 +91,7 @@ private:
 	};
 	std::vector<element> data;
 	std::unordered_map<integer, std::vector<symbol>> tail;
+	const integer min_tail;
 	const integer decompaction_threshold;
 	std::vector<symbol> all_symbols;
 	const symbol min_symbol;
@@ -105,7 +106,7 @@ private:
 				return;
 			}
 		}
-		else if(start == end - 1){
+		else if(start == end - 1 && container_size<integer>(texts[start]) - depth >= min_tail){
 			data[current].leaf = true;
 			std::vector<symbol> tailstr;
 			std::copy(std::begin(texts[start]) + depth, std::end(texts[start]), std::back_inserter(tailstr));
