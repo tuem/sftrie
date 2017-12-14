@@ -28,6 +28,22 @@ constexpr int bit_width()
 	return 8 * sizeof(integer);
 }
 
+template<typename symbol>
+constexpr symbol min_char()
+{
+	return static_cast<symbol>(symbol(0) - 1) < symbol(0) ?
+		static_cast<symbol>(symbol(1) << (bit_width<symbol>() - 1)) :
+		symbol(0);
+}
+
+template<typename symbol>
+constexpr symbol max_char()
+{
+	return static_cast<symbol>(symbol(0) - 1) < symbol(0) ?
+		static_cast<symbol>(static_cast<symbol>(symbol(0) - 1) ^ static_cast<symbol>(symbol(1) << (bit_width<symbol>() - 1))) :
+		static_cast<symbol>(symbol(0) - 1);
+}
+
 template<typename integer, typename container>
 integer container_size(const container& t)
 {
