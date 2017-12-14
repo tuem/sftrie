@@ -101,7 +101,7 @@ private:
 			head.push_back(i);
 		}
 
-		// recursively construct subtries of siblings
+		// recursively construct subtries
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 			integer child = data[current].index + i;
 			data[child].index = container_size<integer>(data);
