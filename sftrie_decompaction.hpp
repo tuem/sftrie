@@ -112,15 +112,15 @@ private:
 					break;
 			}
 
-			for(integer j = 0, k = 0; j < node_end && head[k] < end; ++j){
-				integer child = data[current].index + j;
+			for(integer i = 0, j = 0; i < node_end && head[j] < end; ++i){
+				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
-				if(texts[head[k]][depth] != data[child].label){
+				if(texts[head[j]][depth] != data[child].label){
 					data[child].leaf = true;
 					continue;
 				}
-				construct(texts, head[k], head[k + 1], depth + 1, child);
-				++k;
+				construct(texts, head[j], head[j + 1], depth + 1, child);
+				++j;
 			}
 		}
 		else{
