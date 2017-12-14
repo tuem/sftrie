@@ -99,7 +99,7 @@ private:
 		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
 			data.push_back({false, false, 0, texts[i][depth]});
-			for(integer old = i; i < end && texts[i][depth] == texts[old][depth]; ++i);
+			for(symbol c = texts[i][depth]; i < end && texts[i][depth] == c; ++i);
 			head.push_back(i);
 		}
 
