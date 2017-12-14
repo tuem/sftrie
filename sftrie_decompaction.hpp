@@ -123,13 +123,13 @@ private:
 			data[current].expanded = true;
 
 			// reserve siblings first
-			integer alphabet_size = data.size(); // tmp
+			integer old_data_size = container_size<integer>(data);
 			for(symbol c = min_symbol; true; ++c){
 				data.push_back({false, false, false, 0, c});
 				if(c == max_symbol)
 					break;
 			}
-			alphabet_size = container_size<integer>(data) - alphabet_size;
+			integer alphabet_size = container_size<integer>(data) - old_data_size;
 
 			// recursively construct subtries of siblings
 			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i){
