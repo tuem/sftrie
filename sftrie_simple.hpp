@@ -30,26 +30,25 @@ class sftrie_simple
 public:
 	sftrie_simple(const std::vector<text>& texts)
 	{
-		data.push_back({false, 1, {}});
+		data.push_back({false, false, 1, {}});
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
-		data.push_back({false, 0, {}});
+		data.push_back({false, true, 0, {}});
 	}
 
 	bool exists(const text& pattern) const
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
-			integer start = data[current].index;
-			if(start == 0)
+			if(data[current].leaf)
 				return false;
-			integer end = data[start].index - 1;
-			while(start <= end){
+			integer start = data[current].index, end = data[start].index;
+			while(start < end){
 				integer mid = (start + end) / 2;
 				if(data[mid].label < pattern[i]){
 					start = mid + 1;
 				}
 				else if(data[mid].label > pattern[i]){
-					end = mid - 1;
+					end = mid;
 				}
 				else{
 					current = mid;
@@ -68,7 +67,8 @@ private:
 	struct element
 	{
 		integer match: 1;
-		integer index: bit_width<integer>() - 1;
+		integer leaf: 1;
+		integer index: bit_width<integer>() - 2;
 		symbol label;
 	};
 	std::vector<element> data;
@@ -77,14 +77,16 @@ private:
 	{
 		if(depth == container_size<integer>(texts[start])){
 			data[current].match = true;
-			if(++start == end)
+			if(++start == end){
+				data[current].leaf = true;
 				return;
+			}
 		}
 
 		// reserve siblings first
 		std::vector<integer> head{start};
 		for(integer i = start; i < end;){
-			data.push_back({false, 0, texts[i][depth]});
+			data.push_back({false, false, 0, texts[i][depth]});
 			for(integer old = i; i < end && texts[i][depth] == texts[old][depth]; ++i);
 			head.push_back(i);
 		}
