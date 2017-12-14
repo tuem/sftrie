@@ -32,6 +32,11 @@ public:
 	sftrie_decompaction(const std::vector<text>& texts, integer threshold = (1 << bit_width<symbol>()) / 2):
 		data(1, {false, false, false, 1, {}}), threshold(threshold)
 	{
+		for(symbol c = min_char<symbol>(); true; ++c){
+			all_symbols.push_back(c);
+			if(c == max_char<symbol>())
+				break;
+		}
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
 	}
 
@@ -79,6 +84,7 @@ private:
 	std::vector<element> data;
 	std::unordered_map<integer, std::vector<symbol>> tail;
 	const integer threshold;
+	std::vector<symbol> all_symbols;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
@@ -105,14 +111,13 @@ private:
 
 		if(container_size<integer>(head) > threshold){
 			data[current].expanded = true;
-			integer node_end = 0;
-			for(symbol c = min_char<symbol>(); true; ++c, ++node_end){
-				data.push_back({false, false, false, current + (1 << bit_width<symbol>()), c});
-				if(c == max_char<symbol>())
-					break;
-			}
 
-			for(integer i = 0, j = 0; i < node_end && head[j] < end; ++i){
+			// reserve siblings first
+			for(symbol c: all_symbols)
+				data.push_back({false, false, false, 0, c});
+
+			// recursively construct subtries of siblings
+			for(integer i = 0, j = 0; i < all_symbols.size() && head[j] < end; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
 				if(texts[head[j]][depth] != data[child].label){
@@ -125,11 +130,8 @@ private:
 		}
 		else{
 			// reserve siblings first
-			integer j = 0;
-			for(integer i = start; i < end;){
-				data.push_back({false, false, false, 0, texts[i][depth]});
-				i = head[++j];
-			}
+			for(size_t i = 0; i < head.size() - 1; ++i)
+				data.push_back({false, false, false, 0, texts[head[i]][depth]});
 
 			// recursively construct subtries of siblings
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
