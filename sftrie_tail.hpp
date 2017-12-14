@@ -31,6 +31,14 @@ class sftrie_tail
 private:
 	using symbol = typename text::value_type;
 
+	struct element
+	{
+		integer match: 1;
+		integer leaf: 1;
+		integer index: bit_width<integer>() - 2;
+		symbol label;
+	};
+
 public:
 	sftrie_tail(const std::vector<text>& texts, integer min_tail = 4):
 		data(1, {false, false, 1, {}}), min_tail(min_tail)
@@ -65,13 +73,6 @@ public:
 	}
 
 private:
-	struct element
-	{
-		integer match: 1;
-		integer leaf: 1;
-		integer index: bit_width<integer>() - 2;
-		symbol label;
-	};
 	std::vector<element> data;
 
 	std::unordered_map<integer, std::vector<symbol>> tail;

@@ -31,6 +31,15 @@ class sftrie_decompaction
 private:
 	using symbol = typename text::value_type;
 
+	struct element
+	{
+		integer match: 1;
+		integer leaf: 1;
+		integer expanded: 1;
+		integer index: bit_width<integer>() - 3;
+		symbol label;
+	};
+
 public:
 	sftrie_decompaction(const std::vector<text>& texts, integer min_tail = 4,
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2)),
@@ -77,14 +86,6 @@ public:
 	}
 
 private:
-	struct element
-	{
-		integer match: 1;
-		integer leaf: 1;
-		integer expanded: 1;
-		integer index: bit_width<integer>() - 3;
-		symbol label;
-	};
 	std::vector<element> data;
 
 	std::unordered_map<integer, std::vector<symbol>> tail;
