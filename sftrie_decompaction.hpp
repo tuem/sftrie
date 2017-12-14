@@ -45,9 +45,10 @@ public:
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
+			if(data[current].leaf){
 				return check_tail(pattern, i, current);
-			if(data[current].expanded){
+			}
+            else if(data[current].expanded){
 				current = data[current].index + static_cast<integer>(pattern[i] - min_char<symbol>());
 				continue;
 			}
