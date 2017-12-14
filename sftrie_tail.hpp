@@ -29,7 +29,8 @@ template<typename text, typename integer>
 class sftrie_tail
 {
 public:
-	sftrie_tail(const std::vector<text>& texts): data(1, {false, false, 1, {}})
+	sftrie_tail(const std::vector<text>& texts, integer min_tail = 4):
+		data(1, {false, false, 1, {}}), min_tail(min_tail)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
 	}
@@ -72,6 +73,7 @@ private:
 	};
 	std::vector<element> data;
 	std::unordered_map<integer, std::vector<symbol>> tail;
+	integer min_tail;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
@@ -82,7 +84,7 @@ private:
 				return;
 			}
 		}
-		else if(start == end - 1){
+		else if(start == end - 1 && container_size<integer>(texts[start]) - depth >= min_tail){
 			data[current].leaf = true;
 			std::vector<symbol> tailstr;
 			std::copy(std::begin(texts[start]) + depth, std::end(texts[start]), std::back_inserter(tailstr));
