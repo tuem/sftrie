@@ -41,13 +41,13 @@ class sftrie_tail
 
 public:
 	sftrie_tail(const std::vector<text>& texts, integer min_binsearch = 16, integer min_tail = 2):
-		data(1, {false, false, 1, 0, {}}), min_binsearch(min_binsearch), tailstr(1, {}), min_tail(min_tail)
+		data(1, {false, false, 1, 0, {}}), min_binsearch(min_binsearch), tails(1, {}), min_tail(min_tail)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
-		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tailstr), {}});
+		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
 		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
 			data[i].tail = data.back().tail;
-		tailstr.push_back({});
+		tails.push_back({});
 	}
 
 	bool exists(const text& pattern) const
@@ -86,7 +86,7 @@ private:
 	std::vector<element> data;
 	const integer min_binsearch;
 
-	std::vector<symbol> tailstr;
+	std::vector<symbol> tails;
 	const integer min_tail;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
@@ -114,10 +114,10 @@ private:
 				if(depth + 1 == container_size<integer>(texts[head[i]]))
 					data[child].match = true;
 				data[child].leaf = true;
-				data[child].tail = container_size<integer>(tailstr);
+				data[child].tail = container_size<integer>(tails);
 				for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
 					data[j].tail = data[child].tail;
-				std::copy(std::begin(texts[head[i]]) + depth + 1, std::end(texts[head[i]]), std::back_inserter(tailstr));
+				std::copy(std::begin(texts[head[i]]) + depth + 1, std::end(texts[head[i]]), std::back_inserter(tails));
 			}
 		}
 
@@ -135,7 +135,7 @@ private:
 		if(container_size<integer>(pattern) - i != data[current + 1].tail - data[current].tail)
 			return false;
 		for(integer j = i, k = data[current].tail; j < container_size<integer>(pattern); ++j, ++k)
-			if(pattern[j] != tailstr[k])
+			if(pattern[j] != tails[k])
 				return false;
 		return true;
 	}
