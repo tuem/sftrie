@@ -128,8 +128,7 @@ int main(int argc, char* argv[])
 
 	std::string corpus_path = argv[1];
 	bool use_wstring = argc > 2 && std::string(argv[2]) == "wstring"; // TODO: improve
-	if(use_wstring)
-		return validate<std::wstring, integer>(corpus_path);
-    else
-		return validate<std::string, integer>(corpus_path);
+	return use_wstring ?
+		validate<std::wstring, integer>(corpus_path) :
+		validate<std::string, integer>(corpus_path);
 }
