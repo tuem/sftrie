@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 	}
 
 	std::string corpus_path = argv[1];
-	std::cerr << "loading...";
+	std::cerr << "loading texts...";
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
@@ -91,8 +91,7 @@ int main(int argc, char* argv[])
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "validating...";
-    size_t tp, tn, fp, fn;
-    tp = tn = fp = fn = 0;
+    size_t tp = 0, tn = 0, fp = 0, fn = 0;
     for(const auto& query: true_queries)
         if(trie.exists(query))
             ++tp;
