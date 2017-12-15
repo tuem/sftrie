@@ -33,7 +33,7 @@ limitations under the License.
 
 #include "string_util.hpp"
 
-using integer = unsigned long;
+using integer = unsigned int;
 
 template<typename text, typename integer>
 int validate(const std::string& corpus_path)
