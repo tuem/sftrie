@@ -38,7 +38,7 @@ class sftrie_simple
 	};
 
 public:
-	sftrie_simple(const std::vector<text>& texts, integer min_binsearch):
+	sftrie_simple(const std::vector<text>& texts, integer min_binsearch = 16):
 		data(1, {false, false, 1, {}}), min_binsearch(min_binsearch)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
