@@ -107,12 +107,11 @@ private:
 			head.push_back(i);
 		}
 
-		// append tail strings
+		// extract tail strings of leaves
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 			integer child = data[current].index + i;
 			if(head[i + 1] - head[i] == 1 && container_size<integer>(texts[head[i]]) - (depth + 1) >= min_tail){
-				if(depth + 1 == container_size<integer>(texts[head[i]]))
-					data[child].match = true;
+				data[child].match = container_size<integer>(texts[head[i]]) == depth + 1;
 				data[child].leaf = true;
 				data[child].tail = container_size<integer>(tails);
 				for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
