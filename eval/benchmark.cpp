@@ -26,7 +26,7 @@ limitations under the License.
 #include <chrono>
 
 //#define SFTRIE_USE_SIMPLE
-#define SFTRIE_USE_TAIL
+//#define SFTRIE_USE_TAIL
 //#define SFTRIE_USE_DECOMPACTION
 #include <sftrie.hpp>
 
