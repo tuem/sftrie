@@ -32,8 +32,8 @@ OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-validate: validate.o
-	$(CXX) -o $@ validate.o
+validate: validate.o string_util.o
+	$(CXX) -o $@ validate.o string_util.o
 
 
 clean:
