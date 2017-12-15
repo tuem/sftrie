@@ -31,18 +31,15 @@ limitations under the License.
 //#define SFTRIE_USE_DECOMPACTION
 #include <sftrie.hpp>
 
-using text = std::string;
-using symbol = typename text::value_type;
+#include "string_util.hpp"
+
 using integer = unsigned long;
 
-int main(int argc, char* argv[])
+template<typename text, typename integer>
+int validate(const std::string& corpus_path)
 {
-	if(argc < 2){
-		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
-		return 0;
-	}
+	using symbol = typename text::value_type;
 
-	std::string corpus_path = argv[1];
 	std::cerr << "loading texts...";
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
@@ -55,31 +52,31 @@ int main(int argc, char* argv[])
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(line);
+		texts.push_back(cast_string<text>(line));
 	}
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "analyzing texts...";
-    std::set<symbol> alphabet;
-    symbol min_char = texts.front().front(), max_char = min_char;
+	std::set<symbol> alphabet;
+	symbol min_char = texts.front().front(), max_char = min_char;
 	integer total_length = 0;
-    for(const auto& text: texts){
-        for(auto c: text){
-            alphabet.insert(c);
-            min_char = std::min(min_char, c);
-            max_char = std::max(max_char, c);
-        }
-		total_length += container_size<integer>(text);
-    }
+	for(const auto& t: texts){
+		for(auto c: t){
+			alphabet.insert(c);
+			min_char = std::min(min_char, c);
+			max_char = std::max(max_char, c);
+		}
+		total_length += container_size<integer>(t);
+	}
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "generating queries...";
-    auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(std::begin(texts), std::end(texts), std::default_random_engine(seed));
+	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
+	std::shuffle(std::begin(texts), std::end(texts), std::default_random_engine(seed));
 	std::vector<text> true_queries, false_queries;
-    std::copy(std::begin(texts), std::begin(texts) + texts.size() / 2, std::back_inserter(true_queries));
-    std::copy(std::begin(texts) + texts.size() / 2, std::end(texts), std::back_inserter(false_queries));
-    texts.erase(std::begin(texts) + texts.size() / 2, std::end(texts));
+	std::copy(std::begin(texts), std::begin(texts) + texts.size() / 2, std::back_inserter(true_queries));
+	std::copy(std::begin(texts) + texts.size() / 2, std::end(texts), std::back_inserter(false_queries));
+	texts.erase(std::begin(texts) + texts.size() / 2, std::end(texts));
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "sorting texts...";
@@ -91,17 +88,17 @@ int main(int argc, char* argv[])
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "validating...";
-    size_t tp = 0, tn = 0, fp = 0, fn = 0;
-    for(const auto& query: true_queries)
-        if(trie.exists(query))
-            ++tp;
-        else
-            ++fn;
-    for(const auto& query: false_queries)
-        if(trie.exists(query))
-            ++fp;
-        else
-            ++tn;
+	size_t tp = 0, tn = 0, fp = 0, fn = 0;
+	for(const auto& query: true_queries)
+		if(trie.exists(query))
+			++tp;
+		else
+			++fn;
+	for(const auto& query: false_queries)
+		if(trie.exists(query))
+			++fp;
+		else
+			++tn;
 	std::cerr << "done." << std::endl << std::endl;
 
 	std::cout << "texts:" << std::endl;
@@ -116,6 +113,23 @@ int main(int argc, char* argv[])
 	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn << std::endl;
 	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp << std::endl;
 	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << fn << std::endl;
-    
+
 	return (tp == true_queries.size() && tn == false_queries.size() && fp == 0 && fn == 0) ? 0 : 1;
+}
+
+int main(int argc, char* argv[])
+{
+	init_locale();
+
+	if(argc < 2){
+		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
+		return 0;
+	}
+
+	std::string corpus_path = argv[1];
+	bool use_wstring = argc > 2 && std::string(argv[2]) == "wstring"; // TODO: improve
+	if(use_wstring)
+		return validate<std::wstring, integer>(corpus_path);
+    else
+		return validate<std::string, integer>(corpus_path);
 }
