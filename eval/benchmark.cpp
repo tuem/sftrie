@@ -39,6 +39,7 @@ template<typename text, typename integer>
 int benchmark(const std::string& corpus_path)
 {
 	History history;
+
 	std::cerr << "loading corpus...";
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
