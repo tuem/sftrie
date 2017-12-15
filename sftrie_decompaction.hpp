@@ -54,9 +54,8 @@ public:
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf){
+			if(data[current].leaf)
 				return check_tail(pattern, i, current);
-			}
 			integer l = data[current].index, r = data[l].index - 1;
 			if(r - l == static_cast<integer>(static_cast<long long>(max_symbol) - min_symbol)){
 				if(pattern[i] < min_symbol || pattern[i] > max_symbol)
