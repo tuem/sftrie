@@ -18,6 +18,7 @@ limitations under the License.
 */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <set>
@@ -58,18 +59,19 @@ int main(int argc, char* argv[])
 	}
 	std::cerr << "done." << std::endl;
 
-	integer total_length = 0;
+	std::cerr << "analyzing texts...";
+    std::set<symbol> alphabet;
     symbol min_char = texts.front().front(), max_char = min_char;
+	integer total_length = 0;
     for(const auto& text: texts){
-		total_length += container_size<integer>(text);
         for(auto c: text){
+            alphabet.insert(c);
             min_char = std::min(min_char, c);
             max_char = std::max(max_char, c);
         }
+		total_length += container_size<integer>(text);
     }
-	std::cout << "total length: " << total_length << std::endl;
-	std::cout << "min symbol(int): " << static_cast<signed long long>(min_char) << std::endl;
-	std::cout << "max symbol(int): " << static_cast<signed long long>(max_char) << std::endl;
+	std::cerr << "done." << std::endl;
 
 	std::cerr << "generating queries...";
 	std::vector<text> all_queries = texts;
@@ -112,13 +114,20 @@ int main(int argc, char* argv[])
             ++fp;
         else
             ++tn;
-	std::cerr << "done." << std::endl;
+	std::cerr << "done." << std::endl << std::endl;
 
-	std::cout << "total queries: " << all_queries.size() << std::endl;
-	std::cout << "true positive: " << tp << std::endl;
-	std::cout << "true negative: " << tn << std::endl;
-	std::cout << "false positive: " << fp << std::endl;
-	std::cout << "false negative: " << fn << std::endl;
+	std::cout << "texts:" << std::endl;
+	std::cout << "  " << std::setw(25) << "alphabet size: " << std::setw(12) << alphabet.size() << std::endl;
+	std::cout << "  " << std::setw(25) << "min symbol (as integer): " << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
+	std::cout << "  " << std::setw(25) << "max symbol (as integer): " << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
+	std::cout << "  " << std::setw(25) << "number of texts: " << std::setw(12) << texts.size() << std::endl;
+	std::cout << "  " << std::setw(25) << "total length: " << std::setw(12) << total_length << std::endl;
+	std::cout << "search results:" << std::endl;
+	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << all_queries.size() << std::endl;
+	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << tp << std::endl;
+	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn << std::endl;
+	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp << std::endl;
+	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << fn << std::endl;
     
 	return (tp == true_queries.size() && tn == false_queries.size() && fp == 0 && fn == 0) ? 0 : 1;
 }
