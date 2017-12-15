@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BINS = validate
+BINS = validate benchmark
 
 all: $(BINS)
 
@@ -34,6 +34,9 @@ DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 validate: validate.o string_util.o
 	$(CXX) -o $@ validate.o string_util.o
+
+benchmark: benchmark.o string_util.o history.o
+	$(CXX) -o $@ benchmark.o string_util.o history.o
 
 
 clean:
