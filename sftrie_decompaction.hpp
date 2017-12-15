@@ -35,18 +35,22 @@ class sftrie_decompaction
 		bool match: 1;
 		bool leaf: 1;
 		integer index: bit_width<integer>() - 2;
+		integer tail;
 		symbol label;
 	};
 
 public:
-	sftrie_decompaction(const std::vector<text>& texts,
-            integer min_binary_search = 16, integer min_tail = 4,
+	sftrie_decompaction(const std::vector<text>& texts, integer min_binary_search = 16, integer min_tail = 1,
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2)),
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>()):
-		data(1, {false, false, 1, {}}), min_binary_search(min_binary_search), min_tail(min_tail),
+		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
 		min_decompaction(min_decompaction), min_symbol(min_symbol), max_symbol(max_symbol)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
+		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
+		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
+			data[i].tail = data.back().tail;
+		tails.push_back({});
 	}
 
 	bool exists(const text& pattern) const
@@ -91,7 +95,7 @@ private:
 	std::vector<element> data;
 	const integer min_binary_search;
 
-	std::unordered_map<integer, std::vector<symbol>> tail;
+	std::vector<symbol> tails;
 	const integer min_tail;
 
 	const integer min_decompaction;
@@ -107,13 +111,6 @@ private:
 				return;
 			}
 		}
-		else if(start == end - 1 && container_size<integer>(texts[start]) - depth >= min_tail){
-			data[current].leaf = true;
-			std::vector<symbol> tailstr;
-			std::copy(std::begin(texts[start]) + depth, std::end(texts[start]), std::back_inserter(tailstr));
-			tail[current] = tailstr;
-			return;
-		}
 
 		// count children
 		std::vector<integer> head{start};
@@ -126,48 +123,72 @@ private:
 			// reserve siblings first
 			integer old_data_size = container_size<integer>(data);
 			for(symbol c = min_symbol; true; ++c){
-				data.push_back({false, false, 0, c});
+				data.push_back({false, false, 0, 0, c});
 				if(c == max_symbol)
 					break;
 			}
 			integer alphabet_size = container_size<integer>(data) - old_data_size;
 
-			// recursively construct subtries
+			// extract tail strings of leaves
 			for(integer i = 0, j = 0; i < alphabet_size; ++i){
 				integer child = data[current].index + i;
-				data[child].index = container_size<integer>(data);
 				if(j == head.size() - 1 || texts[head[j]][depth] != data[child].label){
 					data[child].leaf = true;
 					continue;
 				}
-				construct(texts, head[j], head[j + 1], depth + 1, child);
+				if(head[j + 1] - head[j] == 1 && container_size<integer>(texts[head[j]]) - (depth + 1) >= min_tail){
+					data[child].match = container_size<integer>(texts[head[j]]) == depth + 1;
+					data[child].leaf = true;
+					data[child].tail = container_size<integer>(tails);
+					for(integer k = child - 1; k > 0 && data[k].tail == 0; --k)
+						data[k].tail = data[child].tail;
+					std::copy(std::begin(texts[head[j]]) + depth + 1, std::end(texts[head[j]]), std::back_inserter(tails));
+				}
+				++j;
+			}
+
+			// recursively construct subtries
+			for(integer i = 0, j = 0; i < alphabet_size; ++i){
+				integer child = data[current].index + i;
+				data[child].index = container_size<integer>(data);
+				if(j == head.size() - 1 || texts[head[j]][depth] != data[child].label)
+					continue;
+				if(head[j + 1] - head[j] != 1 || container_size<integer>(texts[head[j]]) - (depth + 1) < min_tail)
+					construct(texts, head[j], head[j + 1], depth + 1, child);
 				++j;
 			}
 		}
 		else{
 			// reserve siblings first
-			for(integer i = 0; i < container_size<integer>(head) - 1; ++i)
-				data.push_back({false, false, 0, texts[head[i]][depth]});
+			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+				data.push_back({false, false, 0, 0, texts[head[i]][depth]});
+				integer child = data[current].index + i;
+				if(head[i + 1] - head[i] == 1 && container_size<integer>(texts[head[i]]) - (depth + 1) >= min_tail){
+					data[child].match = container_size<integer>(texts[head[i]]) == depth + 1;
+					data[child].leaf = true;
+					data[child].tail = container_size<integer>(tails);
+					for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
+						data[j].tail = data[child].tail;
+					std::copy(std::begin(texts[head[i]]) + depth + 1, std::end(texts[head[i]]), std::back_inserter(tails));
+				}
+			}
 
 			// recursively construct subtries
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
-				construct(texts, head[i], head[i + 1], depth + 1, child);
+				if(head[i + 1] - head[i] != 1 || container_size<integer>(texts[head[i]]) - (depth + 1) < min_tail)
+					construct(texts, head[i], head[i + 1], depth + 1, child);
 			}
 		}
 	}
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		auto p = tail.find(current);
-		if(p == std::end(tail))
+		if(container_size<integer>(pattern) - i != data[current + 1].tail - data[current].tail)
 			return false;
-		const auto& tailstr = p->second;
-		if(container_size<integer>(pattern) - i != container_size<integer>(tailstr))
-			return false;
-		for(integer j = i; j < container_size<integer>(pattern); ++j)
-			if(pattern[j] != tailstr[j - i])
+		for(integer j = i, k = data[current].tail; j < container_size<integer>(pattern); ++j, ++k)
+			if(pattern[j] != tails[k])
 				return false;
 		return true;
 	}
