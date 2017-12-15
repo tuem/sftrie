@@ -40,10 +40,10 @@ class sftrie_decompaction
 
 public:
 	sftrie_decompaction(const std::vector<text>& texts,
-            integer min_binsearch = 16, integer min_tail = 4,
+            integer min_binary_search = 16, integer min_tail = 4,
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2)),
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>()):
-		data(1, {false, false, 1, {}}), min_binsearch(min_binsearch), min_tail(min_tail),
+		data(1, {false, false, 1, {}}), min_binary_search(min_binary_search), min_tail(min_tail),
 		min_decompaction(min_decompaction), min_symbol(min_symbol), max_symbol(max_symbol)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
@@ -62,7 +62,7 @@ public:
 				current = data[current].index + static_cast<integer>(pattern[i] - min_symbol);
 				continue;
 			}
-			while(l + min_binsearch <= r){
+			while(l + min_binary_search <= r){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
 					l = m + 1;
@@ -89,7 +89,7 @@ public:
 
 private:
 	std::vector<element> data;
-	const integer min_binsearch;
+	const integer min_binary_search;
 
 	std::unordered_map<integer, std::vector<symbol>> tail;
 	const integer min_tail;

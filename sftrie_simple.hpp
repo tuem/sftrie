@@ -38,8 +38,8 @@ class sftrie_simple
 	};
 
 public:
-	sftrie_simple(const std::vector<text>& texts, integer min_binsearch = 16):
-		data(1, {false, false, 1, {}}), min_binsearch(min_binsearch)
+	sftrie_simple(const std::vector<text>& texts, integer min_binary_search = 16):
+		data(1, {false, false, 1, {}}), min_binary_search(min_binary_search)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
 	}
@@ -51,7 +51,7 @@ public:
 			if(data[current].leaf)
 				return false;
 			integer l = data[current].index, r = data[l].index - 1;
-			while(l + min_binsearch <= r){
+			while(l + min_binary_search <= r){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
 					l = m + 1;
@@ -78,7 +78,7 @@ public:
 
 private:
 	std::vector<element> data;
-	const integer min_binsearch;
+	const integer min_binary_search;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
