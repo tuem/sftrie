@@ -130,10 +130,10 @@ private:
 			integer alphabet_size = container_size<integer>(data) - old_data_size;
 
 			// recursively construct subtries
-			for(integer i = 0, j = 0; i < alphabet_size && head[j] < end; ++i){
+			for(integer i = 0, j = 0; i < alphabet_size; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
-				if(texts[head[j]][depth] != data[child].label){
+				if(j == head.size() - 1 || texts[head[j]][depth] != data[child].label){
 					data[child].leaf = true;
 					continue;
 				}
