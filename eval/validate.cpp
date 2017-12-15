@@ -74,23 +74,12 @@ int main(int argc, char* argv[])
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "generating queries...";
-	std::vector<text> all_queries = texts;
     auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(std::begin(all_queries), std::end(all_queries), std::default_random_engine(seed));
+    std::shuffle(std::begin(texts), std::end(texts), std::default_random_engine(seed));
 	std::vector<text> true_queries, false_queries;
-    std::copy(std::begin(all_queries), std::begin(all_queries) + texts.size() / 2, std::back_inserter(true_queries));
-    std::copy(std::begin(all_queries) + texts.size() / 2, std::end(all_queries), std::back_inserter(false_queries));
-    texts = all_queries;
+    std::copy(std::begin(texts), std::begin(texts) + texts.size() / 2, std::back_inserter(true_queries));
+    std::copy(std::begin(texts) + texts.size() / 2, std::end(texts), std::back_inserter(false_queries));
     texts.erase(std::begin(texts) + texts.size() / 2, std::end(texts));
-
-    seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(std::begin(true_queries), std::end(true_queries), std::default_random_engine(seed));
-    seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(std::begin(false_queries), std::end(false_queries), std::default_random_engine(seed));
-
-	std::vector<text> shuffled_true_queries = true_queries, shuffled_false_queries = false_queries;
-	sort_sftrie_texts(std::begin(true_queries), std::end(true_queries));
-	sort_sftrie_texts(std::begin(false_queries), std::end(false_queries));
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "sorting texts...";
@@ -122,8 +111,8 @@ int main(int argc, char* argv[])
 	std::cout << "  " << std::setw(25) << "max symbol (as integer): " << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
 	std::cout << "  " << std::setw(25) << "number of texts: " << std::setw(12) << texts.size() << std::endl;
 	std::cout << "  " << std::setw(25) << "total length: " << std::setw(12) << total_length << std::endl;
-	std::cout << "search results:" << std::endl;
-	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << all_queries.size() << std::endl;
+	std::cout << "queries:" << std::endl;
+	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (true_queries.size() + false_queries.size()) << std::endl;
 	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << tp << std::endl;
 	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn << std::endl;
 	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp << std::endl;
