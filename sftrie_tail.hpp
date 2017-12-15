@@ -40,8 +40,8 @@ class sftrie_tail
 	};
 
 public:
-	sftrie_tail(const std::vector<text>& texts, integer min_binsearch = 16, integer min_tail = 2):
-		data(1, {false, false, 1, 0, {}}), min_binsearch(min_binsearch), tails(1, {}), min_tail(min_tail)
+	sftrie_tail(const std::vector<text>& texts, integer min_binary_search = 16, integer min_tail = 2):
+		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
@@ -57,7 +57,7 @@ public:
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
 			integer l = data[current].index, r = data[l].index - 1;
-			while(l + min_binsearch <= r){
+			while(l + min_binary_search <= r){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
 					l = m + 1;
@@ -84,7 +84,7 @@ public:
 
 private:
 	std::vector<element> data;
-	const integer min_binsearch;
+	const integer min_binary_search;
 
 	std::vector<symbol> tails;
 	const integer min_tail;
