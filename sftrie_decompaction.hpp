@@ -34,8 +34,7 @@ class sftrie_decompaction
 	{
 		bool match: 1;
 		bool leaf: 1;
-		bool expanded: 1;
-		integer index: bit_width<integer>() - 3;
+		integer index: bit_width<integer>() - 2;
 		symbol label;
 	};
 
@@ -44,7 +43,7 @@ public:
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2)),
 			symbol min_symbol = min_char<symbol>(),
 			symbol max_symbol = max_char<symbol>()):
-		data(1, {false, false, false, 1, {}}), min_tail(min_tail),
+		data(1, {false, false, 1, {}}), min_tail(min_tail),
 		min_decompaction(min_decompaction),
 		min_symbol(min_symbol), max_symbol(max_symbol)
 	{
@@ -58,13 +57,14 @@ public:
 			if(data[current].leaf){
 				return check_tail(pattern, i, current);
 			}
-			else if(data[current].expanded){
+			integer l = data[current].index, r = data[l].index - 1;
+			if(r - l == static_cast<integer>(static_cast<long long>(max_symbol) - min_symbol)){
 				if(pattern[i] < min_symbol || pattern[i] > max_symbol)
 					return false;
 				current = data[current].index + static_cast<integer>(pattern[i] - min_symbol);
 				continue;
 			}
-			for(integer l = data[current].index, r = data[l].index - 1; l <= r;){
+			while(l <= r){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
 					l = m + 1;
@@ -118,12 +118,10 @@ private:
 		}
 
 		if(container_size<integer>(head) > min_decompaction){
-			data[current].expanded = true;
-
 			// reserve siblings first
 			integer old_data_size = container_size<integer>(data);
 			for(symbol c = min_symbol; true; ++c){
-				data.push_back({false, false, false, 0, c});
+				data.push_back({false, false, 0, c});
 				if(c == max_symbol)
 					break;
 			}
@@ -144,7 +142,7 @@ private:
 		else{
 			// reserve siblings first
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i)
-				data.push_back({false, false, false, 0, texts[head[i]][depth]});
+				data.push_back({false, false, 0, texts[head[i]][depth]});
 
 			// recursively construct subtries
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
