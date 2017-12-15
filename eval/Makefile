@@ -26,6 +26,12 @@ CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I..
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
 
+simple: CXXFLAGS += -DSFTRIE_USE_SIMPLE
+simple: all
+tail: CXXFLAGS += -DSFTRIE_USE_TAIL
+tail: all
+decompaction: CXXFLAGS += -DSFTRIE_USE_DECOMPACTION
+decompaction: all
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SRCS))
