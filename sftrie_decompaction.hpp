@@ -40,7 +40,7 @@ class sftrie_decompaction
 	};
 
 public:
-	sftrie_decompaction(const std::vector<text>& texts, integer min_binary_search = 16, integer min_tail = 1,
+	sftrie_decompaction(const std::vector<text>& texts, integer min_binary_search = 28, integer min_tail = 1,
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2)),
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>()):
 		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),

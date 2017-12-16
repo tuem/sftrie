@@ -40,7 +40,7 @@ class sftrie_tail
 	};
 
 public:
-	sftrie_tail(const std::vector<text>& texts, integer min_binary_search = 16, integer min_tail = 1):
+	sftrie_tail(const std::vector<text>& texts, integer min_binary_search = 28, integer min_tail = 1):
 		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
