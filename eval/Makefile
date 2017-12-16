@@ -15,7 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BINS = validate benchmark
+VALIDATE_BIN = validate
+BENCHMARK_BIN = benchmark
+BINS = $(VALIDATE_BIN) $(BENCHMARK_BIN)
 
 all: $(BINS)
 
@@ -26,23 +28,31 @@ CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I..
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
 
+simple: clean all
 simple: CXXFLAGS += -DSFTRIE_USE_SIMPLE
-simple: all
+simple: VALIDATE_BIN := $(VALIDATE_BIN).simple
+simple: BENCHMARK_BIN := $(BENCHMARK_BIN).simple
+
+tail: clean all
 tail: CXXFLAGS += -DSFTRIE_USE_TAIL
-tail: all
+tail: VALIDATE_BIN := $(VALIDATE_BIN).tail
+tail: BENCHMARK_BIN := $(BENCHMARK_BIN).tail
+
+decompaction: clean all
 decompaction: CXXFLAGS += -DSFTRIE_USE_DECOMPACTION
-decompaction: all
+decompaction: VALIDATE_BIN := $(VALIDATE_BIN).decompaction
+decompaction: BENCHMARK_BIN := $(BENCHMARK_BIN).decompaction
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-validate: validate.o string_util.o
-	$(CXX) -o $@ validate.o string_util.o
+$(VALIDATE_BIN): validate.o string_util.o
+	$(CXX) -o $(VALIDATE_BIN) validate.o string_util.o
 
-benchmark: benchmark.o string_util.o history.o
-	$(CXX) -o $@ benchmark.o string_util.o history.o
+$(BENCHMARK_BIN): benchmark.o string_util.o history.o
+	$(CXX) -o $(BENCHMARK_BIN) benchmark.o string_util.o history.o
 
 
 clean:
