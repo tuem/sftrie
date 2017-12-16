@@ -30,10 +30,10 @@ limitations under the License.
 	#include "sftrie_tail.hpp"
 	template<typename text = std::string, typename integer = typename text::size_type>
 	using sftrie = sftrie_tail<text, integer>;
-#elif defined SFTRIE_USE_SIMPLE
-	#include "sftrie_simple.hpp"
+#elif defined SFTRIE_USE_BASIC
+	#include "sftrie_basic.hpp"
 	template<typename text = std::string, typename integer = typename text::size_type>
-	using sftrie = sftrie_simple<text, integer>;
+	using sftrie = sftrie_basic<text, integer>;
 #else
 	#include "sftrie_decompaction.hpp"
 	template<typename text = std::string, typename integer = typename text::size_type>
