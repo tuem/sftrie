@@ -56,7 +56,22 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
-			integer l = data[current].index, r = data[l].index - 1;
+			integer l = data[current].index;
+			if(pattern[i] < data[l].label){
+				return false;
+			}
+			else if(pattern[i] == data[l].label){
+				current = l;
+				continue;
+			}
+			integer r = data[l].index - 1;
+			if(pattern[i] > data[r].label){
+				return false;
+			}
+			else if(pattern[i] == data[r].label){
+				current = r;
+				continue;
+			}
 			while(l + min_binary_search <= r){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
