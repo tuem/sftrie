@@ -29,7 +29,6 @@ class sftrie_simple
 {
 	using symbol = typename text::value_type;
 
-#pragma pack(1)
 	struct element
 	{
 		bool match: 1;
@@ -37,7 +36,6 @@ class sftrie_simple
 		integer index: bit_width<integer>() - 2;
 		symbol label;
 	};
-#pragma pack()
 
 public:
 	sftrie_simple(const std::vector<text>& texts): data(1, {false, false, 1, {}})
