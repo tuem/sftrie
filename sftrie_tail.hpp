@@ -72,7 +72,7 @@ public:
 				current = r;
 				continue;
 			}
-			while(l + min_binary_search <= r){
+			for(++l, --r; l + min_binary_search <= r; ){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
 					l = m + 1;
