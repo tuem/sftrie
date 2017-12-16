@@ -30,6 +30,7 @@ class sftrie_decompaction
 {
 	using symbol = typename text::value_type;
 
+#pragma pack(1)
 	struct element
 	{
 		bool match: 1;
@@ -38,6 +39,7 @@ class sftrie_decompaction
 		integer tail;
 		symbol label;
 	};
+#pragma pack()
 
 public:
 	sftrie_decompaction(const std::vector<text>& texts, integer min_binary_search = 28, integer min_tail = 1,
