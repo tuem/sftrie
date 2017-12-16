@@ -61,7 +61,7 @@ $(BENCHMARK_BIN): benchmark.o string_util.o history.o
 
 
 clean:
-	$(RM) $(OBJS) $(DEPS) $(BINS) $(wildcard validate_*) $(wildcard benchmark_*)
+	$(RM) $(OBJS) $(DEPS) $(BINS)
 
 
 .PHONY: clean all

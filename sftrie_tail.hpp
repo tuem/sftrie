@@ -21,7 +21,6 @@ limitations under the License.
 #define SFTRIE_TAIL_HPP
 
 #include <vector>
-#include <unordered_map>
 
 #include "util.hpp"
 
@@ -58,28 +57,29 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
+			symbol c = pattern[i];
 			integer l = data[current].index;
-			if(pattern[i] == data[l].label){
+			if(c == data[l].label){
 				current = l;
 				continue;
 			}
-			else if(pattern[i] < data[l].label){
+			else if(c < data[l].label){
 				return false;
 			}
 			integer r = data[l].index - 1;
-			if(pattern[i] == data[r].label){
+			if(c == data[r].label){
 				current = r;
 				continue;
 			}
-			else if(pattern[i] > data[r].label){
+			else if(c > data[r].label){
 				return false;
 			}
 			for(++l, --r; l + min_binary_search <= r; ){
 				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
+				if(data[m].label < c){
 					l = m + 1;
 				}
-				else if(data[m].label > pattern[i]){
+				else if(data[m].label > c){
 					r = m - 1;
 				}
 				else{
@@ -88,7 +88,7 @@ public:
 				}
 			}
 			for(integer j = l; j <= r; ++j){
-				if(data[j].label == pattern[i]){
+				if(data[j].label == c){
 					current = j;
 					goto NEXT;
 				}

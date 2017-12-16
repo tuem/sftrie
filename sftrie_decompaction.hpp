@@ -21,7 +21,6 @@ limitations under the License.
 #define SFTRIE_DECOMPACTION_HPP
 
 #include <vector>
-#include <unordered_map>
 
 #include "util.hpp"
 
