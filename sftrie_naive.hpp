@@ -17,15 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_SIMPLE_HPP
-#define SFTRIE_SIMPLE_HPP
+#ifndef SFTRIE_NAIVE_HPP
+#define SFTRIE_NAIVE_HPP
 
 #include <vector>
 
 #include "util.hpp"
 
 template<typename text, typename integer>
-class sftrie_simple
+class sftrie_naive
 {
 	using symbol = typename text::value_type;
 
@@ -38,7 +38,7 @@ class sftrie_simple
 	};
 
 public:
-	sftrie_simple(const std::vector<text>& texts): data(1, {false, false, 1, {}})
+	sftrie_naive(const std::vector<text>& texts): data(1, {false, false, 1, {}})
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
 	}

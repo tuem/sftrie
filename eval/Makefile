@@ -28,10 +28,10 @@ CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I..
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
 
-simple: clean all
-simple: CXXFLAGS += -DSFTRIE_USE_SIMPLE
-simple: VALIDATE_BIN := $(VALIDATE_BIN)_simple
-simple: BENCHMARK_BIN := $(BENCHMARK_BIN)_simple
+naive: clean all
+naive: CXXFLAGS += -DSFTRIE_USE_NAIVE
+naive: VALIDATE_BIN := $(VALIDATE_BIN)_naive
+naive: BENCHMARK_BIN := $(BENCHMARK_BIN)_naive
 
 basic: clean all
 basic: CXXFLAGS += -DSFTRIE_USE_BASIC
