@@ -25,9 +25,6 @@ limitations under the License.
 #include <random>
 #include <chrono>
 
-//#define SFTRIE_USE_SIMPLE
-//#define SFTRIE_USE_TAIL
-//#define SFTRIE_USE_DECOMPACTION
 #include <sftrie.hpp>
 
 #include "string_util.hpp"
@@ -107,7 +104,7 @@ int main(int argc, char* argv[])
 	}
 
 	std::string corpus_path = argv[1];
-	bool use_wstring = argc > 2 && std::string(argv[2]) == "wstring"; // TODO: improve
+	bool use_wstring = argc > 2 && std::string(argv[2]) == "w";
 	return use_wstring ?
 		benchmark<std::wstring, integer>(corpus_path) :
 		benchmark<std::string, integer>(corpus_path);
