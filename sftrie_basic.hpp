@@ -17,15 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_SIMPLE_HPP
-#define SFTRIE_SIMPLE_HPP
+#ifndef SFTRIE_BASIC_HPP
+#define SFTRIE_BASIC_HPP
 
 #include <vector>
 
 #include "util.hpp"
 
 template<typename text, typename integer>
-class sftrie_simple
+class sftrie_basic
 {
 	using symbol = typename text::value_type;
 
@@ -38,7 +38,7 @@ class sftrie_simple
 	};
 
 public:
-	sftrie_simple(const std::vector<text>& texts, integer min_binary_search = 28):
+	sftrie_basic(const std::vector<text>& texts, integer min_binary_search = 28):
 		data(1, {false, false, 1, {}}), min_binary_search(min_binary_search)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
@@ -108,10 +108,9 @@ private:
 
 		// reserve siblings first
 		std::vector<integer> head{start};
-		for(integer i = start; i < end;){
+		for(integer i = start; i < end; head.push_back(i)){
 			data.push_back({false, false, 0, texts[i][depth]});
 			for(symbol c = texts[i][depth]; i < end && texts[i][depth] == c; ++i);
-			head.push_back(i);
 		}
 
 		// recursively construct subtries

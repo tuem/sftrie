@@ -128,10 +128,8 @@ private:
 
 		// count children
 		std::vector<integer> head{start};
-		for(integer i = start; i < end;){
+		for(integer i = start; i < end; head.push_back(i))
 			for(symbol c = texts[i][depth]; i < end && texts[i][depth] == c; ++i);
-			head.push_back(i);
-		}
 
 		if(container_size<integer>(head) > min_decompaction){
 			// reserve siblings first

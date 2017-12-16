@@ -116,10 +116,9 @@ private:
 
 		// reserve siblings first
 		std::vector<integer> head{start};
-		for(integer i = start; i < end;){
+		for(integer i = start; i < end; head.push_back(i)){
 			data.push_back({false, false, 0, 0, texts[i][depth]});
 			for(symbol c = texts[i][depth]; i < end && texts[i][depth] == c; ++i);
-			head.push_back(i);
 		}
 
 		// extract tail strings of leaves
