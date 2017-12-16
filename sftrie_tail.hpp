@@ -57,20 +57,20 @@ public:
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
 			integer l = data[current].index;
-			if(pattern[i] < data[l].label){
-				return false;
-			}
-			else if(pattern[i] == data[l].label){
+			if(pattern[i] == data[l].label){
 				current = l;
 				continue;
 			}
-			integer r = data[l].index - 1;
-			if(pattern[i] > data[r].label){
+			else if(pattern[i] < data[l].label){
 				return false;
 			}
-			else if(pattern[i] == data[r].label){
+			integer r = data[l].index - 1;
+			if(pattern[i] == data[r].label){
 				current = r;
 				continue;
+			}
+			else if(pattern[i] > data[r].label){
+				return false;
 			}
 			for(++l, --r; l + min_binary_search <= r; ){
 				integer m = (l + r) / 2;

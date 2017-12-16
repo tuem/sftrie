@@ -59,32 +59,33 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
+			symbol c = pattern[i];
 			integer l = data[current].index;
-			if(pattern[i] < data[l].label){
-				return false;
-			}
-			else if(pattern[i] == data[l].label){
+			if(c == data[l].label){
 				current = l;
 				continue;
 			}
-			integer r = data[l].index - 1;
-			if(pattern[i] > data[r].label){
+			else if(c < data[l].label){
 				return false;
 			}
-			else if(pattern[i] == data[r].label){
+			integer r = data[l].index - 1;
+			if(c == data[r].label){
 				current = r;
 				continue;
 			}
-			if(r - l == static_cast<integer>(static_cast<long long>(max_symbol) - min_symbol)){
-				current = data[current].index + static_cast<integer>(pattern[i] - min_symbol);
+			else if(c > data[r].label){
+				return false;
+			}
+			if(l + max_symbol - min_symbol == r){
+				current = data[current].index + c - min_symbol;
 				continue;
 			}
 			for(++l, --r; l + min_binary_search <= r; ){
 				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
+				if(data[m].label < c){
 					l = m + 1;
 				}
-				else if(data[m].label > pattern[i]){
+				else if(data[m].label > c){
 					r = m - 1;
 				}
 				else{
@@ -93,7 +94,7 @@ public:
 				}
 			}
 			for(integer j = l; j <= r; ++j){
-				if(data[j].label == pattern[i]){
+				if(data[j].label == c){
 					current = j;
 					goto NEXT;
 				}
