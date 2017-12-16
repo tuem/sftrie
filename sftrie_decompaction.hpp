@@ -59,10 +59,23 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
-			integer l = data[current].index, r = data[l].index - 1;
+			integer l = data[current].index;
+			if(pattern[i] < data[l].label){
+				return false;
+			}
+			else if(pattern[i] == data[l].label){
+				current = l;
+				continue;
+			}
+			integer r = data[l].index - 1;
+			if(pattern[i] > data[r].label){
+				return false;
+			}
+			else if(pattern[i] == data[r].label){
+				current = r;
+				continue;
+			}
 			if(r - l == static_cast<integer>(static_cast<long long>(max_symbol) - min_symbol)){
-				if(pattern[i] < min_symbol || pattern[i] > max_symbol)
-					return false;
 				current = data[current].index + static_cast<integer>(pattern[i] - min_symbol);
 				continue;
 			}
