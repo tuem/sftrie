@@ -30,23 +30,23 @@ debug: all
 
 simple: clean all
 simple: CXXFLAGS += -DSFTRIE_USE_SIMPLE
-simple: VALIDATE_BIN := $(VALIDATE_BIN).simple
-simple: BENCHMARK_BIN := $(BENCHMARK_BIN).simple
+simple: VALIDATE_BIN := $(VALIDATE_BIN)_simple
+simple: BENCHMARK_BIN := $(BENCHMARK_BIN)_simple
 
 basic: clean all
 basic: CXXFLAGS += -DSFTRIE_USE_BASIC
-basic: VALIDATE_BIN := $(VALIDATE_BIN).basic
-basic: BENCHMARK_BIN := $(BENCHMARK_BIN).basic
+basic: VALIDATE_BIN := $(VALIDATE_BIN)_basic
+basic: BENCHMARK_BIN := $(BENCHMARK_BIN)_basic
 
 tail: clean all
 tail: CXXFLAGS += -DSFTRIE_USE_TAIL
-tail: VALIDATE_BIN := $(VALIDATE_BIN).tail
-tail: BENCHMARK_BIN := $(BENCHMARK_BIN).tail
+tail: VALIDATE_BIN := $(VALIDATE_BIN)_tail
+tail: BENCHMARK_BIN := $(BENCHMARK_BIN)_tail
 
 decompaction: clean all
 decompaction: CXXFLAGS += -DSFTRIE_USE_DECOMPACTION
-decompaction: VALIDATE_BIN := $(VALIDATE_BIN).decompaction
-decompaction: BENCHMARK_BIN := $(BENCHMARK_BIN).decompaction
+decompaction: VALIDATE_BIN := $(VALIDATE_BIN)_decompaction
+decompaction: BENCHMARK_BIN := $(BENCHMARK_BIN)_decompaction
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SRCS))
@@ -61,7 +61,7 @@ $(BENCHMARK_BIN): benchmark.o string_util.o history.o
 
 
 clean:
-	$(RM) $(OBJS) $(DEPS) $(BINS)
+	$(RM) $(OBJS) $(DEPS) $(BINS) $(wildcard validate_*) $(wildcard benchmark_*)
 
 
 .PHONY: clean all
