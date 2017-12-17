@@ -76,6 +76,7 @@ void sort_texts(iterator begin, iterator end)
 struct text_object_pair_comparator
 {
 	text_comparator compare_text;
+
 	template<typename text, typename object>
 	bool operator()(const std::pair<text, object>& a, const std::pair<text, object>& b) const
 	{
