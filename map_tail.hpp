@@ -138,9 +138,9 @@ private:
 			integer child = data[current].index + i;
 			if(head[i + 1] - head[i] == 1 && container_size<integer>(head[i]->first) - (depth + 1) >= min_tail){
 				data[child].match = container_size<integer>(head[i]->first) == depth + 1;
-				data[child].value = head[i]->second;
 				data[child].leaf = true;
 				data[child].tail = container_size<integer>(tails);
+				data[child].value = head[i]->second;
 				for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
 					data[j].tail = data[child].tail;
 				std::copy(std::begin(head[i]->first) + depth + 1, std::end(head[i]->first), std::back_inserter(tails));
