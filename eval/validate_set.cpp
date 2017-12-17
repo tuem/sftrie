@@ -29,7 +29,7 @@ limitations under the License.
 //#define SFTRIE_USE_SIMPLE
 //#define SFTRIE_USE_TAIL
 //#define SFTRIE_USE_DECOMPACTION
-#include <sftrie.hpp>
+#include <sftrie/set.hpp>
 
 #include "string_util.hpp"
 
@@ -59,14 +59,14 @@ int validate(const std::string& corpus_path)
 	std::cerr << "analyzing texts...";
 	std::set<symbol> alphabet;
 	symbol min_char = texts.front().front(), max_char = min_char;
-	integer total_length = 0;
+	size_t total_length = 0;
 	for(const auto& t: texts){
 		for(auto c: t){
 			alphabet.insert(c);
 			min_char = std::min(min_char, c);
 			max_char = std::max(max_char, c);
 		}
-		total_length += container_size<integer>(t);
+		total_length += t.size();
 	}
 	std::cerr << "done." << std::endl;
 
@@ -80,22 +80,22 @@ int validate(const std::string& corpus_path)
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "sorting texts...";
-	sort_sftrie_texts(std::begin(texts), std::end(texts));
+	sftrie::sort_texts(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "constructing index...";
-	sftrie<text, integer> trie(std::begin(texts), std::end(texts));
+	sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "validating...";
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	for(const auto& query: true_queries)
-		if(trie.exists(query))
+		if(index.exists(query))
 			++tp;
 		else
 			++fn;
 	for(const auto& query: false_queries)
-		if(trie.exists(query))
+		if(index.exists(query))
 			++fp;
 		else
 			++tn;

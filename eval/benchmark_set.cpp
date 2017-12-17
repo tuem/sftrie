@@ -25,7 +25,7 @@ limitations under the License.
 #include <random>
 #include <chrono>
 
-#include <sftrie.hpp>
+#include <sftrie/set.hpp>
 
 #include "string_util.hpp"
 #include "history.hpp"
@@ -55,7 +55,7 @@ int benchmark(const std::string& corpus_path)
 	history.record("load");
 
 	std::cerr << "sorting texts...";
-	sort_sftrie_texts(std::begin(texts), std::end(texts));
+	sftrie::sort_texts(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 	history.record("sort");
 
@@ -68,14 +68,14 @@ int benchmark(const std::string& corpus_path)
 	history.record("(prepare)");
 
 	std::cerr << "constructing index...";
-	sftrie<text, integer> trie(std::begin(texts), std::end(texts));
+	sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 	history.record("construction", texts.size());
 
 	std::cerr << "searching (ordered)...";
 	size_t found = 0;
 	for(const auto& query: queries)
-		if(trie.exists(query))
+		if(index.exists(query))
 			++found;
 	std::cerr << "done." << std::endl;
 	history.record("search (ordered)", queries.size());
@@ -83,7 +83,7 @@ int benchmark(const std::string& corpus_path)
 	std::cerr << "searching (shuffled)...";
 	size_t found_shuffled = 0;
 	for(const auto& query: shuffled_queries)
-		if(trie.exists(query))
+		if(index.exists(query))
 			++found_shuffled;
 	std::cerr << "done." << std::endl;
 	history.record("search (shuffled)", shuffled_queries.size());

@@ -1,4 +1,4 @@
-validate
-validate_*
-benchmark
-benchmark_*
+validate_set
+validate_set_*
+benchmark_set
+benchmark_set_*
