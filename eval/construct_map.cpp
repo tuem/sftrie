@@ -22,11 +22,7 @@ limitations under the License.
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <set>
 #include <memory>
-
-#include <random>
-#include <chrono>
 
 #include <sftrie/map.hpp>
 
@@ -49,12 +45,12 @@ std::shared_ptr<sftrie::map<text, object, integer>> construct(const std::string&
 	}
 	object value = 0;
 	std::vector<std::pair<text, object>> texts;
-	while(ifs.good()){
 		std::string line;
+	while(ifs.good()){
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(std::make_pair(cast_string<text>(line), value));
+		texts.push_back(std::make_pair(cast_string<text>(line), value++));
 	}
 	std::cerr << "done." << std::endl;
 	history.record("load");
@@ -77,6 +73,8 @@ std::shared_ptr<sftrie::map<text, object, integer>> construct(const std::string&
 
 int main(int argc, char* argv[])
 {
+	init_locale();
+
 	if(argc < 2){
 		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
 		return 0;
@@ -88,7 +86,6 @@ int main(int argc, char* argv[])
 	std::string corpus_path = argv[1];
 	bool use_wstring = argc > 2 && std::string(argv[2]) == "w";
 	if(!use_wstring){
-		init_locale();
 		auto dict = construct<std::string, object, integer>(corpus_path);
 		std::cout << "press any key to exit" << std::endl;
 		getchar();

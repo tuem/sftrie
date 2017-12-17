@@ -22,11 +22,7 @@ limitations under the License.
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <set>
 #include <memory>
-
-#include <random>
-#include <chrono>
 
 #include <sftrie/set.hpp>
 
@@ -41,12 +37,12 @@ std::shared_ptr<sftrie::set<text, integer>> construct(const std::string& corpus_
 	History history;
 
 	std::cerr << "loading corpus...";
-	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
 		std::cerr << "input file is not available: " << corpus_path << std::endl;
 		exit(1);
 	}
+	std::vector<text> texts;
 	while(ifs.good()){
 		std::string line;
 		std::getline(ifs, line);
@@ -75,6 +71,8 @@ std::shared_ptr<sftrie::set<text, integer>> construct(const std::string& corpus_
 
 int main(int argc, char* argv[])
 {
+	init_locale();
+
 	if(argc < 2){
 		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
 		return 0;
@@ -86,7 +84,6 @@ int main(int argc, char* argv[])
 	std::string corpus_path = argv[1];
 	bool use_wstring = argc > 2 && std::string(argv[2]) == "w";
 	if(!use_wstring){
-		init_locale();
 		auto index = construct<std::string, integer>(corpus_path);
 		std::cout << "press any key to exit" << std::endl;
 		getchar();
