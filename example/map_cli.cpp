@@ -25,7 +25,7 @@ limitations under the License.
 //#define SFTRIE_USE_BASIC
 //#define SFTRIE_USE_TAIL
 //#define SFTRIE_USE_DECOMPACTION
-#include <sftrie_naive_map.hpp>
+#include <sftrie/map.hpp>
 
 using text = std::string;
 using integer = unsigned long;
@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
 	}
 
 	sftrie::sort_text_object_pairs(std::begin(texts), std::end(texts));
-	sftrie::sftrie_naive_map<text, integer, object> trie(std::begin(texts), std::end(texts));
+	sftrie::map<text, integer, object> dict(std::begin(texts), std::end(texts));
 	texts.clear();
 	std::cerr << "done." << std::endl;
 
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 		else if(query.empty())
 			continue;
 
-		auto result = trie.find(query);
+		auto result = dict.find(query);
 		if(result.first)
 			std::cout << query << ": " << "found, value=" << result.second << std::endl;
 		else

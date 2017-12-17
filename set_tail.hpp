@@ -27,7 +27,7 @@ limitations under the License.
 namespace sftrie{
 
 template<typename text, typename integer>
-class sftrie_set_tail
+class set_tail
 {
 	using symbol = typename text::value_type;
 
@@ -44,7 +44,7 @@ class sftrie_set_tail
 
 public:
 	template<typename random_access_iterator>
-	sftrie_set_tail(random_access_iterator begin, random_access_iterator end,
+	set_tail(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 28, integer min_tail = 1):
 		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search),
 		tails(1, {}), min_tail(min_tail)

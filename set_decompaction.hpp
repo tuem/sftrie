@@ -27,7 +27,7 @@ limitations under the License.
 namespace sftrie{
 
 template<typename text, typename integer>
-class sftrie_set_decompaction
+class set_decompaction
 {
 	using symbol = typename text::value_type;
 
@@ -44,7 +44,7 @@ class sftrie_set_decompaction
 
 public:
 	template<typename random_access_iterator>
-	sftrie_set_decompaction(random_access_iterator begin, random_access_iterator end,
+	set_decompaction(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 28, integer min_tail = 1,
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2))):

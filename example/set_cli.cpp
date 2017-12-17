@@ -25,7 +25,7 @@ limitations under the License.
 //#define SFTRIE_USE_BASIC
 //#define SFTRIE_USE_TAIL
 //#define SFTRIE_USE_DECOMPACTION
-#include <sftrie.hpp>
+#include <sftrie/set.hpp>
 
 using text = std::string;
 using integer = unsigned long;
