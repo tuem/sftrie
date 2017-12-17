@@ -17,15 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_DECOMPACTION_HPP
-#define SFTRIE_DECOMPACTION_HPP
+#ifndef SFTRIE_SET_DECOMPACTION_HPP
+#define SFTRIE_SET_DECOMPACTION_HPP
 
 #include <vector>
 
 #include "util.hpp"
 
+namespace sftrie{
+
 template<typename text, typename integer>
-class sftrie_decompaction
+class sftrie_set_decompaction
 {
 	using symbol = typename text::value_type;
 
@@ -42,7 +44,7 @@ class sftrie_decompaction
 
 public:
 	template<typename random_access_iterator>
-	sftrie_decompaction(random_access_iterator begin, random_access_iterator end,
+	sftrie_set_decompaction(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 28, integer min_tail = 1,
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2))):
@@ -209,6 +211,8 @@ private:
 				return false;
 		return true;
 	}
+};
+
 };
 
 #endif
