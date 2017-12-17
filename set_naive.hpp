@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_NAIVE_HPP
-#define SFTRIE_NAIVE_HPP
+#ifndef SFTRIE_SET_NAIVE_HPP
+#define SFTRIE_SET_NAIVE_HPP
 
 #include <vector>
 
@@ -26,8 +26,8 @@ limitations under the License.
 
 namespace sftrie{
 
-template<typename text, typename object, typename integer>
-class sftrie_naive_map
+template<typename text, typename integer>
+class set_naive
 {
 	using symbol = typename text::value_type;
 
@@ -37,23 +37,22 @@ class sftrie_naive_map
 		bool leaf: 1;
 		integer index: bit_width<integer>() - 2;
 		symbol label;
-		object value;
 	};
 
 public:
 	template<typename random_access_iterator>
-	sftrie_naive_map(random_access_iterator begin, random_access_iterator end):
-		data(1, {false, false, 1, {}, {}}), NOT_FOUND(false, {})
+	set_naive(random_access_iterator begin, random_access_iterator end):
+		data(1, {false, false, 1, {}})
 	{
 		construct(begin, end, 0, 0);
 	}
 
-	std::pair<bool, object> find(const text& pattern) const
+	bool exists(const text& pattern) const
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
-				return NOT_FOUND;
+				return false;
 			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
@@ -67,22 +66,20 @@ public:
 					goto NEXT;
 				}
 			}
-			return NOT_FOUND;
+			return false;
 			NEXT:;
 		}
-		return data[current].match ? std::make_pair(true, data[current].value) : NOT_FOUND;
+		return data[current].match;
 	}
 
 private:
 	std::vector<element> data;
-	const std::pair<bool, object> NOT_FOUND;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)
 	{
-		if(depth == container_size<integer>(begin->first)){
+		if(depth == container_size<integer>(*begin)){
 			data[current].match = true;
-			data[current].value = begin->second;
 			if(++begin == end){
 				data[current].leaf = true;
 				return;
@@ -92,9 +89,8 @@ private:
 		// reserve siblings first
 		std::vector<iterator> head{begin};
 		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, i->first[depth], 100});
-			//data.push_back({false, false, 0, i->first[depth], {}});
-			for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
+			data.push_back({false, false, 0, (*i)[depth]});
+			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
 		}
 
 		// recursively construct subtries
