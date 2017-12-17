@@ -45,7 +45,7 @@ public:
 	template<typename random_access_iterator>
 	map_basic(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 28):
-		data(1, {false, false, 1, {}, {}}), not_found(false, {}),
+		data(1, {false, false, 1, {}, {}}), not_found(false, data.front().value),
 		min_binary_search(min_binary_search)
 	{
 		construct(begin, end, 0, 0);
