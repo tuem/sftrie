@@ -39,13 +39,13 @@ int validate(const std::string& corpus_path)
 	using symbol = typename text::value_type;
 
 	std::cerr << "loading texts...";
-	std::vector<std::pair<text, object>> texts;
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
 		std::cerr << "input file is not available: " << corpus_path << std::endl;
 		return 1;
 	}
 	object value = 0;
+	std::vector<std::pair<text, object>> texts;
 	while(ifs.good()){
 		std::string line;
 		std::getline(ifs, line);
