@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_NAIVE_HPP
-#define SFTRIE_NAIVE_HPP
+#ifndef SFTRIE_MAP_NAIVE_HPP
+#define SFTRIE_MAP_NAIVE_HPP
 
 #include <vector>
 
