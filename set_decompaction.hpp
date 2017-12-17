@@ -54,9 +54,11 @@ public:
 	{
 		construct(begin, end, 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
+		data.shrink_to_fit();
 		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
 			data[i].tail = data.back().tail;
 		tails.push_back({});
+		tails.shrink_to_fit();
 	}
 
 	bool exists(const text& pattern) const

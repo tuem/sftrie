@@ -47,6 +47,7 @@ public:
 		data(1, {false, false, 1, {}, {}}), not_found(false, data.front().value)
 	{
 		construct(begin, end, 0, 0);
+		data.shrink_to_fit();
 	}
 
 	result find(const text& pattern) const
