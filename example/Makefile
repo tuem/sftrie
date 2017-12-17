@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BINS = trie_cli
+BINS = set_cli map_cli
 
 all: $(BINS)
 
@@ -32,8 +32,11 @@ OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-trie_cli: trie_cli.o
-	$(CXX) -o $@ trie_cli.o
+set_cli: trie_cli.o
+	$(CXX) -o $@ set_cli.o
+
+map_cli: trie_map_cli.o
+	$(CXX) -o $@ map_cli.o
 
 
 clean:
