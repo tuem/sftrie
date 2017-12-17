@@ -32,10 +32,10 @@ OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-set_cli: trie_cli.o
+set_cli: set_cli.o
 	$(CXX) -o $@ set_cli.o
 
-map_cli: trie_map_cli.o
+map_cli: map_cli.o
 	$(CXX) -o $@ map_cli.o
 
 
