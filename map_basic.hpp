@@ -32,6 +32,7 @@ class map_basic
 	using symbol = typename text::value_type;
 	using result = std::pair<bool, const object&>;
 
+#pragma pack(1)
 	struct element
 	{
 		bool match: 1;
@@ -40,6 +41,7 @@ class map_basic
 		symbol label;
 		object value;
 	};
+#pragma pack()
 
 public:
 	template<typename random_access_iterator>
@@ -49,6 +51,7 @@ public:
 		min_binary_search(min_binary_search)
 	{
 		construct(begin, end, 0, 0);
+		data.shrink_to_fit();
 	}
 
 	result find(const text& pattern) const
