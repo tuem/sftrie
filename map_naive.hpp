@@ -92,8 +92,7 @@ private:
 		// reserve siblings first
 		std::vector<iterator> head{begin};
 		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, i->first[depth], 100});
-			//data.push_back({false, false, 0, i->first[depth], {}});
+			data.push_back({false, false, 0, i->first[depth], {}});
 			for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
 		}
 
