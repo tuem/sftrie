@@ -26,9 +26,6 @@ limitations under the License.
 #include <random>
 #include <chrono>
 
-//#define SFTRIE_USE_SIMPLE
-//#define SFTRIE_USE_TAIL
-//#define SFTRIE_USE_DECOMPACTION
 #include <sftrie/set.hpp>
 
 #include "string_util.hpp"
