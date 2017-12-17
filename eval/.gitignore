@@ -2,6 +2,10 @@ validate_set
 validate_set_*
 validate_map
 validate_map_*
+construct_set
+construct_set_*
+construct_map
+construct_map_*
 benchmark_set
 benchmark_set_*
 benchmark_map
