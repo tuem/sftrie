@@ -47,10 +47,10 @@ limitations under the License.
 		using map = map_naive<text, object, integer>;
 	};
 #else
-	#include "map_basic.hpp"
+	#include "map_decompaction.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
-		using map = map_basic<text, object, integer>;
+		using map = map_decompaction<text, object, integer>;
 	};
 #endif
 
