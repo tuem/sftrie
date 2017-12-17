@@ -30,6 +30,7 @@ template<typename text, typename object, typename integer>
 class map_tail
 {
 	using symbol = typename text::value_type;
+	using result = std::pair<bool, const object&>;
 
 #pragma pack(1)
 	struct element
@@ -57,7 +58,7 @@ public:
 		tails.push_back({});
 	}
 
-	std::pair<bool, object> find(const text& pattern) const
+	result find(const text& pattern) const
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
@@ -102,12 +103,12 @@ public:
 			return NOT_FOUND;
 			NEXT:;
 		}
-		return data[current].match ? std::make_pair(true, data[current].value) : NOT_FOUND;
+		return data[current].match ? result(true, data[current].value) : NOT_FOUND;
 	}
 
 private:
 	std::vector<element> data;
-	const std::pair<bool, object> NOT_FOUND;
+	const result NOT_FOUND;
 	const integer min_binary_search;
 
 	std::vector<symbol> tails;
@@ -132,7 +133,7 @@ private:
 			for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
 		}
 
-		// TODO
+		// TODO: fix it
 		// extract tail strings of leaves
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 			integer child = data[current].index + i;
@@ -155,14 +156,14 @@ private:
 		}
 	}
 
-	std::pair<bool, object> check_tail(const text& pattern, integer i, integer current) const
+	result check_tail(const text& pattern, integer i, integer current) const
 	{
 		if(container_size<integer>(pattern) - i != data[current + 1].tail - data[current].tail)
 			return NOT_FOUND;
 		for(integer j = i, k = data[current].tail; j < container_size<integer>(pattern); ++j, ++k)
 			if(pattern[j] != tails[k])
 				return NOT_FOUND;
-		return std::make_pair(true, data[current].value);
+		return result(true, data[current].value);
 	}
 };
 
