@@ -42,10 +42,10 @@ class sftrie_decompaction
 
 public:
 	sftrie_decompaction(const std::vector<text>& texts, integer min_binary_search = 28, integer min_tail = 1,
-			integer min_decompaction = (1 << (bit_width<symbol>() / 2)),
-			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>()):
+			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
+			integer min_decompaction = (1 << (bit_width<symbol>() / 2))):
 		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
-		min_decompaction(min_decompaction), min_symbol(min_symbol), max_symbol(max_symbol)
+		min_symbol(min_symbol), max_symbol(max_symbol), min_decompaction(min_decompaction)
 	{
 		construct(texts, 0, container_size<integer>(texts), 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
@@ -113,9 +113,9 @@ private:
 	std::vector<symbol> tails;
 	const integer min_tail;
 
-	const integer min_decompaction;
 	const symbol min_symbol;
 	const symbol max_symbol;
+	const integer min_decompaction;
 
 	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
 	{
