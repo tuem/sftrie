@@ -28,8 +28,8 @@ limitations under the License.
 #include <sftrie/map.hpp>
 
 using text = std::string;
-using integer = unsigned long;
 using object = unsigned long;
+using integer = unsigned long;
 
 int main(int argc, char* argv[])
 {
