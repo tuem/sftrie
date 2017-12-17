@@ -17,15 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_BASIC_HPP
-#define SFTRIE_BASIC_HPP
+#ifndef SFTRIE_SET_BASIC_HPP
+#define SFTRIE_SET_BASIC_HPP
 
 #include <vector>
 
 #include "util.hpp"
 
+namespace sftrie{
+
 template<typename text, typename integer>
-class sftrie_basic
+class sftrie_set_basic
 {
 	using symbol = typename text::value_type;
 
@@ -41,7 +43,7 @@ class sftrie_basic
 
 public:
 	template<typename random_access_iterator>
-	sftrie_basic(random_access_iterator begin, random_access_iterator end,
+	sftrie_set_basic(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 28):
 		data(1, {false, false, 1, {}}), min_binary_search(min_binary_search)
 	{
@@ -125,6 +127,8 @@ private:
 			construct(head[i], head[i + 1], depth + 1, child);
 		}
 	}
+};
+
 };
 
 #endif

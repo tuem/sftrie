@@ -22,6 +22,8 @@ limitations under the License.
 
 #include <algorithm>
 
+namespace sftrie{
+
 template<typename integer>
 constexpr int bit_width()
 {
@@ -66,9 +68,27 @@ struct text_comparator
 };
 
 template<typename iterator>
-void sort_sftrie_texts(iterator begin, iterator end)
+void sort_texts(iterator begin, iterator end)
 {
 	std::sort(begin, end, text_comparator());
 }
+
+struct text_object_pair_comparator
+{
+	text_comparator compare_text;
+	template<typename text, typename object>
+	bool operator()(const std::pair<text, object>& a, const std::pair<text, object>& b) const
+	{
+		return compare_text(a.first, b.first);
+	}
+};
+
+template<typename iterator>
+void sort_text_object_pairs(iterator begin, iterator end)
+{
+	std::sort(begin, end, text_object_pair_comparator());
+}
+
+};
 
 #endif

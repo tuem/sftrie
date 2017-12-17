@@ -17,15 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_NAIVE_HPP
-#define SFTRIE_NAIVE_HPP
+#ifndef SFTRIE_SET_NAIVE_HPP
+#define SFTRIE_SET_NAIVE_HPP
 
 #include <vector>
 
 #include "util.hpp"
 
+namespace sftrie{
+
 template<typename text, typename integer>
-class sftrie_naive
+class sftrie_set_naive
 {
 	using symbol = typename text::value_type;
 
@@ -39,7 +41,7 @@ class sftrie_naive
 
 public:
 	template<typename random_access_iterator>
-	sftrie_naive(random_access_iterator begin, random_access_iterator end):
+	sftrie_set_naive(random_access_iterator begin, random_access_iterator end):
 		data(1, {false, false, 1, {}})
 	{
 		construct(begin, end, 0, 0);
@@ -98,6 +100,8 @@ private:
 			construct(head[i], head[i + 1], depth + 1, child);
 		}
 	}
+};
+
 };
 
 #endif

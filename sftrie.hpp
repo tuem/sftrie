@@ -24,24 +24,34 @@ limitations under the License.
 
 #if defined SFTRIE_USE_DECOMPACTION
 	#include "sftrie_decompaction.hpp"
-	template<typename text = std::string, typename integer = typename text::size_type>
-	using sftrie = sftrie_decompaction<text, integer>;
+	namespace sftrie{
+		template<typename text = std::string, typename integer = typename text::size_type>
+		using set = sftrie_set_decompaction<text, integer>;
+	};
 #elif defined SFTRIE_USE_TAIL
 	#include "sftrie_tail.hpp"
-	template<typename text = std::string, typename integer = typename text::size_type>
-	using sftrie = sftrie_tail<text, integer>;
+	namespace sftrie{
+		template<typename text = std::string, typename integer = typename text::size_type>
+		using set = sftrie_set_tail<text, integer>;
+	};
 #elif defined SFTRIE_USE_BASIC
 	#include "sftrie_basic.hpp"
-	template<typename text = std::string, typename integer = typename text::size_type>
-	using sftrie = sftrie_basic<text, integer>;
+	namespace sftrie{
+		template<typename text = std::string, typename integer = typename text::size_type>
+		using set = sftrie_set_basic<text, integer>;
+	};
 #elif defined SFTRIE_USE_NAIVE
 	#include "sftrie_naive.hpp"
-	template<typename text = std::string, typename integer = typename text::size_type>
-	using sftrie = sftrie_naive<text, integer>;
+	namespace sftrie{
+		template<typename text = std::string, typename integer = typename text::size_type>
+		using set = sftrie_set_naive<text, integer>;
+	};
 #else
 	#include "sftrie_decompaction.hpp"
-	template<typename text = std::string, typename integer = typename text::size_type>
-	using sftrie = sftrie_decompaction<text, integer>;
+	namespace sftrie{
+		template<typename text = std::string, typename integer = typename text::size_type>
+		using set = sftrie_set_decompaction<text, integer>;
+	};
 #endif
 
 #endif

@@ -53,8 +53,8 @@ int main(int argc, char* argv[])
 		texts.push_back(line);
 	}
 
-	sort_sftrie_texts(std::begin(texts), std::end(texts));
-	sftrie<text, integer> trie(std::begin(texts), std::end(texts));
+	sftrie::sort_texts(std::begin(texts), std::end(texts));
+	sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
 	texts.clear();
 	std::cerr << "done." << std::endl;
 
@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 		else if(query.empty())
 			continue;
 
-		std::cout << query << ": " << (trie.exists(query) ? "found" : "not found") << std::endl;
+		std::cout << query << ": " << (index.exists(query) ? "found" : "not found") << std::endl;
 	}
 
 	return 0;
