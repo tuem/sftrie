@@ -15,49 +15,49 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VALIDATE_BIN = validate
-BENCHMARK_BIN = benchmark
-BINS = $(VALIDATE_BIN) $(BENCHMARK_BIN)
+VALIDATE_SET_BIN = validate_set
+BENCHMARK_SET_BIN = benchmark_set
+BINS = $(VALIDATE_SET_BIN) $(BENCHMARK_SET_BIN)
 
 all: $(BINS)
 
 
 CXX := g++
-CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I..
+CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I../..
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
 
 naive: clean all
 naive: CXXFLAGS += -DSFTRIE_USE_NAIVE
-naive: VALIDATE_BIN := $(VALIDATE_BIN)_naive
-naive: BENCHMARK_BIN := $(BENCHMARK_BIN)_naive
+naive: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_naive
+naive: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_naive
 
 basic: clean all
 basic: CXXFLAGS += -DSFTRIE_USE_BASIC
-basic: VALIDATE_BIN := $(VALIDATE_BIN)_basic
-basic: BENCHMARK_BIN := $(BENCHMARK_BIN)_basic
+basic: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_basic
+basic: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_basic
 
 tail: clean all
 tail: CXXFLAGS += -DSFTRIE_USE_TAIL
-tail: VALIDATE_BIN := $(VALIDATE_BIN)_tail
-tail: BENCHMARK_BIN := $(BENCHMARK_BIN)_tail
+tail: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_tail
+tail: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_tail
 
 decompaction: clean all
 decompaction: CXXFLAGS += -DSFTRIE_USE_DECOMPACTION
-decompaction: VALIDATE_BIN := $(VALIDATE_BIN)_decompaction
-decompaction: BENCHMARK_BIN := $(BENCHMARK_BIN)_decompaction
+decompaction: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_decompaction
+decompaction: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_decompaction
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-$(VALIDATE_BIN): validate.o string_util.o
-	$(CXX) -o $(VALIDATE_BIN) validate.o string_util.o
+$(VALIDATE_SET_BIN): validate_set.o string_util.o
+	$(CXX) -o $(VALIDATE_SET_BIN) validate_set.o string_util.o
 
-$(BENCHMARK_BIN): benchmark.o string_util.o history.o
-	$(CXX) -o $(BENCHMARK_BIN) benchmark.o string_util.o history.o
+$(BENCHMARK_SET_BIN): benchmark_set.o string_util.o history.o
+	$(CXX) -o $(BENCHMARK_SET_BIN) benchmark_set.o string_util.o history.o
 
 
 clean:
