@@ -133,12 +133,12 @@ private:
 			for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
 		}
 
-		// TODO: fix it
 		// extract tail strings of leaves
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 			integer child = data[current].index + i;
 			if(head[i + 1] - head[i] == 1 && container_size<integer>(head[i]->first) - (depth + 1) >= min_tail){
 				data[child].match = container_size<integer>(head[i]->first) == depth + 1;
+				data[child].value = head[i]->second;
 				data[child].leaf = true;
 				data[child].tail = container_size<integer>(tails);
 				for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
