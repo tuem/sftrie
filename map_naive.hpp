@@ -50,6 +50,11 @@ public:
 		data.shrink_to_fit();
 	}
 
+	std::size_t size() const
+	{
+		return sizeof(element) * data.size();
+	}
+
 	result find(const text& pattern) const
 	{
 		integer current = 0;

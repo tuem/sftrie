@@ -56,6 +56,16 @@ public:
 			data[i].tail = data.back().tail;
 		tails.push_back({});
 		tails.shrink_to_fit();
+		std::cerr << "|ELEMENT|=" << sizeof(element) << std::endl;
+		std::cerr << "|DATA|=" << data.size() << std::endl;
+		std::cerr << "|SYMBOL|=" << sizeof(symbol) << std::endl;
+		std::cerr << "|TAIL|=" << tails.size() << std::endl;
+		std::cerr << "|TOTAL|=" << sizeof(element) * data.size() + sizeof(symbol) * tails.size() << std::endl;
+	}
+
+	std::size_t size() const
+	{
+		return sizeof(element) * data.size() + sizeof(symbol) * tails.size();;
 	}
 
 	bool exists(const text& pattern) const

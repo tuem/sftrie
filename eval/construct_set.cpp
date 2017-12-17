@@ -27,20 +27,16 @@ limitations under the License.
 #include <sftrie/set.hpp>
 
 #include "string_util.hpp"
-#include "history.hpp"
 
 using integer = unsigned int;
 
 template<typename text, typename integer>
 std::shared_ptr<sftrie::set<text, integer>> construct(const std::string& corpus_path)
 {
-	History history;
-
-	std::cerr << "loading corpus...";
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
 		std::cerr << "input file is not available: " << corpus_path << std::endl;
-		exit(1);
+		return nullptr;
 	}
 	std::vector<text> texts;
 	while(ifs.good()){
@@ -50,23 +46,8 @@ std::shared_ptr<sftrie::set<text, integer>> construct(const std::string& corpus_
 			break;
 		texts.push_back(cast_string<text>(line));
 	}
-	std::cerr << "done." << std::endl;
-	history.record("load");
-
-	std::cerr << "sorting texts...";
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
-	std::cerr << "done." << std::endl;
-	history.record("sort");
-
-	std::cerr << "constructing index...";
-	auto index = std::make_shared<sftrie::set<text, integer>>(std::begin(texts), std::end(texts));
-	std::cerr << "done." << std::endl;
-	history.record("construction", texts.size());
-
-	std::cout << std::endl;
-	history.dump(std::cout, true, true);
-
-	return index;
+	return std::make_shared<sftrie::set<text, integer>>(std::begin(texts), std::end(texts));
 }
 
 int main(int argc, char* argv[])
@@ -77,22 +58,30 @@ int main(int argc, char* argv[])
 		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
 		return 0;
 	}
-
-	std::cout << "press any key to start" << std::endl;
-	getchar();
-
 	std::string corpus_path = argv[1];
 	bool use_wstring = argc > 2 && std::string(argv[2]) == "w";
+
+	std::cout << "press any key to construct" << std::flush;
+	getchar();
+
+	std::size_t size;
 	if(!use_wstring){
 		auto index = construct<std::string, integer>(corpus_path);
-		std::cout << "press any key to exit" << std::endl;
+		size = index->size();
+		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
 	else{
 		auto index = construct<std::wstring, integer>(corpus_path);
-		std::cout << "press any key to exit" << std::endl;
+		size = index->size();
+		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
+
+	std::cout << "press any key to exit" << std::flush;
+	getchar();
+
+	std::cout << "size: " << size << std::endl;
 
 	return 0;
 }
