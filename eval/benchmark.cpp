@@ -68,7 +68,7 @@ int benchmark(const std::string& corpus_path)
 	history.record("(prepare)");
 
 	std::cerr << "constructing index...";
-	sftrie<text, integer> trie(texts);
+	sftrie<text, integer> trie(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 	history.record("construction", texts.size());
 

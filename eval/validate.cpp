@@ -84,7 +84,7 @@ int validate(const std::string& corpus_path)
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "constructing index...";
-	sftrie<text, integer> trie(texts);
+	sftrie<text, integer> trie(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "validating...";
