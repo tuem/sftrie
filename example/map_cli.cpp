@@ -40,13 +40,13 @@ int main(int argc, char* argv[])
 
 	std::string corpus_path = argv[1];
 	std::cerr << "loading...";
-	std::vector<std::pair<text, object>> texts;
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
 		std::cerr << "input file is not available: " << corpus_path << std::endl;
 		return 1;
 	}
-	object value = 0;
+	object value = 1;
+	std::vector<std::pair<text, object>> texts;
 	while(ifs.good()){
 		std::string line;
 		std::getline(ifs, line);
@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 
 		auto result = dict.find(query);
 		if(result.first)
-			std::cout << query << ": " << "found, value=" << result.second << std::endl;
+			std::cout << query << ": " << "found, line=" << result.second << std::endl;
 		else
 			std::cout << query << ": " << "not found" << std::endl;
 	}
