@@ -30,6 +30,7 @@ template<typename text, typename object, typename integer>
 class map_naive
 {
 	using symbol = typename text::value_type;
+	using result = std::pair<bool, const object&>;
 
 	struct element
 	{
@@ -43,12 +44,12 @@ class map_naive
 public:
 	template<typename random_access_iterator>
 	map_naive(random_access_iterator begin, random_access_iterator end):
-		data(1, {false, false, 1, {}, {}}), NOT_FOUND(false, {})
+		data(1, {false, false, 1, {}, {}}), NOT_FOUND(false, data.front().value)
 	{
 		construct(begin, end, 0, 0);
 	}
 
-	std::pair<bool, object> find(const text& pattern) const
+	result find(const text& pattern) const
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
@@ -70,12 +71,12 @@ public:
 			return NOT_FOUND;
 			NEXT:;
 		}
-		return data[current].match ? std::make_pair(true, data[current].value) : NOT_FOUND;
+		return data[current].match ? result(true, data[current].value) : NOT_FOUND;
 	}
 
 private:
 	std::vector<element> data;
-	const std::pair<bool, object> NOT_FOUND;
+	const result NOT_FOUND;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)
