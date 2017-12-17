@@ -61,6 +61,11 @@ public:
 		tails.shrink_to_fit();
 	}
 
+	std::size_t size() const
+	{
+		return sizeof(element) * data.size() + sizeof(symbol) * tails.size();;
+	}
+
 	bool exists(const text& pattern) const
 	{
 		integer current = 0;

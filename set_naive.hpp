@@ -48,6 +48,11 @@ public:
 		data.shrink_to_fit();
 	}
 
+	std::size_t size() const
+	{
+		return sizeof(element) * data.size();
+	}
+
 	bool exists(const text& pattern) const
 	{
 		integer current = 0;
