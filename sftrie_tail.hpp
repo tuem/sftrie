@@ -41,10 +41,13 @@ class sftrie_tail
 #pragma pack()
 
 public:
-	sftrie_tail(const std::vector<text>& texts, integer min_binary_search = 28, integer min_tail = 1):
-		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
+	template<typename random_access_iterator>
+	sftrie_tail(random_access_iterator begin, random_access_iterator end,
+			integer min_binary_search = 28, integer min_tail = 1):
+		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search),
+		tails(1, {}), min_tail(min_tail)
 	{
-		construct(texts, 0, container_size<integer>(texts), 0, 0);
+		construct(begin, end, 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
 		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
 			data[i].tail = data.back().tail;
@@ -106,33 +109,34 @@ private:
 	std::vector<symbol> tails;
 	const integer min_tail;
 
-	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
+	template<typename iterator>
+	void construct(iterator begin, iterator end, integer depth, integer current)
 	{
-		if(depth == container_size<integer>(texts[start])){
+		if(depth == container_size<integer>(*begin)){
 			data[current].match = true;
-			if(++start == end){
+			if(++begin == end){
 				data[current].leaf = true;
 				return;
 			}
 		}
 
 		// reserve siblings first
-		std::vector<integer> head{start};
-		for(integer i = start; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, 0, texts[i][depth]});
-			for(symbol c = texts[i][depth]; i < end && texts[i][depth] == c; ++i);
+		std::vector<iterator> head{begin};
+		for(iterator i = begin; i < end; head.push_back(i)){
+			data.push_back({false, false, 0, 0, (*i)[depth]});
+			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
 		}
 
 		// extract tail strings of leaves
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 			integer child = data[current].index + i;
-			if(head[i + 1] - head[i] == 1 && container_size<integer>(texts[head[i]]) - (depth + 1) >= min_tail){
-				data[child].match = container_size<integer>(texts[head[i]]) == depth + 1;
+			if(head[i + 1] - head[i] == 1 && container_size<integer>(*head[i]) - (depth + 1) >= min_tail){
+				data[child].match = container_size<integer>(*head[i]) == depth + 1;
 				data[child].leaf = true;
 				data[child].tail = container_size<integer>(tails);
 				for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
 					data[j].tail = data[child].tail;
-				std::copy(std::begin(texts[head[i]]) + depth + 1, std::end(texts[head[i]]), std::back_inserter(tails));
+				std::copy(std::begin(*head[i]) + depth + 1, std::end(*head[i]), std::back_inserter(tails));
 			}
 		}
 
@@ -140,8 +144,8 @@ private:
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 			integer child = data[current].index + i;
 			data[child].index = container_size<integer>(data);
-			if(head[i + 1] - head[i] != 1 || container_size<integer>(texts[head[i]]) - (depth + 1) < min_tail)
-				construct(texts, head[i], head[i + 1], depth + 1, child);
+			if(head[i + 1] - head[i] != 1 || container_size<integer>(*head[i]) - (depth + 1) < min_tail)
+				construct(head[i], head[i + 1], depth + 1, child);
 		}
 	}
 

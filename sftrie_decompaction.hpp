@@ -41,13 +41,16 @@ class sftrie_decompaction
 #pragma pack()
 
 public:
-	sftrie_decompaction(const std::vector<text>& texts, integer min_binary_search = 28, integer min_tail = 1,
+	template<typename random_access_iterator>
+	sftrie_decompaction(random_access_iterator begin, random_access_iterator end,
+			integer min_binary_search = 28, integer min_tail = 1,
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2))):
-		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
+		data(1, {false, false, 1, 0, {}}), min_binary_search(min_binary_search),
+		tails(1, {}), min_tail(min_tail)
 		min_symbol(min_symbol), max_symbol(max_symbol), min_decompaction(min_decompaction)
 	{
-		construct(texts, 0, container_size<integer>(texts), 0, 0);
+		construct(begin, end, 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
 		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
 			data[i].tail = data.back().tail;
@@ -117,20 +120,21 @@ private:
 	const symbol max_symbol;
 	const integer min_decompaction;
 
-	void construct(const std::vector<text>& texts, integer start, integer end, integer depth, integer current)
+	template<typename iterator>
+	void construct(iterator begin, iterator end, integer depth, integer current)
 	{
-		if(depth == container_size<integer>(texts[start])){
+		if(depth == container_size<integer>(*begin)){
 			data[current].match = true;
-			if(++start == end){
+			if(++begin == end){
 				data[current].leaf = true;
 				return;
 			}
 		}
 
 		// count children
-		std::vector<integer> head{start};
-		for(integer i = start; i < end; head.push_back(i))
-			for(symbol c = texts[i][depth]; i < end && texts[i][depth] == c; ++i);
+		std::vector<iterator> head{begin};
+		for(iterator i = begin; i < end; head.push_back(i))
+			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
 
 		if(container_size<integer>(head) > min_decompaction){
 			// reserve siblings first
@@ -145,17 +149,17 @@ private:
 			// extract tail strings of leaves
 			for(integer i = 0, j = 0; i < alphabet_size; ++i){
 				integer child = data[current].index + i;
-				if(j == head.size() - 1 || texts[head[j]][depth] != data[child].label){
+				if(j == head.size() - 1 || (*head[j])[depth] != data[child].label){
 					data[child].leaf = true;
 					continue;
 				}
-				if(head[j + 1] - head[j] == 1 && container_size<integer>(texts[head[j]]) - (depth + 1) >= min_tail){
-					data[child].match = container_size<integer>(texts[head[j]]) == depth + 1;
+				if(head[j + 1] - head[j] == 1 && container_size<integer>(*head[j]) - (depth + 1) >= min_tail){
+					data[child].match = container_size<integer>(*head[j]) == depth + 1;
 					data[child].leaf = true;
 					data[child].tail = container_size<integer>(tails);
 					for(integer k = child - 1; k > 0 && data[k].tail == 0; --k)
 						data[k].tail = data[child].tail;
-					std::copy(std::begin(texts[head[j]]) + depth + 1, std::end(texts[head[j]]), std::back_inserter(tails));
+					std::copy(std::begin(*head[j]) + depth + 1, std::end(*head[j]), std::back_inserter(tails));
 				}
 				++j;
 			}
@@ -164,25 +168,25 @@ private:
 			for(integer i = 0, j = 0; i < alphabet_size; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
-				if(j == head.size() - 1 || texts[head[j]][depth] != data[child].label)
+				if(j == head.size() - 1 || (*head[j])[depth] != data[child].label)
 					continue;
-				if(head[j + 1] - head[j] != 1 || container_size<integer>(texts[head[j]]) - (depth + 1) < min_tail)
-					construct(texts, head[j], head[j + 1], depth + 1, child);
+				if(head[j + 1] - head[j] != 1 || container_size<integer>(*head[j]) - (depth + 1) < min_tail)
+					construct(head[j], head[j + 1], depth + 1, child);
 				++j;
 			}
 		}
 		else{
 			// reserve siblings first
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-				data.push_back({false, false, 0, 0, texts[head[i]][depth]});
+				data.push_back({false, false, 0, 0, (*head[i])[depth]});
 				integer child = data[current].index + i;
-				if(head[i + 1] - head[i] == 1 && container_size<integer>(texts[head[i]]) - (depth + 1) >= min_tail){
-					data[child].match = container_size<integer>(texts[head[i]]) == depth + 1;
+				if(head[i + 1] - head[i] == 1 && container_size<integer>(*head[i]) - (depth + 1) >= min_tail){
+					data[child].match = container_size<integer>(*head[i]) == depth + 1;
 					data[child].leaf = true;
 					data[child].tail = container_size<integer>(tails);
 					for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
 						data[j].tail = data[child].tail;
-					std::copy(std::begin(texts[head[i]]) + depth + 1, std::end(texts[head[i]]), std::back_inserter(tails));
+					std::copy(std::begin(*head[i]) + depth + 1, std::end(*head[i]), std::back_inserter(tails));
 				}
 			}
 
@@ -190,8 +194,8 @@ private:
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 				integer child = data[current].index + i;
 				data[child].index = container_size<integer>(data);
-				if(head[i + 1] - head[i] != 1 || container_size<integer>(texts[head[i]]) - (depth + 1) < min_tail)
-					construct(texts, head[i], head[i + 1], depth + 1, child);
+				if(head[i + 1] - head[i] != 1 || container_size<integer>(*head[i]) - (depth + 1) < min_tail)
+					construct(head[i], head[i + 1], depth + 1, child);
 			}
 		}
 	}
