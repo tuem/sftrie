@@ -44,7 +44,7 @@ class map_naive
 public:
 	template<typename random_access_iterator>
 	map_naive(random_access_iterator begin, random_access_iterator end):
-		data(1, {false, false, 1, {}, {}}), NOT_FOUND(false, data.front().value)
+		data(1, {false, false, 1, {}, {}}), not_found(false, data.front().value)
 	{
 		construct(begin, end, 0, 0);
 	}
@@ -54,7 +54,7 @@ public:
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
-				return NOT_FOUND;
+				return not_found;
 			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
@@ -68,15 +68,15 @@ public:
 					goto NEXT;
 				}
 			}
-			return NOT_FOUND;
+			return not_found;
 			NEXT:;
 		}
-		return data[current].match ? result(true, data[current].value) : NOT_FOUND;
+		return data[current].match ? result(true, data[current].value) : not_found;
 	}
 
 private:
 	std::vector<element> data;
-	const result NOT_FOUND;
+	const result not_found;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)

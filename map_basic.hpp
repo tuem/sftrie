@@ -45,7 +45,7 @@ public:
 	template<typename random_access_iterator>
 	map_basic(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 28):
-		data(1, {false, false, 1, {}, {}}), NOT_FOUND(false, {}),
+		data(1, {false, false, 1, {}, {}}), not_found(false, {}),
 		min_binary_search(min_binary_search)
 	{
 		construct(begin, end, 0, 0);
@@ -56,7 +56,7 @@ public:
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
-				return NOT_FOUND;
+				return not_found;
 			symbol c = pattern[i];
 			integer l = data[current].index;
 			if(c == data[l].label){
@@ -64,7 +64,7 @@ public:
 				continue;
 			}
 			else if(c < data[l].label){
-				return NOT_FOUND;
+				return not_found;
 			}
 			integer r = data[l].index - 1;
 			if(c == data[r].label){
@@ -72,7 +72,7 @@ public:
 				continue;
 			}
 			else if(c > data[r].label){
-				return NOT_FOUND;
+				return not_found;
 			}
 			for(++l, --r; l + min_binary_search <= r; ){
 				integer m = (l + r) / 2;
@@ -93,15 +93,15 @@ public:
 					goto NEXT;
 				}
 			}
-			return NOT_FOUND;
+			return not_found;
 			NEXT:;
 		}
-		return data[current].match ? result(true, data[current].value) : NOT_FOUND;
+		return data[current].match ? result(true, data[current].value) : not_found;
 	}
 
 private:
 	std::vector<element> data;
-	const result NOT_FOUND;
+	const result not_found;
 	const integer min_binary_search;
 
 	template<typename iterator>
