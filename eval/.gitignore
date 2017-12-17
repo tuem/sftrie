@@ -1,4 +1,6 @@
 validate_set
 validate_set_*
+validate_map
+validate_map_*
 benchmark_set
 benchmark_set_*
