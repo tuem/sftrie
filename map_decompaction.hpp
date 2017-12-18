@@ -85,7 +85,7 @@ public:
 				current = data[current].index + c - min_symbol;
 				continue;
 			}
-			for(; l + min_binary_search < r; ){
+			while(l + min_binary_search < r){
 				integer m = (l + r) / 2;
 				if(data[m].label < c)
 					l = m + 1;
