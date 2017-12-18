@@ -79,7 +79,7 @@ public:
 				return check_tail(pattern, i, current);
 			symbol c = pattern[i];
 			integer l = data[current].index, r = data[l].index - 1;
-			if(r - l == max_symbol - min_symbol){
+			if(l + max_symbol - min_symbol == r){
 				current = data[current].index + c - min_symbol;
 				continue;
 			}
