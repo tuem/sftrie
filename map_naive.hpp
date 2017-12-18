@@ -44,13 +44,18 @@ class map_naive
 public:
 	template<typename random_access_iterator>
 	map_naive(random_access_iterator begin, random_access_iterator end):
-		data(1, {false, false, 1, {}, {}}), not_found(false, data.front().value)
+		num_texts(end - begin), data(1, {false, false, 1, {}, {}}), not_found(false, data[0].value)
 	{
 		construct(begin, end, 0, 0);
 		data.shrink_to_fit();
 	}
 
-	std::size_t size() const
+	integer size() const
+	{
+		return num_texts;
+	}
+
+	std::size_t space() const
 	{
 		return sizeof(element) * data.size();
 	}
@@ -81,6 +86,8 @@ public:
 	}
 
 private:
+	const integer num_texts;
+
 	std::vector<element> data;
 	const result not_found;
 

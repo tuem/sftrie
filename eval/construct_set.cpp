@@ -67,13 +67,13 @@ int main(int argc, char* argv[])
 	std::size_t size;
 	if(!use_wstring){
 		auto index = construct<std::string, integer>(corpus_path);
-		size = index->size();
+		size = index->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
 	else{
 		auto index = construct<std::wstring, integer>(corpus_path);
-		size = index->size();
+		size = index->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
