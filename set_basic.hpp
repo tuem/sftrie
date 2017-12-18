@@ -70,7 +70,7 @@ public:
 				return false;
 			symbol c = pattern[i];
 			integer l = data[current].index, r = data[l].index - 1;
-			for(; l + min_binary_search < r; ){
+			while(l + min_binary_search < r){
 				integer m = (l + r) / 2;
 				if(data[m].label < c)
 					l = m + 1;
