@@ -21,6 +21,8 @@ limitations under the License.
 #define SFTRIE_STRING_UTIL_HPP
 
 #include <string>
+#include <locale>
+#include <codecvt>
 
 void init_locale();
 
