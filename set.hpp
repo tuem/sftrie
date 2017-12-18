@@ -22,25 +22,25 @@ limitations under the License.
 
 #include <string>
 
-#if defined SFTRIE_USE_DECOMPACTION
+#if defined SFTRIE_SET_USE_DECOMPACTION
 	#include "set_decompaction.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
 		using set = set_decompaction<text, integer>;
 	};
-#elif defined SFTRIE_USE_TAIL
+#elif defined SFTRIE_SET_USE_TAIL
 	#include "set_tail.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
 		using set = set_tail<text, integer>;
 	};
-#elif defined SFTRIE_USE_BASIC
+#elif defined SFTRIE_SET_USE_BASIC
 	#include "set_basic.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
 		using set = set_basic<text, integer>;
 	};
-#elif defined SFTRIE_USE_NAIVE
+#elif defined SFTRIE_SET_USE_NAIVE
 	#include "set_naive.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
