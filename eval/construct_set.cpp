@@ -31,7 +31,7 @@ limitations under the License.
 using integer = unsigned int;
 
 template<typename text, typename integer>
-std::shared_ptr<sftrie::set<text, integer>> construct(const std::string& corpus_path)
+std::shared_ptr<sftrie::set<text, integer>> exec(const std::string& corpus_path)
 {
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
@@ -59,21 +59,27 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	std::string corpus_path = argv[1];
-	bool use_wstring = argc > 2 && std::string(argv[2]) == "w";
+    std::string type = argc > 2 ? argv[2] : "s";
 
 	std::cout << "press any key to construct" << std::flush;
 	getchar();
 
-	std::size_t size;
-	if(!use_wstring){
-		auto index = construct<std::string, integer>(corpus_path);
-		size = index->space();
+	std::size_t space;
+	if(type == "u16"){
+		auto index = exec<std::u16string, integer>(corpus_path);
+		space = index->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
-	else{
-		auto index = construct<std::wstring, integer>(corpus_path);
-		size = index->space();
+    else if(type == "w"){
+		auto index = exec<std::wstring, integer>(corpus_path);
+		space = index->space();
+		std::cout << "press any key to destruct" << std::flush;
+		getchar();
+	}
+    else{
+		auto index = exec<std::string, integer>(corpus_path);
+		space = index->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
@@ -81,7 +87,7 @@ int main(int argc, char* argv[])
 	std::cout << "press any key to exit" << std::flush;
 	getchar();
 
-	std::cout << "size: " << size << std::endl;
+	std::cout << "size: " << space << std::endl;
 
 	return 0;
 }

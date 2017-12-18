@@ -32,7 +32,7 @@ using object = unsigned int;
 using integer = unsigned int;
 
 template<typename text, typename object, typename integer>
-std::shared_ptr<sftrie::map<text, object, integer>> construct(const std::string& corpus_path)
+std::shared_ptr<sftrie::map<text, object, integer>> exec(const std::string& corpus_path)
 {
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
@@ -61,21 +61,27 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	std::string corpus_path = argv[1];
-	bool use_wstring = argc > 2 && std::string(argv[2]) == "w";
+    std::string type = argc > 2 ? argv[2] : "s";
 
 	std::cout << "press any key to construct" << std::flush;
 	getchar();
 
-	std::size_t size;
-	if(!use_wstring){
-		auto dict = construct<std::string, object, integer>(corpus_path);
-		size = dict->space();
+	std::size_t space;
+	if(type == "u16"){
+		auto dict = exec<std::u16string, object, integer>(corpus_path);
+		space = dict->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
-	else{
-		auto dict = construct<std::wstring, object, integer>(corpus_path);
-		size = dict->space();
+    else if(type == "w"){
+		auto dict = exec<std::wstring, object, integer>(corpus_path);
+		space = dict->space();
+		std::cout << "press any key to destruct" << std::flush;
+		getchar();
+	}
+    else{
+		auto dict = exec<std::string, object, integer>(corpus_path);
+		space = dict->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
@@ -83,7 +89,7 @@ int main(int argc, char* argv[])
 	std::cout << "press any key to exit" << std::flush;
 	getchar();
 
-	std::cout << "size: " << size << std::endl;
+	std::cout << "size: " << space << std::endl;
 
 	return 0;
 }

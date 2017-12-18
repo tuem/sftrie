@@ -27,30 +27,44 @@ limitations under the License.
 
 void init_locale()
 {
-    std::ios_base::sync_with_stdio(false);
-    std::locale default_loc("");
-    std::locale::global(std::locale(default_loc, new std::codecvt_utf8<wchar_t>));
-    std::locale ctype_default_loc(std::locale::classic(), default_loc, std::locale::ctype);
-    std::wcin.imbue(std::locale());
-    std::wcout.imbue(ctype_default_loc);
-    std::wcerr.imbue(ctype_default_loc);
-    setlocale(LC_ALL, "");
+	std::ios_base::sync_with_stdio(false);
+	std::locale default_loc("");
+	std::locale::global(std::locale(default_loc, new std::codecvt_utf8<wchar_t>));
+	std::locale ctype_default_loc(std::locale::classic(), default_loc, std::locale::ctype);
+	std::wcin.imbue(std::locale());
+	std::wcout.imbue(ctype_default_loc);
+	std::wcerr.imbue(ctype_default_loc);
+	setlocale(LC_ALL, "");
 }
 
 template<>
 void cast_string(const std::string& src, std::wstring& dest)
 {
-    std::wstring::value_type *wcs = new std::wstring::value_type[src.length() + 1];
-    mbstowcs(wcs, src.c_str(), src.length() + 1);
-    dest = wcs;
-    delete [] wcs;
+	std::wstring::value_type *wcs = new std::wstring::value_type[src.length() + 1];
+	mbstowcs(wcs, src.c_str(), src.length() + 1);
+	dest = wcs;
+	delete [] wcs;
 }
 
 template<>
 void cast_string(const std::wstring& src, std::string& dest)
 {
-    std::string::value_type *mbs = new std::string::value_type[src.length() * MB_CUR_MAX + 1];
-    wcstombs(mbs, src.c_str(), src.length() * MB_CUR_MAX + 1);
-    dest = mbs;
-    delete [] mbs;
+	std::string::value_type *mbs = new std::string::value_type[src.length() * MB_CUR_MAX + 1];
+	wcstombs(mbs, src.c_str(), src.length() * MB_CUR_MAX + 1);
+	dest = mbs;
+	delete [] mbs;
+}
+
+template<>
+void cast_string(const std::string& src, std::u16string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
+	dest = converter.from_bytes(src);
+}
+
+template<>
+void cast_string(const std::u16string& src, std::string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
+	dest = converter.to_bytes(src);
 }
