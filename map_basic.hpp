@@ -82,7 +82,7 @@ public:
 			for(; l <= r && data[l].label < c; ++l);
 			if(l <= r && data[l].label == c)
 				current = l;
-            else
+			else
 				return not_found;
 		}
 		return data[current].match ? result(true, data[current].value) : not_found;
