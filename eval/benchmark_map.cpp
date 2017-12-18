@@ -106,13 +106,13 @@ int main(int argc, char* argv[])
 	}
 
 	std::string corpus_path = argv[1];
-    std::string type = argc > 2 ? argv[2] : "s";
+	std::string type = argc > 2 ? argv[2] : "s";
 	if(type == "u16")
 		return exec<std::u16string, object, integer>(corpus_path);
-    else if(type == "u32")
+	else if(type == "u32")
 		return exec<std::u32string, object, integer>(corpus_path);
-    else if(type == "w")
+	else if(type == "w")
 		return exec<std::wstring, object, integer>(corpus_path);
-    else
+	else
 		return exec<std::string, object, integer>(corpus_path);
 }

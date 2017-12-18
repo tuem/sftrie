@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 		return 0;
 	}
 	std::string corpus_path = argv[1];
-    std::string type = argc > 2 ? argv[2] : "s";
+	std::string type = argc > 2 ? argv[2] : "s";
 
 	std::cout << "press any key to construct" << std::flush;
 	getchar();
@@ -71,19 +71,19 @@ int main(int argc, char* argv[])
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
-    else if(type == "u32"){
+	else if(type == "u32"){
 		auto index = exec<std::u32string, integer>(corpus_path);
 		space = index->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
-    else if(type == "w"){
+	else if(type == "w"){
 		auto index = exec<std::wstring, integer>(corpus_path);
 		space = index->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
-    else{
+	else{
 		auto index = exec<std::string, integer>(corpus_path);
 		space = index->space();
 		std::cout << "press any key to destruct" << std::flush;
