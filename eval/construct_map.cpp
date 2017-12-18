@@ -69,13 +69,13 @@ int main(int argc, char* argv[])
 	std::size_t size;
 	if(!use_wstring){
 		auto dict = construct<std::string, object, integer>(corpus_path);
-		size = dict->size();
+		size = dict->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
 	else{
 		auto dict = construct<std::wstring, object, integer>(corpus_path);
-		size = dict->size();
+		size = dict->space();
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}

@@ -50,7 +50,7 @@ public:
 			integer min_binary_search = 28, integer min_tail = 4,
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
 			integer min_decompaction = (1 << (bit_width<symbol>() / 2))):
-		data(1, {false, false, 1, 0, {}, {}}), not_found(false, data.front().value),
+		num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}}), not_found(false, data[0].value),
 		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
 		min_symbol(min_symbol), max_symbol(max_symbol), min_decompaction(min_decompaction)
 	{
@@ -63,9 +63,14 @@ public:
 		tails.shrink_to_fit();
 	}
 
-	std::size_t size() const
+	integer size() const
 	{
-		return sizeof(element) * data.size() + sizeof(symbol) * tails.size();;
+		return num_texts;
+	}
+
+	std::size_t space() const
+	{
+		return sizeof(element) * data.size() + sizeof(symbol) * tails.size();
 	}
 
 	result find(const text& pattern) const
@@ -121,8 +126,11 @@ public:
 	}
 
 private:
+	const integer num_texts;
+
 	std::vector<element> data;
 	const result not_found;
+
 	const integer min_binary_search;
 
 	std::vector<symbol> tails;
