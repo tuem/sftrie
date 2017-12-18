@@ -34,7 +34,7 @@ using object = unsigned int;
 using integer = unsigned int;
 
 template<typename text, typename object, typename integer>
-int validate(const std::string& corpus_path)
+int exec(const std::string& corpus_path)
 {
 	using symbol = typename text::value_type;
 
@@ -130,8 +130,11 @@ int main(int argc, char* argv[])
 	}
 
 	std::string corpus_path = argv[1];
-	bool use_wstring = argc > 2 && std::string(argv[2]) == "w";
-	return use_wstring ?
-		validate<std::wstring, object, integer>(corpus_path) :
-		validate<std::string, object, integer>(corpus_path);
+    std::string type = argc > 2 ? argv[2] : "s";
+	if(type == "u16")
+		return exec<std::u16string, object, integer>(corpus_path);
+    else if(type == "w")
+		return exec<std::wstring, object, integer>(corpus_path);
+    else
+		return exec<std::string, object, integer>(corpus_path);
 }
