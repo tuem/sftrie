@@ -80,27 +80,12 @@ public:
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
 			symbol c = pattern[i];
-			integer l = data[current].index;
-			if(c == data[l].label){
-				current = l;
-				continue;
-			}
-			else if(c < data[l].label){
-				return not_found;
-			}
-			integer r = data[l].index - 1;
-			if(c == data[r].label){
-				current = r;
-				continue;
-			}
-			else if(c > data[r].label){
-				return not_found;
-			}
+			integer l = data[current].index, r = data[l].index - 1;
 			if(l + max_symbol - min_symbol == r){
 				current = data[current].index + c - min_symbol;
 				continue;
 			}
-			for(++l; l + min_binary_search < r; ){
+			for(; l + min_binary_search < r; ){
 				integer m = (l + r) / 2;
 				if(data[m].label < c)
 					l = m + 1;
@@ -108,12 +93,11 @@ public:
 					r = m;
 			}
 			for(; l <= r && data[l].label < c; ++l);
-			if(data[l].label == c){
+			if(l <= r && data[l].label == c){
 				current = l;
-				goto NEXT;
+				continue;
 			}
 			return not_found;
-			NEXT:;
 		}
 		return data[current].match ? result(true, data[current].value) : not_found;
 	}
