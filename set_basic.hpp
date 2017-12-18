@@ -78,11 +78,10 @@ public:
 					r = m;
 			}
 			for(; l <= r && data[l].label < c; ++l);
-			if(l <= r && data[l].label == c){
+			if(l <= r && data[l].label == c)
 				current = l;
-				continue;
-			}
-			return false;
+            else
+				return false;
 		}
 		return data[current].match;
 	}

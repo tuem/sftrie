@@ -80,11 +80,10 @@ public:
 					r = m;
 			}
 			for(; l <= r && data[l].label < c; ++l);
-			if(l <= r && data[l].label == c){
+			if(l <= r && data[l].label == c)
 				current = l;
-				continue;
-			}
-			return not_found;
+            else
+				return not_found;
 		}
 		return data[current].match ? result(true, data[current].value) : not_found;
 	}
