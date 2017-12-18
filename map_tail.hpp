@@ -60,7 +60,7 @@ public:
 		tails.shrink_to_fit();
 	}
 
-	integer size() const
+	std::size_t size() const
 	{
 		return num_texts;
 	}
@@ -95,7 +95,7 @@ public:
 	}
 
 private:
-	const integer num_texts;
+	const std::size_t num_texts;
 
 	std::vector<element> data;
 	const result not_found;
