@@ -21,10 +21,10 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-//#define SFTRIE_USE_NAIVE
-//#define SFTRIE_USE_BASIC
-//#define SFTRIE_USE_TAIL
-//#define SFTRIE_USE_DECOMPACTION
+//#define SFTRIE_MAP_USE_NAIVE
+//#define SFTRIE_MAP_USE_BASIC
+//#define SFTRIE_MAP_USE_TAIL
+//#define SFTRIE_MAP_USE_DECOMPACTION
 #include <sftrie/map.hpp>
 
 using text = std::string;
