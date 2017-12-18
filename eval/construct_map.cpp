@@ -73,6 +73,12 @@ int main(int argc, char* argv[])
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
+    else if(type == "u32"){
+		auto dict = exec<std::u32string, object, integer>(corpus_path);
+		space = dict->space();
+		std::cout << "press any key to destruct" << std::flush;
+		getchar();
+	}
     else if(type == "w"){
 		auto dict = exec<std::wstring, object, integer>(corpus_path);
 		space = dict->space();

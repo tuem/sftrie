@@ -64,3 +64,17 @@ void cast_string(const std::u16string& src, std::string& dest)
 	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
 	dest = converter.to_bytes(src);
 }
+
+template<>
+void cast_string(const std::string& src, std::u32string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+	dest = converter.from_bytes(src);
+}
+
+template<>
+void cast_string(const std::u32string& src, std::string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
+	dest = converter.to_bytes(src);
+}
