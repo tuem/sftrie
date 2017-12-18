@@ -45,7 +45,7 @@ class set_tail
 public:
 	template<typename random_access_iterator>
 	set_tail(random_access_iterator begin, random_access_iterator end,
-			integer min_binary_search = 28, integer min_tail = 1):
+			integer min_binary_search = 42, integer min_tail = 1):
 		num_texts(end - begin), data(1, {false, false, 1, 0, {}}),
 		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
 	{

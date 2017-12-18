@@ -47,7 +47,7 @@ class map_decompaction
 public:
 	template<typename random_access_iterator>
 	map_decompaction(random_access_iterator begin, random_access_iterator end,
-			integer min_binary_search = 28, integer min_tail = 4,
+			integer min_binary_search = 42, integer min_tail = 4,
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
 			integer min_decompaction = (1 << (bit_width<symbol>() - 3))):
 		num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}}), not_found(false, data[0].value),
