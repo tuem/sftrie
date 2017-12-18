@@ -104,11 +104,10 @@ public:
 					goto NEXT;
 				}
 			}
-			for(integer j = l; j <= r; ++j){
-				if(data[j].label == c){
-					current = j;
-					goto NEXT;
-				}
+			for(; l <= r && data[l].label < c; ++l);
+			if(data[l].label == c){
+				current = l;
+				goto NEXT;
 			}
 			return false;
 			NEXT:;
