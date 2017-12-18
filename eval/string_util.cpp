@@ -40,19 +40,15 @@ void init_locale()
 template<>
 void cast_string(const std::string& src, std::wstring& dest)
 {
-	std::wstring::value_type *wcs = new std::wstring::value_type[src.length() + 1];
-	mbstowcs(wcs, src.c_str(), src.length() + 1);
-	dest = wcs;
-	delete [] wcs;
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	dest = converter.from_bytes(src);
 }
 
 template<>
 void cast_string(const std::wstring& src, std::string& dest)
 {
-	std::string::value_type *mbs = new std::string::value_type[src.length() * MB_CUR_MAX + 1];
-	wcstombs(mbs, src.c_str(), src.length() * MB_CUR_MAX + 1);
-	dest = mbs;
-	delete [] mbs;
+	std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+	dest = converter.to_bytes(src);
 }
 
 template<>
