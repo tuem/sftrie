@@ -100,18 +100,12 @@ public:
 				current = data[current].index + c - min_symbol;
 				continue;
 			}
-			for(++l, --r; l + min_binary_search <= r; ){
+			for(++l; l + min_binary_search < r; ){
 				integer m = (l + r) / 2;
-				if(data[m].label < c){
+				if(data[m].label < c)
 					l = m + 1;
-				}
-				else if(data[m].label > c){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
+				else
+					r = m;
 			}
 			for(; l <= r && data[l].label < c; ++l);
 			if(data[l].label == c){
