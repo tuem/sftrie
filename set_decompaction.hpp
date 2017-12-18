@@ -93,7 +93,7 @@ public:
 			for(; l <= r && data[l].label < c; ++l);
 			if(l <= r && data[l].label == c)
 				current = l;
-            else
+			else
 				return false;
 		}
 		return data[current].match;
