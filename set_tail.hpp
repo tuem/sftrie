@@ -147,8 +147,9 @@ private:
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i == tail_pos[current + 1] - tail_pos[current] &&
-			std::equal(std::begin(pattern) + i, std::end(pattern), &tail_pos[current]);
+		return container_size<integer>(pattern) - i < tail_str.size() - tail_pos[current] &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), &tail_str[tail_pos[current]]) &&
+			container_size<integer>(pattern) - i == tail_pos[current + 1] - tail_pos[current];
 	}
 };
 
