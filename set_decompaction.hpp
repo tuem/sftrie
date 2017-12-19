@@ -195,7 +195,7 @@ private:
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i != data[current + 1].tail - data[current].tail &&
+		return container_size<integer>(pattern) - i == data[current + 1].tail - data[current].tail &&
 			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
 	}
 };
