@@ -37,7 +37,6 @@ class set_tail
 		bool match: 1;
 		bool leaf: 1;
 		integer index: bit_width<integer>() - 2;
-		integer tail;
 		symbol label;
 	};
 #pragma pack()
@@ -45,15 +44,17 @@ class set_tail
 public:
 	template<typename random_access_iterator>
 	set_tail(random_access_iterator begin, random_access_iterator end,
-			integer min_binary_search = 42, integer min_tail = 1):
-		num_texts(end - begin), data(1, {false, false, 1, 0, {}}),
-		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
+			integer min_binary_search = 42, integer min_tail = 3):
+		num_texts(end - begin), data(1, {false, false, 1, {}}),
+		min_binary_search(min_binary_search), tails(1, {}), tailp(1, 0), min_tail(min_tail)
 	{
 		construct(begin, end, 0, 0);
-		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
+		data.push_back({false, false, container_size<integer>(data), {}});
 		data.shrink_to_fit();
-		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
-			data[i].tail = data.back().tail;
+		tailp.push_back(container_size<integer>(tails));
+		tailp.shrink_to_fit();
+		for(integer i = container_size<integer>(tailp) - 2; i > 0 && tailp[i] == 0; --i)
+			tailp[i] = tailp.back();
 		tails.push_back({});
 		tails.shrink_to_fit();
 	}
@@ -100,6 +101,7 @@ private:
 	const integer min_binary_search;
 
 	std::vector<symbol> tails;
+	std::vector<integer> tailp;
 	const integer min_tail;
 
 	template<typename iterator>
@@ -116,7 +118,8 @@ private:
 		// reserve siblings first
 		std::vector<iterator> head{begin};
 		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, 0, (*i)[depth]});
+			data.push_back({false, false, 0, (*i)[depth]});
+			tailp.push_back(0);
 			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
 		}
 
@@ -126,9 +129,9 @@ private:
 			if(head[i + 1] - head[i] == 1 && container_size<integer>(*head[i]) - (depth + 1) >= min_tail){
 				data[child].match = container_size<integer>(*head[i]) == depth + 1;
 				data[child].leaf = true;
-				data[child].tail = container_size<integer>(tails);
-				for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
-					data[j].tail = data[child].tail;
+				tailp[child] = container_size<integer>(tails);
+				for(integer j = child - 1; j > 0 && tailp[j] == 0; --j)
+					tailp[j] = tailp[child];
 				std::copy(std::begin(*head[i]) + depth + 1, std::end(*head[i]), std::back_inserter(tails));
 			}
 		}
@@ -144,8 +147,8 @@ private:
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i == data[current + 1].tail - data[current].tail &&
-			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
+		return container_size<integer>(pattern) - i == tailp[current + 1] - tailp[current] &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + tailp[current]);
 	}
 };
 
