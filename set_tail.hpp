@@ -57,6 +57,7 @@ public:
 			tail_pos[i] = tail_pos.back();
 		tail_str.push_back({});
 		tail_str.shrink_to_fit();
+		tail_length = tail_str.size();
 	}
 
 	std::size_t size() const
@@ -103,6 +104,7 @@ private:
 	std::vector<symbol> tail_str;
 	std::vector<integer> tail_pos;
 	const integer min_tail;
+	integer tail_length;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)
@@ -147,9 +149,8 @@ private:
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i < tail_str.size() - tail_pos[current] &&
-			std::equal(std::begin(pattern) + i, std::end(pattern), &tail_str[tail_pos[current]]) &&
-			container_size<integer>(pattern) - i == tail_pos[current + 1] - tail_pos[current];
+		return tail_pos[current] + pattern.size() - i == tail_pos[current + 1] &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tail_str) + tail_pos[current]);
 	}
 };
 

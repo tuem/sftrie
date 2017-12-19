@@ -152,9 +152,8 @@ private:
 
 	result check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i < tail_str.size() - tail_pos[current] &&
-				std::equal(std::begin(pattern) + i, std::end(pattern), &tail_str[tail_pos[current]]) &&
-				container_size<integer>(pattern) - i == tail_pos[current + 1] - tail_pos[current] ?
+		return tail_pos[current] + pattern.size() - i == tail_pos[current + 1] &&
+				std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tail_str) + tail_pos[current]) ?
 			result(true, data[current].value) : not_found;
 	}
 };
