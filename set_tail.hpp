@@ -44,7 +44,7 @@ class set_tail
 public:
 	template<typename random_access_iterator>
 	set_tail(random_access_iterator begin, random_access_iterator end,
-			integer min_binary_search = 42, integer min_tail = 3):
+			integer min_binary_search = 42, integer min_tail = 1):
 		num_texts(end - begin), data(1, {false, false, 1, {}}),
 		min_binary_search(min_binary_search), tails(1, {}), tailp(1, 0), min_tail(min_tail)
 	{
@@ -147,8 +147,8 @@ private:
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i == tailp[current + 1] - tailp[current] &&
-			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + tailp[current]);
+		return container_size<integer>(pattern) - i == tailp[current] - tailp[current] &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), &tailp[current]);
 	}
 };
 
