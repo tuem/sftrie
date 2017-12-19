@@ -44,7 +44,7 @@ void History::dump(std::ostream& os, bool show_header, bool show_count) const
                 time_records[i].time - time_records[i - 1].time).count();
         os << std::setw(20) << time_records[i].task <<
             std::setw(12) << std::setprecision(8) << t;
-        if(show_count)
+        if(show_count && time_records[i].count > 1)
             os << std::setw(12) << time_records[i].count <<
                 std::setw(16) << std::setprecision(12) << (static_cast<double>(t * 1000) / time_records[i].count);
         os << std::endl;
