@@ -18,6 +18,7 @@ limitations under the License.
 */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 #include <set>
@@ -38,6 +39,7 @@ int exec(const std::string& corpus_path)
 	History history;
 
 	std::cerr << "loading corpus...";
+	std::size_t total_length = 0;
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open()){
@@ -49,7 +51,9 @@ int exec(const std::string& corpus_path)
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(cast_string<text>(line));
+		auto t = cast_string<text>(line);
+		texts.push_back(t);
+		total_length += t.size();
 	}
 	std::cerr << "done." << std::endl;
 	history.record("load");
@@ -89,6 +93,12 @@ int exec(const std::string& corpus_path)
 	history.record("search (shuffled)", shuffled_queries.size());
 
 	std::cout << std::endl;
+	std::cout << "size:" << std::endl;
+	std::cout << std::setw(16) << "# of texts: " << std::setw(16) << index.size() << std::endl;
+	std::cout << std::setw(16) << "total length: " << std::setw(16) << total_length << std::endl;
+	std::cout << std::setw(16) << "index size: " << std::setw(16) << index.space() << std::endl;
+	std::cout << std::endl;
+	std::cout << "time:" << std::endl;
 	history.dump(std::cout, true, true);
 
 	return found == queries.size() && found_shuffled == shuffled_queries.size();
