@@ -46,17 +46,17 @@ public:
 	set_tail(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 42, integer min_tail = 1):
 		num_texts(end - begin), data(1, {false, false, 1, {}}),
-		min_binary_search(min_binary_search), tails(1, {}), tailp(1, 0), min_tail(min_tail)
+		min_binary_search(min_binary_search), tail_str(1, {}), tail_pos(1, 0), min_tail(min_tail)
 	{
 		construct(begin, end, 0, 0);
 		data.push_back({false, false, container_size<integer>(data), {}});
 		data.shrink_to_fit();
-		tailp.push_back(container_size<integer>(tails));
-		tailp.shrink_to_fit();
-		for(integer i = container_size<integer>(tailp) - 2; i > 0 && tailp[i] == 0; --i)
-			tailp[i] = tailp.back();
-		tails.push_back({});
-		tails.shrink_to_fit();
+		tail_pos.push_back(container_size<integer>(tail_str));
+		tail_pos.shrink_to_fit();
+		for(integer i = container_size<integer>(tail_pos) - 2; i > 0 && tail_pos[i] == 0; --i)
+			tail_pos[i] = tail_pos.back();
+		tail_str.push_back({});
+		tail_str.shrink_to_fit();
 	}
 
 	std::size_t size() const
@@ -66,7 +66,7 @@ public:
 
 	std::size_t space() const
 	{
-		return sizeof(element) * data.size() + sizeof(symbol) * tails.size();
+		return sizeof(element) * data.size() + sizeof(symbol) * tail_str.size();
 	}
 
 	bool exists(const text& pattern) const
@@ -100,8 +100,8 @@ private:
 
 	const integer min_binary_search;
 
-	std::vector<symbol> tails;
-	std::vector<integer> tailp;
+	std::vector<symbol> tail_str;
+	std::vector<integer> tail_pos;
 	const integer min_tail;
 
 	template<typename iterator>
@@ -119,7 +119,7 @@ private:
 		std::vector<iterator> head{begin};
 		for(iterator i = begin; i < end; head.push_back(i)){
 			data.push_back({false, false, 0, (*i)[depth]});
-			tailp.push_back(0);
+			tail_pos.push_back(0);
 			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
 		}
 
@@ -129,10 +129,10 @@ private:
 			if(head[i + 1] - head[i] == 1 && container_size<integer>(*head[i]) - (depth + 1) >= min_tail){
 				data[child].match = container_size<integer>(*head[i]) == depth + 1;
 				data[child].leaf = true;
-				tailp[child] = container_size<integer>(tails);
-				for(integer j = child - 1; j > 0 && tailp[j] == 0; --j)
-					tailp[j] = tailp[child];
-				std::copy(std::begin(*head[i]) + depth + 1, std::end(*head[i]), std::back_inserter(tails));
+				tail_pos[child] = container_size<integer>(tail_str);
+				for(integer j = child - 1; j > 0 && tail_pos[j] == 0; --j)
+					tail_pos[j] = tail_pos[child];
+				std::copy(std::begin(*head[i]) + depth + 1, std::end(*head[i]), std::back_inserter(tail_str));
 			}
 		}
 
@@ -147,8 +147,8 @@ private:
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i == tailp[current] - tailp[current] &&
-			std::equal(std::begin(pattern) + i, std::end(pattern), &tailp[current]);
+		return container_size<integer>(pattern) - i == tail_pos[current] - tail_pos[current] &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), &tail_pos[current]);
 	}
 };
 
