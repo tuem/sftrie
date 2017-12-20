@@ -97,6 +97,8 @@ public:
 				++*this;
 		}
 
+		iterator(const std::vector<element>& data): data(data){}
+
 		const text& operator*()
 		{
 			return result;
@@ -138,19 +140,14 @@ public:
 			return *this;
 		}
 
-		bool finished() const
-		{
-			return path.empty() || path.back() == data.size();
-		}
-
 		bool operator!=(const iterator& i) const
 		{
-			if(this->finished() && i.finished()){
+			if(this->path.empty() && i.path.empty())
 				return false;
-			}
-			else if(this->path.size() != i.path.size()){
+			else if(this->path.back() == this->data.size() && i.path.back() == i.data.size())
+				return false;
+			else if(this->path.size() != i.path.size())
 				return true;
-			}
 			else{
 				for(std::size_t j = 0; j < this->path.size(); ++j)
 					if(this->path[j] != i.path[j])
@@ -187,7 +184,7 @@ public:
 
 	iterator end() const
 	{
-		return iterator(data, {}, data.size());
+		return iterator(data);
 	}
 
 private:
