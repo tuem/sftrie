@@ -123,13 +123,10 @@ public:
 						path.pop_back();
 						result.pop_back();
 					}while(path.size() > 1 && path.back() + 1 >= data[data[path[path.size() - 2]].index].index);
-					if(path.size() > 1){
-						result.back() = data[++path.back()].label;
-					}
-					else{
+					if(path.size() == 1)
 						path.pop_back();
-						break;
-					}
+					else
+						result.back() = data[++path.back()].label;
 				}
 			}while(!path.empty() && !data[path.back()].match);
 			return *this;
