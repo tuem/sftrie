@@ -60,27 +60,8 @@ public:
 
 	bool exists(const text& pattern) const
 	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return false;
-			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
-				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
-					l = m + 1;
-				}
-				else if(data[m].label > pattern[i]){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
-			}
-			return false;
-			NEXT:;
-		}
-		return data[current].match;
+		integer current = find(pattern);
+		return current < data.size() && data[current].match;
 	}
 
 	struct iterator
@@ -129,7 +110,7 @@ public:
 		{
 			if(this->path.size() != i.path.size())
 				return true;
-            else if(this->path.empty() && i.path.empty())
+			else if(this->path.empty() && i.path.empty())
 				return false;
 			else
 				return this->path.back() != i.path.back();
@@ -138,27 +119,8 @@ public:
 
 	iterator prefix(const text& pattern) const
 	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return end();
-			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
-				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
-					l = m + 1;
-				}
-				else if(data[m].label > pattern[i]){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
-			}
-			return end();
-			NEXT:;
-		}
-		return iterator(data, current, pattern);
+		integer current = find(pattern);
+		return current < data.size() ? iterator(data, current, pattern) : end();
 	}
 
 	iterator end() const
@@ -195,6 +157,31 @@ private:
 			data[child].index = container_size<integer>(data);
 			construct(head[i], head[i + 1], depth + 1, child);
 		}
+	}
+
+	integer find(const text& pattern) const
+	{
+		integer current = 0;
+		for(integer i = 0; i < pattern.size(); ++i){
+			if(data[current].leaf)
+				return data.size();
+			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
+				integer m = (l + r) / 2;
+				if(data[m].label < pattern[i]){
+					l = m + 1;
+				}
+				else if(data[m].label > pattern[i]){
+					r = m - 1;
+				}
+				else{
+					current = m;
+					goto NEXT;
+				}
+			}
+			return data.size();
+			NEXT:;
+		}
+		return current;
 	}
 };
 
