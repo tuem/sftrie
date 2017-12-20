@@ -140,7 +140,7 @@ public:
 			else if(this->path.size() != i.path.size())
 				return true;
 			else
-				return this->path.back() != i.path.front() || this->path.front() != i.path.front();
+				return this->path.back() != i.path.back() || this->path.front() != i.path.front();
 		}
 	};
 
