@@ -106,7 +106,7 @@ public:
 
 		iterator operator++()
 		{
-			while(!path.empty()){
+			do{
 				if(!data[path.back()].leaf){
 					integer child = data[path.back()].index;
 					path.push_back(child);
@@ -132,11 +132,8 @@ public:
 				}
 				else{
 					path.pop_back();
-					break;
 				}
-				if(data[path.back()].match)
-					break;
-			}
+			}while(!path.empty() && !data[path.back()].match);
 			return *this;
 		}
 
