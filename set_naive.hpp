@@ -83,6 +83,113 @@ public:
 		return data[current].match;
 	}
 
+	struct iterator
+	{
+		const std::vector<element>& data;
+
+		std::vector<integer> path;
+		text result;
+
+		iterator(const std::vector<element>& data, const text& prefix, integer root):
+			data(data), path(1, root), result(prefix)
+		{
+			if(root < data.size() && !data[root].match)
+				++*this;
+		}
+
+		const text& operator*()
+		{
+			return result;
+		}
+
+		iterator operator++()
+		{
+			while(!path.empty()){
+				if(!data[path.back()].leaf){
+					integer child = data[path.back()].index;
+					path.push_back(child);
+					result.push_back(data[child].label);
+				}
+				else if(path.size() > 1){
+					if(path.back() + 1 < data[data[path[path.size() - 2]].index].index){
+						result.back() = data[++path.back()].label;
+					}
+					else{
+						do{
+							path.pop_back();
+							result.pop_back();
+						}while(path.size() > 1 && path.back() + 1 >= data[data[path[path.size() - 2]].index].index);
+						if(path.size() > 1){
+							result.back() = data[++path.back()].label;
+						}
+						else{
+							path.pop_back();
+							break;
+						}
+					}
+				}
+				else{
+					path.pop_back();
+					break;
+				}
+				if(data[path.back()].match)
+					break;
+			}
+			return *this;
+		}
+
+		bool finished() const
+		{
+			return path.empty() || path.back() == data.size();
+		}
+
+		bool operator!=(const iterator& i) const
+		{
+			if(this->finished() && i.finished()){
+				return false;
+			}
+			else if(this->path.size() != i.path.size()){
+				return true;
+			}
+			else{
+				for(std::size_t j = 0; j < this->path.size(); ++j)
+					if(this->path[j] != i.path[j])
+						return true;
+				return false;
+			}
+		}
+	};
+
+	iterator prefix(const text& pattern) const
+	{
+		integer current = 0;
+		for(integer i = 0; i < pattern.size(); ++i){
+			if(data[current].leaf)
+				return end();
+			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
+				integer m = (l + r) / 2;
+				if(data[m].label < pattern[i]){
+					l = m + 1;
+				}
+				else if(data[m].label > pattern[i]){
+					r = m - 1;
+				}
+				else{
+					current = m;
+					goto NEXT;
+				}
+			}
+			return end();
+			NEXT:;
+		}
+		return iterator(data, pattern, current);
+	}
+
+	iterator end() const
+	{
+		return iterator(data, {}, data.size());
+	}
+
 private:
 	const std::size_t num_texts;
 
