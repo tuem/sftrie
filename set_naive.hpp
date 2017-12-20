@@ -128,12 +128,12 @@ public:
 
 		bool operator!=(const iterator& i) const
 		{
-			if(this->path.empty() && i.path.empty())
-				return false;
-			else if(this->path.size() != i.path.size())
+			if(this->path.size() != i.path.size())
 				return true;
+            else if(this->path.empty() && i.path.empty())
+				return false;
 			else
-				return this->path.back() != i.path.back() || this->path.front() != i.path.front();
+				return this->path.back() != i.path.back();
 		}
 	};
 
