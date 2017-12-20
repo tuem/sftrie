@@ -86,14 +86,13 @@ public:
 	struct iterator
 	{
 		const std::vector<element>& data;
-
 		std::vector<integer> path;
 		text result;
 
-		iterator(const std::vector<element>& data, const text& prefix, integer root):
+		iterator(const std::vector<element>& data, integer root, const text& prefix):
 			data(data), path(1, root), result(prefix)
 		{
-			if(root < data.size() && !data[root].match)
+			if(!data[root].match)
 				++*this;
 		}
 
@@ -159,7 +158,7 @@ public:
 			return end();
 			NEXT:;
 		}
-		return iterator(data, pattern, current);
+		return iterator(data, current, pattern);
 	}
 
 	iterator end() const
