@@ -117,10 +117,10 @@ public:
 						path.pop_back();
 						result.pop_back();
 					}
-					if(path.size() == 1)
-						path.pop_back();
-					else
+					if(path.size() > 1)
 						result.back() = data[++path.back()].label;
+					else
+						path.pop_back();
 				}
 			}while(!path.empty() && !data[path.back()].match);
 			return *this;
@@ -128,8 +128,7 @@ public:
 
 		bool operator!=(const iterator& i) const
 		{
-			if((this->path.empty() && i.path.empty()) ||
-					(this->path.back() == this->data.size() && i.path.back() == i.data.size()))
+			if(this->path.empty() && i.path.empty())
 				return false;
 			else if(this->path.size() != i.path.size())
 				return true;
