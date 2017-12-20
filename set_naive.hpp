@@ -112,26 +112,24 @@ public:
 					path.push_back(child);
 					result.push_back(data[child].label);
 				}
-				else if(path.size() > 1){
-					if(path.back() + 1 < data[data[path[path.size() - 2]].index].index){
+				else if(path.size() == 1){
+					path.pop_back();
+				}
+				else if(path.back() + 1 < data[data[path[path.size() - 2]].index].index){
+					result.back() = data[++path.back()].label;
+				}
+				else{
+					do{
+						path.pop_back();
+						result.pop_back();
+					}while(path.size() > 1 && path.back() + 1 >= data[data[path[path.size() - 2]].index].index);
+					if(path.size() > 1){
 						result.back() = data[++path.back()].label;
 					}
 					else{
-						do{
-							path.pop_back();
-							result.pop_back();
-						}while(path.size() > 1 && path.back() + 1 >= data[data[path[path.size() - 2]].index].index);
-						if(path.size() > 1){
-							result.back() = data[++path.back()].label;
-						}
-						else{
-							path.pop_back();
-							break;
-						}
+						path.pop_back();
+						break;
 					}
-				}
-				else{
-					path.pop_back();
 				}
 			}while(!path.empty() && !data[path.back()].match);
 			return *this;
