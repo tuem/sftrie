@@ -64,8 +64,6 @@ int main(int argc, char* argv[])
 		std::getline(std::cin, query);
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
-		else if(query.empty())
-			continue;
 
 		if(query.back() == '*'){
 			query.pop_back();
