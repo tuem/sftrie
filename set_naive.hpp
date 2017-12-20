@@ -112,7 +112,7 @@ public:
 					result.push_back(data[child].label);
 				}
 				else{
-					while(path.size() > 1 && path.back() + 1 >= data[data[path[path.size() - 2]].index].index){
+					while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].index].index){
 						path.pop_back();
 						result.pop_back();
 					}
