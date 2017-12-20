@@ -112,17 +112,11 @@ public:
 					path.push_back(child);
 					result.push_back(data[child].label);
 				}
-				else if(path.size() == 1){
-					path.pop_back();
-				}
-				else if(path.back() + 1 < data[data[path[path.size() - 2]].index].index){
-					result.back() = data[++path.back()].label;
-				}
 				else{
-					do{
+					while(path.size() > 1 && path.back() + 1 >= data[data[path[path.size() - 2]].index].index){
 						path.pop_back();
 						result.pop_back();
-					}while(path.size() > 1 && path.back() + 1 >= data[data[path[path.size() - 2]].index].index);
+					}
 					if(path.size() == 1)
 						path.pop_back();
 					else
