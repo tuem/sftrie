@@ -80,21 +80,20 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
-			symbol c = pattern[i];
 			integer l = data[current].index, r = data[l].index;
 			if(l + alphabet_size == r){
-				current = data[current].index + c - min_symbol;
+				current = data[current].index + pattern[i] - min_symbol;
 				continue;
 			}
 			while(l + min_binary_search < r){
 				integer m = (l + r) / 2;
-				if(data[m].label < c)
+				if(data[m].label < pattern[i])
 					l = m + 1;
 				else
 					r = m;
 			}
-			for(; l < r && data[l].label < c; ++l);
-			if(l < r && data[l].label == c)
+			for(; l < r && data[l].label < pattern[i]; ++l);
+			if(l < r && data[l].label == pattern[i])
 				current = l;
 			else
 				return not_found;
