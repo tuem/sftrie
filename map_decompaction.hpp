@@ -52,7 +52,8 @@ public:
 			integer min_decompaction = (1 << (bit_width<symbol>() - 3))):
 		num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}}), not_found(false, data[0].value),
 		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
-		min_symbol(min_symbol), max_symbol(max_symbol), min_decompaction(min_decompaction)
+		min_symbol(min_symbol), max_symbol(max_symbol), alphabet_size(max_symbol - min_symbol + 1),
+		min_decompaction(min_decompaction)
 	{
 		construct(begin, end, 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}, {}});
@@ -81,7 +82,7 @@ public:
 				return check_tail(pattern, i, current);
 			symbol c = pattern[i];
 			integer l = data[current].index, r = data[l].index;
-			if(l + max_symbol - min_symbol + 1 == r){
+			if(l + alphabet_size == r){
 				current = data[current].index + c - min_symbol;
 				continue;
 			}
@@ -114,6 +115,7 @@ private:
 
 	const symbol min_symbol;
 	const symbol max_symbol;
+	const integer alphabet_size;
 	const integer min_decompaction;
 
 	template<typename iterator>
