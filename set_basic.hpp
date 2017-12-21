@@ -68,14 +68,13 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return false;
-			symbol c = pattern[i];
 			integer l = data[current].index, r = data[l].index, m;
 			for(integer w = r - l; w > min_binary_search; w = m){
 				m = w >> 1;
-				l += data[l + m].label < c ? w - m : 0;
+				l += data[l + m].label < pattern[i] ? w - m : 0;
 			}
-			for(; l < r && data[l].label < c; ++l);
-			if(l < r && data[l].label == c)
+			for(; l < r && data[l].label < pattern[i]; ++l);
+			if(l < r && data[l].label == pattern[i])
 				current = l;
 			else
 				return false;

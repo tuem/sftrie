@@ -52,7 +52,8 @@ public:
 			integer min_decompaction = (1 << (bit_width<symbol>() - 3))):
 		num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}}), not_found(false, data[0].value),
 		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
-		min_symbol(min_symbol), max_symbol(max_symbol), min_decompaction(min_decompaction)
+		min_symbol(min_symbol), max_symbol(max_symbol), alphabet_size(max_symbol - min_symbol + 1),
+		min_decompaction(min_decompaction)
 	{
 		construct(begin, end, 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}, {}});
@@ -79,21 +80,20 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
-			symbol c = pattern[i];
-			integer l = data[current].index, r = data[l].index - 1;
-			if(l + max_symbol - min_symbol == r){
-				current = data[current].index + c - min_symbol;
+			integer l = data[current].index, r = data[l].index;
+			if(l + alphabet_size == r){
+				current = l + pattern[i] - min_symbol;
 				continue;
 			}
 			while(l + min_binary_search < r){
 				integer m = (l + r) / 2;
-				if(data[m].label < c)
+				if(data[m].label < pattern[i])
 					l = m + 1;
 				else
 					r = m;
 			}
-			for(; l <= r && data[l].label < c; ++l);
-			if(l <= r && data[l].label == c)
+			for(; l < r && data[l].label < pattern[i]; ++l);
+			if(l < r && data[l].label == pattern[i])
 				current = l;
 			else
 				return not_found;
@@ -114,6 +114,7 @@ private:
 
 	const symbol min_symbol;
 	const symbol max_symbol;
+	const integer alphabet_size;
 	const integer min_decompaction;
 
 	template<typename iterator>
