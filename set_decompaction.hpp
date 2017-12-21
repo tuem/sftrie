@@ -80,7 +80,7 @@ public:
 				return check_tail(pattern, i, current);
 			integer l = data[current].index, r = data[l].index;
 			if(l + alphabet_size == r){
-				current = data[current].index + pattern[i] - min_symbol;
+				current = l + pattern[i] - min_symbol;
 				continue;
 			}
 			while(l + min_binary_search < r){
