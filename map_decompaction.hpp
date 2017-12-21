@@ -80,8 +80,8 @@ public:
 			if(data[current].leaf)
 				return check_tail(pattern, i, current);
 			symbol c = pattern[i];
-			integer l = data[current].index, r = data[l].index - 1;
-			if(l + max_symbol - min_symbol == r){
+			integer l = data[current].index, r = data[l].index;
+			if(l + max_symbol - min_symbol + 1 == r){
 				current = data[current].index + c - min_symbol;
 				continue;
 			}
@@ -92,8 +92,8 @@ public:
 				else
 					r = m;
 			}
-			for(; l <= r && data[l].label < c; ++l);
-			if(l <= r && data[l].label == c)
+			for(; l < r && data[l].label < c; ++l);
+			if(l < r && data[l].label == c)
 				current = l;
 			else
 				return not_found;
