@@ -83,12 +83,9 @@ public:
 				current = l + pattern[i] - min_symbol;
 				continue;
 			}
-			while(l + min_binary_search < r){
-				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i])
-					l = m + 1;
-				else
-					r = m;
+			for(integer w = r - l, m; w > min_binary_search; w = m){
+				m = w >> 1;
+				l += data[l + m].label < pattern[i] ? w - m : 0;
 			}
 			for(; l < r && data[l].label < pattern[i]; ++l);
 			if(l < r && data[l].label == pattern[i])
