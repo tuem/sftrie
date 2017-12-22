@@ -117,15 +117,27 @@ public:
 		}
 	};
 
-	iterator prefix(const text& pattern) const
+	struct search_result
+	{
+		const std::vector<element>& data;
+		const text& pattern;
+		iterator head;
+
+		iterator begin() const
+		{
+			return head;
+		}
+
+		iterator end() const
+		{
+			return iterator(data);
+		}
+	};
+
+	search_result prefix(const text& pattern) const
 	{
 		integer current = find(pattern);
-		return current < data.size() ? iterator(data, current, pattern) : end();
-	}
-
-	iterator end() const
-	{
-		return iterator(data);
+		return {data, pattern, current < data.size() ? iterator(data, current, pattern) : iterator(data)};
 	}
 
 private:

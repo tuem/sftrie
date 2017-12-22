@@ -67,8 +67,8 @@ int main(int argc, char* argv[])
 
 		if(query.back() == '*'){
 			query.pop_back();
-			for(auto i = index.prefix(query); i != index.end(); ++i)
-				std::cout << *i << std::endl;
+			for(const auto& t: index.prefix(query))
+				std::cout << t << std::endl;
 		}
 		else{
 			std::cout << query << ": " << (index.exists(query) ? "found" : "not found") << std::endl;
