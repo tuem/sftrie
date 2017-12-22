@@ -120,8 +120,7 @@ public:
 	struct search_result
 	{
 		const std::vector<element>& data;
-		const text& pattern;
-		iterator head;
+		const iterator head;
 
 		iterator begin() const
 		{
@@ -137,7 +136,7 @@ public:
 	search_result prefix(const text& pattern) const
 	{
 		integer current = find(pattern);
-		return {data, pattern, current < data.size() ? iterator(data, current, pattern) : iterator(data)};
+		return {data, current < data.size() ? iterator(data, current, pattern) : iterator(data)};
 	}
 
 private:
