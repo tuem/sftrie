@@ -66,22 +66,16 @@ public:
 
 	bool exists(const text& pattern) const
 	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return false;
-			integer l = data[current].index, r = data[l].index;
-			for(integer w = r - l, m; w > min_binary_search; w = m){
-				m = w >> 1;
-				l += data[l + m].label < pattern[i] ? w - m : 0;
-			}
-			for(; l < r && data[l].label < pattern[i]; ++l);
-			if(l < r && data[l].label == pattern[i])
-				current = l;
-			else
-				return false;
-		}
-		return data[current].match;
+		integer current = search(pattern);
+		return current < data.size() && data[current].match;
+	}
+
+	common_prefix_iterator prefix(const text& pattern) const
+	{
+		integer current = search(pattern);
+		return current < data.size() ?
+			common_prefix_iterator(data, current, pattern) :
+			common_prefix_iterator(data);
 	}
 
 private:
@@ -116,10 +110,30 @@ private:
 			construct(head[i], head[i + 1], depth + 1, child);
 		}
 	}
+
+	integer search(const text& pattern) const
+	{
+		integer current = 0;
+		for(integer i = 0; i < pattern.size(); ++i){
+			if(data[current].leaf)
+				return data.size();
+			integer l = data[current].index, r = data[l].index;
+			for(integer w = r - l, m; w > min_binary_search; w = m){
+				m = w >> 1;
+				l += data[l + m].label < pattern[i] ? w - m : 0;
+			}
+			for(; l < r && data[l].label < pattern[i]; ++l);
+			if(l < r && data[l].label == pattern[i])
+				current = l;
+			else
+				return data.size();
+		}
+		return current;
+	}
 };
 
 template<typename text, typename integer>
-struct set_naive<text, integer>::common_prefix_iterator
+struct set_basic<text, integer>::common_prefix_iterator
 {
 	const std::vector<element>& data;
 	std::vector<integer> path;
