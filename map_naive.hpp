@@ -21,6 +21,7 @@ limitations under the License.
 #define SFTRIE_MAP_NAIVE_HPP
 
 #include <vector>
+#include <functional>
 
 #include "util.hpp"
 
@@ -40,6 +41,8 @@ class map_naive
 		symbol label;
 		object value;
 	};
+
+	struct common_prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -85,6 +88,14 @@ public:
 		return data[current].match ? result(true, data[current].value) : not_found;
 	}
 
+	common_prefix_iterator prefix(const text& pattern) const
+	{
+		integer current = search(pattern);
+		return current < data.size() ?
+			common_prefix_iterator(data, current, pattern) :
+			common_prefix_iterator(data);
+	}
+
 private:
 	const std::size_t num_texts;
 
@@ -116,6 +127,95 @@ private:
 			data[child].index = container_size<integer>(data);
 			construct(head[i], head[i + 1], depth + 1, child);
 		}
+	}
+
+	integer search(const text& pattern) const
+	{
+		integer current = 0;
+		for(integer i = 0; i < pattern.size(); ++i){
+			if(data[current].leaf)
+				return data.size();
+			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
+				integer m = (l + r) / 2;
+				if(data[m].label < pattern[i]){
+					l = m + 1;
+				}
+				else if(data[m].label > pattern[i]){
+					r = m - 1;
+				}
+				else{
+					current = m;
+					goto NEXT;
+				}
+			}
+			return data.size();
+			NEXT:;
+		}
+		return current;
+	}
+};
+
+template<typename text, typename object, typename integer>
+struct map_naive<text, object, integer>::common_prefix_iterator
+{
+	const std::vector<element>& data;
+	std::vector<integer> path;
+	text result;
+
+	common_prefix_iterator(const std::vector<element>& data, integer root, const text& prefix):
+		data(data), path(1, root), result(prefix)
+	{
+		if(!data[root].match)
+			++*this;
+	}
+
+	common_prefix_iterator(const std::vector<element>& data): data(data){}
+
+	common_prefix_iterator& begin()
+	{
+		return *this;
+	}
+
+	common_prefix_iterator end() const
+	{
+		return common_prefix_iterator(data);
+	}
+
+	bool operator!=(const common_prefix_iterator& i) const
+	{
+		if(this->path.size() != i.path.size())
+			return true;
+		else if(this->path.empty() && i.path.empty())
+			return false;
+		else
+			return this->path.back() != i.path.back();
+	}
+
+	const std::pair<const text&, const object&> operator*() const
+	{
+		return std::make_pair(result, data[path.back()].value);
+	}
+
+	common_prefix_iterator& operator++()
+	{
+		do{
+			if(!data[path.back()].leaf){
+				integer child = data[path.back()].index;
+				path.push_back(child);
+				result.push_back(data[child].label);
+			}
+			else{
+				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].index].index){
+					path.pop_back();
+					result.pop_back();
+				}
+				if(path.size() > 1)
+					result.back() = data[++path.back()].label;
+				else
+					path.pop_back();
+			}
+		}while(!path.empty() && !data[path.back()].match);
+		return *this;
 	}
 };
 
