@@ -37,7 +37,6 @@ class set_decompaction
 		bool match: 1;
 		bool leaf: 1;
 		integer index: bit_width<integer>() - 2;
-		integer tail;
 		symbol label;
 	};
 #pragma pack()
@@ -48,18 +47,21 @@ public:
 			integer min_binary_search = 42, integer min_tail = 1,
 			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
 			integer min_decompaction = (1 << (bit_width<symbol>() - 3))):
-		num_texts(end - begin), data(1, {false, false, 1, 0, {}}),
-		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
+		num_texts(end - begin), data(1, {false, false, 1, {}}),
+		min_binary_search(min_binary_search), tail_str(1, {}), tail_pos(1, 0), min_tail(min_tail),
 		min_symbol(min_symbol), max_symbol(max_symbol), alphabet_size(max_symbol - min_symbol + 1),
 		min_decompaction(min_decompaction)
 	{
 		construct(begin, end, 0, 0);
-		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
+		data.push_back({false, false, container_size<integer>(data), {}});
 		data.shrink_to_fit();
-		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
-			data[i].tail = data.back().tail;
-		tails.push_back({});
-		tails.shrink_to_fit();
+		tail_pos.push_back(container_size<integer>(tail_str));
+		tail_pos.shrink_to_fit();
+		for(integer i = container_size<integer>(tail_pos) - 2; i > 0 && tail_pos[i] == 0; --i)
+			tail_pos[i] = tail_pos.back();
+		tail_str.push_back({});
+		tail_str.shrink_to_fit();
+		tail_length = tail_str.size();
 	}
 
 	std::size_t size() const
@@ -69,7 +71,7 @@ public:
 
 	std::size_t space() const
 	{
-		return sizeof(element) * data.size() + sizeof(symbol) * tails.size();
+		return sizeof(element) * data.size() + sizeof(symbol) * tail_str.size();
 	}
 
 	bool exists(const text& pattern) const
@@ -103,8 +105,10 @@ private:
 
 	const integer min_binary_search;
 
-	std::vector<symbol> tails;
+	std::vector<symbol> tail_str;
+	std::vector<integer> tail_pos;
 	const integer min_tail;
+	integer tail_length;
 
 	const symbol min_symbol;
 	const symbol max_symbol;
@@ -131,7 +135,8 @@ private:
 			// reserve siblings first
 			integer old_data_size = container_size<integer>(data);
 			for(symbol c = min_symbol; true; ++c){
-				data.push_back({false, false, 0, 0, c});
+				data.push_back({false, false, 0, c});
+				tail_pos.push_back(0);
 				if(c == max_symbol)
 					break;
 			}
@@ -147,10 +152,10 @@ private:
 				if(head[j + 1] - head[j] == 1 && container_size<integer>(*head[j]) - (depth + 1) >= min_tail){
 					data[child].match = container_size<integer>(*head[j]) == depth + 1;
 					data[child].leaf = true;
-					data[child].tail = container_size<integer>(tails);
-					for(integer k = child - 1; k > 0 && data[k].tail == 0; --k)
-						data[k].tail = data[child].tail;
-					std::copy(std::begin(*head[j]) + depth + 1, std::end(*head[j]), std::back_inserter(tails));
+					tail_pos[child] = container_size<integer>(tail_str);
+					for(integer k = child - 1; k > 0 && tail_pos[k] == 0; --k)
+						tail_pos[k] = tail_pos[child];
+					std::copy(std::begin(*head[j]) + depth + 1, std::end(*head[j]), std::back_inserter(tail_str));
 				}
 				++j;
 			}
@@ -169,15 +174,16 @@ private:
 		else{
 			// reserve siblings first
 			for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-				data.push_back({false, false, 0, 0, (*head[i])[depth]});
+				data.push_back({false, false, 0, (*head[i])[depth]});
+				tail_pos.push_back(0);
 				integer child = data[current].index + i;
 				if(head[i + 1] - head[i] == 1 && container_size<integer>(*head[i]) - (depth + 1) >= min_tail){
 					data[child].match = container_size<integer>(*head[i]) == depth + 1;
 					data[child].leaf = true;
-					data[child].tail = container_size<integer>(tails);
-					for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
-						data[j].tail = data[child].tail;
-					std::copy(std::begin(*head[i]) + depth + 1, std::end(*head[i]), std::back_inserter(tails));
+					tail_pos[child] = container_size<integer>(tail_str);
+					for(integer k = child - 1; k > 0 && tail_pos[k] == 0; --k)
+						tail_pos[k] = tail_pos[child];
+					std::copy(std::begin(*head[i]) + depth + 1, std::end(*head[i]), std::back_inserter(tail_str));
 				}
 			}
 
@@ -193,8 +199,8 @@ private:
 
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
-		return container_size<integer>(pattern) - i == data[current + 1].tail - data[current].tail &&
-			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
+		return tail_pos[current] + pattern.size() - i == tail_pos[current + 1] &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tail_str) + tail_pos[current]);
 	}
 };
 
