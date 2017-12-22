@@ -53,7 +53,9 @@ int exec(const std::string& corpus_path)
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(std::make_pair(cast_string<text>(line), value++));
+		auto t = cast_string<text>(line);
+		texts.push_back(std::make_pair(t, value++));
+		total_length += t.size();
 	}
 	std::cerr << "done." << std::endl;
 	history.record("load");
