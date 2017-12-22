@@ -39,6 +39,8 @@ class set_naive
 		symbol label;
 	};
 
+	struct common_prefix_iterator;
+
 public:
 	template<typename random_access_iterator>
 	set_naive(random_access_iterator begin, random_access_iterator end):
@@ -62,6 +64,68 @@ public:
 	{
 		integer current = find(pattern);
 		return current < data.size() && data[current].match;
+	}
+
+	common_prefix_iterator prefix(const text& pattern) const
+	{
+		integer current = find(pattern);
+		return current < data.size() ? common_prefix_iterator(data, current, pattern) : common_prefix_iterator(data);
+	}
+
+private:
+	const std::size_t num_texts;
+
+	std::vector<element> data;
+
+	template<typename iterator>
+	void construct(iterator begin, iterator end, integer depth, integer current)
+	{
+		if(depth == container_size<integer>(*begin)){
+			data[current].match = true;
+			if(++begin == end){
+				data[current].leaf = true;
+				return;
+			}
+		}
+
+		// reserve siblings first
+		std::vector<iterator> head{begin};
+		for(iterator i = begin; i < end; head.push_back(i)){
+			data.push_back({false, false, 0, (*i)[depth]});
+			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
+		}
+
+		// recursively construct subtries
+		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+			integer child = data[current].index + i;
+			data[child].index = container_size<integer>(data);
+			construct(head[i], head[i + 1], depth + 1, child);
+		}
+	}
+
+	integer find(const text& pattern) const
+	{
+		integer current = 0;
+		for(integer i = 0; i < pattern.size(); ++i){
+			if(data[current].leaf)
+				return data.size();
+			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
+				integer m = (l + r) / 2;
+				if(data[m].label < pattern[i]){
+					l = m + 1;
+				}
+				else if(data[m].label > pattern[i]){
+					r = m - 1;
+				}
+				else{
+					current = m;
+					goto NEXT;
+				}
+			}
+			return data.size();
+			NEXT:;
+		}
+		return current;
 	}
 
 	struct common_prefix_iterator
@@ -126,68 +190,6 @@ public:
 			return *this;
 		}
 	};
-
-	common_prefix_iterator prefix(const text& pattern) const
-	{
-		integer current = find(pattern);
-		return current < data.size() ? common_prefix_iterator(data, current, pattern) : common_prefix_iterator(data);
-	}
-
-private:
-	const std::size_t num_texts;
-
-	std::vector<element> data;
-
-	template<typename iterator>
-	void construct(iterator begin, iterator end, integer depth, integer current)
-	{
-		if(depth == container_size<integer>(*begin)){
-			data[current].match = true;
-			if(++begin == end){
-				data[current].leaf = true;
-				return;
-			}
-		}
-
-		// reserve siblings first
-		std::vector<iterator> head{begin};
-		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, (*i)[depth]});
-			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
-		}
-
-		// recursively construct subtries
-		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
-			construct(head[i], head[i + 1], depth + 1, child);
-		}
-	}
-
-	integer find(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return data.size();
-			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
-				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
-					l = m + 1;
-				}
-				else if(data[m].label > pattern[i]){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
-			}
-			return data.size();
-			NEXT:;
-		}
-		return current;
-	}
 };
 
 };
