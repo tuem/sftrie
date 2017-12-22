@@ -50,6 +50,7 @@ public:
 		num_texts(end - begin), data(1, {false, false, 1, {}, {}}), not_found(false, data[0].value)
 	{
 		construct(begin, end, 0, 0);
+		data.push_back({false, false, container_size<integer>(data), {}, {}});
 		data.shrink_to_fit();
 	}
 
@@ -72,7 +73,7 @@ public:
 	common_prefix_iterator prefix(const text& pattern) const
 	{
 		integer current = search(pattern);
-		return current < data.size() ?
+		return current < data.size() - 1 ?
 			common_prefix_iterator(data, current, pattern) :
 			common_prefix_iterator(data);
 	}
@@ -115,7 +116,7 @@ private:
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
-				return data.size();
+				return data.size() - 1;
 			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
 				integer m = (l + r) / 2;
 				if(data[m].label < pattern[i]){
@@ -129,7 +130,7 @@ private:
 					goto NEXT;
 				}
 			}
-			return data.size();
+			return data.size() - 1;
 			NEXT:;
 		}
 		return current;
