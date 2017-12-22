@@ -65,26 +65,7 @@ public:
 
 	result find(const text& pattern) const
 	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return not_found;
-			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
-				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
-					l = m + 1;
-				}
-				else if(data[m].label > pattern[i]){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
-			}
-			return not_found;
-			NEXT:;
-		}
+		integer current = search(pattern);
 		return data[current].match ? result(true, data[current].value) : not_found;
 	}
 
