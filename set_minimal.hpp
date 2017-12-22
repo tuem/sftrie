@@ -35,7 +35,7 @@ class set_minimal
 	{
 		bool match: 1;
 		bool leaf: 1;
-		integer index: bit_width<integer>() - 2;
+		integer next: bit_width<integer>() - 2;
 		symbol label;
 	};
 
@@ -53,7 +53,7 @@ public:
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[u].leaf)
 				return false;
-			for(u = data[u].index, v = data[u].index - 1; u < v;){
+			for(u = data[u].next, v = data[u].next - 1; u < v;){
 				integer m = (u + v) / 2;
 				if(data[m].label < pattern[i])
 					u = m + 1;
@@ -89,8 +89,8 @@ private:
 
 		// recursively construct subtries
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			data[data[current].index + i].index = container_size<integer>(data);
-			construct(head[i], head[i + 1], depth + 1, data[current].index + i);
+			data[data[current].next + i].next = container_size<integer>(data);
+			construct(head[i], head[i + 1], depth + 1, data[current].next + i);
 		}
 	}
 };
