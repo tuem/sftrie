@@ -62,13 +62,13 @@ public:
 
 	bool exists(const text& pattern) const
 	{
-		integer current = find(pattern);
+		integer current = search(pattern);
 		return current < data.size() && data[current].match;
 	}
 
 	common_prefix_iterator prefix(const text& pattern) const
 	{
-		integer current = find(pattern);
+		integer current = search(pattern);
 		return current < data.size() ?
 			common_prefix_iterator(data, current, pattern) :
 			common_prefix_iterator(data);
@@ -105,7 +105,7 @@ private:
 		}
 	}
 
-	integer find(const text& pattern) const
+	integer search(const text& pattern) const
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){

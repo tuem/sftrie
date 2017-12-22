@@ -41,6 +41,8 @@ class set_basic
 	};
 #pragma pack()
 
+	struct common_prefix_iterator;
+
 public:
 	template<typename random_access_iterator>
 	set_basic(random_access_iterator begin, random_access_iterator end,
@@ -113,6 +115,70 @@ private:
 			data[child].index = container_size<integer>(data);
 			construct(head[i], head[i + 1], depth + 1, child);
 		}
+	}
+};
+
+template<typename text, typename integer>
+struct set_naive<text, integer>::common_prefix_iterator
+{
+	const std::vector<element>& data;
+	std::vector<integer> path;
+	text result;
+
+	common_prefix_iterator(const std::vector<element>& data, integer root, const text& prefix):
+		data(data), path(1, root), result(prefix)
+	{
+		if(!data[root].match)
+			++*this;
+	}
+
+	common_prefix_iterator(const std::vector<element>& data): data(data){}
+
+	common_prefix_iterator& begin()
+	{
+		return *this;
+	}
+
+	common_prefix_iterator end() const
+	{
+		return common_prefix_iterator(data);
+	}
+
+	bool operator!=(const common_prefix_iterator& i) const
+	{
+		if(this->path.size() != i.path.size())
+			return true;
+		else if(this->path.empty() && i.path.empty())
+			return false;
+		else
+			return this->path.back() != i.path.back();
+	}
+
+	const text& operator*()
+	{
+		return result;
+	}
+
+	common_prefix_iterator& operator++()
+	{
+		do{
+			if(!data[path.back()].leaf){
+				integer child = data[path.back()].index;
+				path.push_back(child);
+				result.push_back(data[child].label);
+			}
+			else{
+				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].index].index){
+					path.pop_back();
+					result.pop_back();
+				}
+				if(path.size() > 1)
+					result.back() = data[++path.back()].label;
+				else
+					path.pop_back();
+			}
+		}while(!path.empty() && !data[path.back()].match);
+		return *this;
 	}
 };
 
