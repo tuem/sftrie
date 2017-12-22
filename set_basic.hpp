@@ -51,6 +51,7 @@ public:
 		min_binary_search(min_binary_search)
 	{
 		construct(begin, end, 0, 0);
+		data.push_back({false, false, container_size<integer>(data), {}});
 		data.shrink_to_fit();
 	}
 
