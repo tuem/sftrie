@@ -69,7 +69,9 @@ public:
 	common_prefix_iterator prefix(const text& pattern) const
 	{
 		integer current = find(pattern);
-		return current < data.size() ? common_prefix_iterator(data, current, pattern) : common_prefix_iterator(data);
+		return current < data.size() ?
+			common_prefix_iterator(data, current, pattern) :
+			common_prefix_iterator(data);
 	}
 
 private:
