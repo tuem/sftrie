@@ -21,7 +21,7 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-//#define SFTRIE_MAP_USE_NAIVE
+#define SFTRIE_MAP_USE_NAIVE
 //#define SFTRIE_MAP_USE_BASIC
 //#define SFTRIE_MAP_USE_TAIL
 //#define SFTRIE_MAP_USE_DECOMPACTION
@@ -67,11 +67,18 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		auto result = dict.find(query);
-		if(result.first)
-			std::cout << query << ": " << "found, line=" << result.second << std::endl;
-		else
-			std::cout << query << ": " << "not found" << std::endl;
+		if(query.back() == '*'){
+			query.pop_back();
+			for(const auto& result: dict.prefix(query))
+				std::cout << result.first << ", line=" << result.second << std::endl;
+		}
+		else{
+			auto result = dict.find(query);
+			if(result.first)
+				std::cout << query << ": " << "found, line=" << result.second << std::endl;
+			else
+				std::cout << query << ": " << "not found" << std::endl;
+		}
 	}
 
 	return 0;
