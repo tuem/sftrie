@@ -33,7 +33,7 @@ class set_minimal
 
 	struct element
 	{
-		boolmatch: 1;
+		bool match: 1;
 		bool leaf: 1;
 		integer index: bit_width<integer>() - 2;
 		symbol label;
@@ -49,20 +49,21 @@ public:
 
 	bool exists(const text& pattern) const
 	{
-		integer current = 0;
+		integer u = 0, v;
 		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
+			if(data[u].leaf)
 				return false;
-			for(integer l = data[current].index, r = data[l].index; l < r;){
-				integer m = (l + r) / 2;
+			for(u = data[u].index, v = data[u].index - 1; u < v;){
+				integer m = (u + v) / 2;
 				if(data[m].label < pattern[i])
-					l = m + 1;
+					u = m + 1;
 				else
-					r = m;
+					v = m;
 			}
-			return l < r && data[l].label == pattern[i];
+			if(!(u <= v && data[u].label == pattern[i]))
+				return false;
 		}
-		return data[current].match;
+		return data[u].match;
 	}
 
 private:
@@ -88,9 +89,8 @@ private:
 
 		// recursively construct subtries
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
-			construct(head[i], head[i + 1], depth + 1, child);
+			data[data[current].index + i].index = container_size<integer>(data);
+			construct(head[i], head[i + 1], depth + 1, data[current].index + i);
 		}
 	}
 };
