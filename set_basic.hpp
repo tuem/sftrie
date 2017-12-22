@@ -66,14 +66,13 @@ public:
 
 	bool exists(const text& pattern) const
 	{
-		integer current = search(pattern);
-		return current < data.size() && data[current].match;
+		return data[search(pattern)].match;
 	}
 
 	common_prefix_iterator prefix(const text& pattern) const
 	{
 		integer current = search(pattern);
-		return current < data.size() ?
+		return current < data.size() - 1 ?
 			common_prefix_iterator(data, current, pattern) :
 			common_prefix_iterator(data);
 	}
@@ -116,7 +115,7 @@ private:
 		integer current = 0;
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(data[current].leaf)
-				return data.size();
+				return data.size() - 1;
 			integer l = data[current].index, r = data[l].index;
 			for(integer w = r - l, m; w > min_binary_search; w = m){
 				m = w >> 1;
@@ -126,7 +125,7 @@ private:
 			if(l < r && data[l].label == pattern[i])
 				current = l;
 			else
-				return data.size();
+				return data.size() - 1;
 		}
 		return current;
 	}
