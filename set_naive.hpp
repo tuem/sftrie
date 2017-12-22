@@ -64,27 +64,47 @@ public:
 		return current < data.size() && data[current].match;
 	}
 
-	struct iterator
+	struct common_prefix_iterator
 	{
 		const std::vector<element>& data;
 		std::vector<integer> path;
 		text result;
 
-		iterator(const std::vector<element>& data, integer root, const text& prefix):
+		common_prefix_iterator(const std::vector<element>& data, integer root, const text& prefix):
 			data(data), path(1, root), result(prefix)
 		{
 			if(!data[root].match)
 				++*this;
 		}
 
-		iterator(const std::vector<element>& data): data(data){}
+		common_prefix_iterator(const std::vector<element>& data): data(data){}
+
+		common_prefix_iterator& begin()
+		{
+			return *this;
+		}
+
+		common_prefix_iterator end() const
+		{
+			return common_prefix_iterator(data);
+		}
+
+		bool operator!=(const common_prefix_iterator& i) const
+		{
+			if(this->path.size() != i.path.size())
+				return true;
+			else if(this->path.empty() && i.path.empty())
+				return false;
+			else
+				return this->path.back() != i.path.back();
+		}
 
 		const text& operator*()
 		{
 			return result;
 		}
 
-		iterator operator++()
+		common_prefix_iterator& operator++()
 		{
 			do{
 				if(!data[path.back()].leaf){
@@ -105,38 +125,12 @@ public:
 			}while(!path.empty() && !data[path.back()].match);
 			return *this;
 		}
-
-		bool operator!=(const iterator& i) const
-		{
-			if(this->path.size() != i.path.size())
-				return true;
-			else if(this->path.empty() && i.path.empty())
-				return false;
-			else
-				return this->path.back() != i.path.back();
-		}
 	};
 
-	struct search_result
-	{
-		const std::vector<element>& data;
-		const iterator head;
-
-		iterator begin() const
-		{
-			return head;
-		}
-
-		iterator end() const
-		{
-			return iterator(data);
-		}
-	};
-
-	search_result prefix(const text& pattern) const
+	common_prefix_iterator prefix(const text& pattern) const
 	{
 		integer current = find(pattern);
-		return {data, current < data.size() ? iterator(data, current, pattern) : iterator(data)};
+		return current < data.size() ? common_prefix_iterator(data, current, pattern) : common_prefix_iterator(data);
 	}
 
 private:
