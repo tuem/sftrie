@@ -131,34 +131,6 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
         std::cerr << "done." << std::endl;
         result = evaluate(index, true_queries, false_queries);
     }
-    /*
-	sftrie::set<text, integer> index(
-		std::begin(texts), std::end(texts)
-#ifdef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
-		, min_binary_search
-#endif
-#ifdef SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
-		, min_tail
-#endif
-#ifdef SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
-		, min_decompaction
-#endif
-	);
-	std::cerr << "done." << std::endl;
-
-	std::cerr << "validating...";
-	size_t tp = 0, tn = 0, fp = 0, fn = 0;
-	for(const auto& query: true_queries)
-		if(index.exists(query))
-			++tp;
-		else
-			++fn;
-	for(const auto& query: false_queries)
-		if(index.exists(query))
-			++fp;
-		else
-			++tn;
-    */
 	size_t tp = result["tp"], tn = result["tn"], fp = result["fp"], fn = result["fn"];
 
 	std::cout << "texts:" << std::endl;
