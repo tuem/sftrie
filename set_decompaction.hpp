@@ -46,12 +46,13 @@ public:
 	template<typename random_access_iterator>
 	set_decompaction(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 42, integer min_tail = 1,
-			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>(),
-			integer min_decompaction = (1 << (bit_width<symbol>() - 3))):
+			integer min_decompaction = (1 << (bit_width<symbol>() - 3)),
+			symbol min_symbol = min_char<symbol>(), symbol max_symbol = max_char<symbol>()):
 		num_texts(end - begin), data(1, {false, false, 1, 0, {}}),
 		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail),
-		min_symbol(min_symbol), max_symbol(max_symbol), alphabet_size(max_symbol - min_symbol + 1),
-		min_decompaction(min_decompaction)
+		min_decompaction(min_decompaction),
+		min_symbol(min_symbol), max_symbol(max_symbol),
+		alphabet_size(max_symbol - min_symbol + 1)
 	{
 		construct(begin, end, 0, 0);
 		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
@@ -106,10 +107,10 @@ private:
 	std::vector<symbol> tails;
 	const integer min_tail;
 
+	const integer min_decompaction;
 	const symbol min_symbol;
 	const symbol max_symbol;
 	const integer alphabet_size;
-	const integer min_decompaction;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)
