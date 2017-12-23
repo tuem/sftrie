@@ -28,8 +28,8 @@ limitations under the License.
 
 #if defined SFTRIE_SET_USE_DECOMPACTION
 	#define SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
-	#define SFTRIE_SET_SUPPORT_TAIL
-	#define SFTRIE_SET_SUPPORT_DECOMPACTION
+	#define SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
+	#define SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
 	#include "set_decompaction.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
@@ -37,7 +37,7 @@ limitations under the License.
 	};
 #elif defined SFTRIE_SET_USE_TAIL
 	#define SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
-	#define SFTRIE_SET_SUPPORT_TAIL
+	#define SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
 	#include "set_tail.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
@@ -58,8 +58,8 @@ limitations under the License.
 	};
 #else
 	#define SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
-	#define SFTRIE_SET_SUPPORT_TAIL
-	#define SFTRIE_SET_SUPPORT_DECOMPACTION
+	#define SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
+	#define SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
 	#include "set_decompaction.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
