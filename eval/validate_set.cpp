@@ -34,9 +34,19 @@ limitations under the License.
 using integer = unsigned int;
 
 template<typename text, typename integer>
-int exec(const std::string& corpus_path)
+int exec(const std::string& corpus_path, int min_binary_search, int min_tail, int min_decompaction)
 {
 	using symbol = typename text::value_type;
+
+#ifndef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+	(void)min_binary_search;
+#endif
+#ifndef SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
+	(void)min_tail;
+#endif
+#ifndef SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
+	(void)min_decompaction;
+#endif
 
 	std::cerr << "loading texts...";
 	std::vector<text> texts;
@@ -82,7 +92,18 @@ int exec(const std::string& corpus_path)
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "constructing index...";
-	sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
+	sftrie::set<text, integer> index(
+		std::begin(texts), std::end(texts)
+#ifdef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+		, min_binary_search
+#endif
+#ifdef SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
+		, min_tail
+#endif
+#ifdef SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
+		, min_decompaction
+#endif
+	);
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "validating...";
@@ -121,6 +142,7 @@ int main(int argc, char* argv[])
 		{"symbol_type", "char", "config", 's', "symbol type"},
 		{"min_binary_search", 42, {"set", "min_binary_search"}, "set-min-binary-search", 0, "minumum number of children for binary search"},
 		{"min_tail", 1, {"set", "min_tail"}, "set-min-tail", 0, "minumum length to copress tail strings"},
+		{"min_decompaction", 0, {"set", "min_decompaction"}, "set-min-decompaction", 0, "minumum number of children to enable decompaction"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
 	paramset::manager pm(defs);
@@ -133,14 +155,17 @@ int main(int argc, char* argv[])
 
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
+		int min_binary_search = pm["min_binary_search"];
+		int min_tail = pm["min_tail"];
+		int min_decompaction = pm["min_decompaction"];
 		if(symbol_type == "char")
-			return exec<std::string, integer>(corpus_path);
+			return exec<std::string, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "wchar_t")
-			return exec<std::wstring, integer>(corpus_path);
+			return exec<std::wstring, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char16_t")
-			return exec<std::u16string, integer>(corpus_path);
+			return exec<std::u16string, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char32_t")
-			return exec<std::u32string, integer>(corpus_path);
+			return exec<std::u32string, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
 	}
 	catch(const std::exception& e){
 		std::cerr << "error: " << e.what() << std::endl;
