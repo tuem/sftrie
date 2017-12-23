@@ -22,31 +22,46 @@ limitations under the License.
 #include <fstream>
 #include <string>
 #include <set>
+#include <map>
 
 #include <random>
 #include <chrono>
 
-#include <sftrie/set.hpp>
+#include <sftrie/set_naive.hpp>
+#include <sftrie/set_basic.hpp>
+#include <sftrie/set_tail.hpp>
+#include <sftrie/set_decompaction.hpp>
 #include <paramset.hpp>
 
 #include "string_util.hpp"
 
 using integer = unsigned int;
 
+template<typename text, typename set>
+std::map<std::string, size_t> evaluate(const set& index,
+    const std::vector<text>& true_queries, const std::vector<text>& false_queries)
+{
+	std::cerr << "validating...";
+	size_t tp = 0, tn = 0, fp = 0, fn = 0;
+	for(const auto& query: true_queries)
+		if(index.exists(query))
+			++tp;
+		else
+			++fn;
+	for(const auto& query: false_queries)
+		if(index.exists(query))
+			++fp;
+		else
+			++tn;
+	std::cerr << "done." << std::endl;
+    return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
+}
+
 template<typename text, typename integer>
-int exec(const std::string& corpus_path, int min_binary_search, int min_tail, int min_decompaction)
+int exec(const std::string& corpus_path, const std::string& sftrie_type,
+    int min_binary_search, int min_tail, int min_decompaction)
 {
 	using symbol = typename text::value_type;
-
-#ifndef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
-	(void)min_binary_search;
-#endif
-#ifndef SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
-	(void)min_tail;
-#endif
-#ifndef SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
-	(void)min_decompaction;
-#endif
 
 	std::cerr << "loading texts...";
 	std::vector<text> texts;
@@ -92,6 +107,31 @@ int exec(const std::string& corpus_path, int min_binary_search, int min_tail, in
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "constructing index...";
+    std::map<std::string, size_t> result;
+    if(sftrie_type == "naive"){
+        sftrie::set_naive<text, integer> index(std::begin(texts), std::end(texts));
+        std::cerr << "done." << std::endl;
+        result = evaluate(index, true_queries, false_queries);
+    }
+    else if(sftrie_type == "basic"){
+        sftrie::set_basic<text, integer> index(std::begin(texts), std::end(texts),
+            min_binary_search);
+        std::cerr << "done." << std::endl;
+        result = evaluate(index, true_queries, false_queries);
+    }
+    else if(sftrie_type == "tail"){
+        sftrie::set_tail<text, integer> index(std::begin(texts), std::end(texts),
+            min_binary_search, min_tail);
+        std::cerr << "done." << std::endl;
+        result = evaluate(index, true_queries, false_queries);
+    }
+    else if(sftrie_type == "decompaction"){
+        sftrie::set_decompaction<text, integer> index(std::begin(texts), std::end(texts),
+            min_binary_search, min_tail, min_decompaction);
+        std::cerr << "done." << std::endl;
+        result = evaluate(index, true_queries, false_queries);
+    }
+    /*
 	sftrie::set<text, integer> index(
 		std::begin(texts), std::end(texts)
 #ifdef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
@@ -118,7 +158,8 @@ int exec(const std::string& corpus_path, int min_binary_search, int min_tail, in
 			++fp;
 		else
 			++tn;
-	std::cerr << "done." << std::endl << std::endl;
+    */
+	size_t tp = result["tp"], tn = result["tn"], fp = result["fp"], fn = result["fn"];
 
 	std::cout << "texts:" << std::endl;
 	std::cout << "  " << std::setw(25) << "alphabet size: " << std::setw(12) << alphabet.size() << std::endl;
@@ -140,6 +181,7 @@ int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
 		{"symbol_type", "char", "set-symbol-type", 's', "symbol type"},
+		{"sftrie_type", "naive", "set-sftrie-type", 't', "sftrie type"},
 		{"min_binary_search", 42, {"set", "min_binary_search"}, "set-min-binary-search", 0, "minumum number of children for binary search"},
 		{"min_tail", 1, {"set", "min_tail"}, "set-min-tail", 0, "minumum length to copress tail strings"},
 		{"min_decompaction", 0, {"set", "min_decompaction"}, "set-min-decompaction", 0, "minumum number of children to enable decompaction"},
@@ -155,31 +197,27 @@ int main(int argc, char* argv[])
 
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
+		std::string sftrie_type = pm["sftrie_type"];
 		int min_binary_search = pm["min_binary_search"];
 		int min_tail = pm["min_tail"];
 		int min_decompaction = pm["min_decompaction"];
 
         std::cerr << "Configuration" << std::endl;
         std::cerr << std::setw(12) << std::left << "  symbol_type: " << symbol_type << std::endl;
-#ifdef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+        std::cerr << std::setw(12) << std::left << "  sftrie_type: " << sftrie_type << std::endl;
         std::cerr << std::setw(12) << std::left << "  min_binary_search: " << min_binary_search << std::endl;
-#endif
-#ifdef SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
         std::cerr << std::setw(12) << std::left << "  min_tail: " << min_tail << std::endl;
-#endif
-#ifdef SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
         std::cerr << std::setw(12) << std::left << "  min_decompaction: " << min_decompaction << std::endl;
-#endif
         std::cerr << std::endl;
 
 		if(symbol_type == "char")
-			return exec<std::string, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
+			return exec<std::string, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "wchar_t")
-			return exec<std::wstring, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
+			return exec<std::wstring, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char16_t")
-			return exec<std::u16string, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
+			return exec<std::u16string, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char32_t")
-			return exec<std::u32string, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
+			return exec<std::u32string, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
 	}
 	catch(const std::exception& e){
 		std::cerr << "error: " << e.what() << std::endl;
