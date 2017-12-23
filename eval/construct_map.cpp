@@ -54,8 +54,6 @@ std::shared_ptr<sftrie::map<text, object, integer>> exec(const std::string& corp
 
 int main(int argc, char* argv[])
 {
-	init_locale();
-
 	if(argc < 2){
 		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
 		return 0;

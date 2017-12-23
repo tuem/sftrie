@@ -106,8 +106,6 @@ int exec(const std::string& corpus_path)
 
 int main(int argc, char* argv[])
 {
-	init_locale();
-
 	if(argc < 2){
 		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
 		return 0;
