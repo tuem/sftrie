@@ -22,19 +22,29 @@ limitations under the License.
 
 #include <string>
 
+#undef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+#undef SFTRIE_SET_SUPPORT_TAIL
+#undef SFTRIE_SET_SUPPORT_DECOMPACTION
+
 #if defined SFTRIE_SET_USE_DECOMPACTION
+	#define SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+	#define SFTRIE_SET_SUPPORT_TAIL
+	#define SFTRIE_SET_SUPPORT_DECOMPACTION
 	#include "set_decompaction.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
 		using set = set_decompaction<text, integer>;
 	};
 #elif defined SFTRIE_SET_USE_TAIL
+	#define SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+	#define SFTRIE_SET_SUPPORT_TAIL
 	#include "set_tail.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
 		using set = set_tail<text, integer>;
 	};
 #elif defined SFTRIE_SET_USE_BASIC
+	#define SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
 	#include "set_basic.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
@@ -47,6 +57,9 @@ limitations under the License.
 		using set = set_naive<text, integer>;
 	};
 #else
+	#define SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+	#define SFTRIE_SET_SUPPORT_TAIL
+	#define SFTRIE_SET_SUPPORT_DECOMPACTION
 	#include "set_decompaction.hpp"
 	namespace sftrie{
 		template<typename text = std::string, typename integer = typename text::size_type>
