@@ -139,7 +139,7 @@ int exec(const std::string& corpus_path, int min_binary_search, int min_tail, in
 int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
-		{"symbol_type", "char", "config", 's', "symbol type"},
+		{"symbol_type", "char", "set-symbol-type", 's', "symbol type"},
 		{"min_binary_search", 42, {"set", "min_binary_search"}, "set-min-binary-search", 0, "minumum number of children for binary search"},
 		{"min_tail", 1, {"set", "min_tail"}, "set-min-tail", 0, "minumum length to copress tail strings"},
 		{"min_decompaction", 0, {"set", "min_decompaction"}, "set-min-decompaction", 0, "minumum number of children to enable decompaction"},
@@ -158,6 +158,20 @@ int main(int argc, char* argv[])
 		int min_binary_search = pm["min_binary_search"];
 		int min_tail = pm["min_tail"];
 		int min_decompaction = pm["min_decompaction"];
+
+        std::cerr << "Configuration" << std::endl;
+        std::cerr << std::setw(12) << std::left << "  symbol_type: " << symbol_type << std::endl;
+#ifdef SFTRIE_SET_SUPPORT_IMPROVED_BINARY_SEARCH
+        std::cerr << std::setw(12) << std::left << "  min_binary_search: " << min_binary_search << std::endl;
+#endif
+#ifdef SFTRIE_SET_SUPPORT_TAIL_COMPRESSION
+        std::cerr << std::setw(12) << std::left << "  min_tail: " << min_tail << std::endl;
+#endif
+#ifdef SFTRIE_SET_SUPPORT_CHILDREN_DECOMPACTION
+        std::cerr << std::setw(12) << std::left << "  min_decompaction: " << min_decompaction << std::endl;
+#endif
+        std::cerr << std::endl;
+
 		if(symbol_type == "char")
 			return exec<std::string, integer>(corpus_path, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "wchar_t")
