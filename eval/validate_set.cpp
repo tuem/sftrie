@@ -27,6 +27,7 @@ limitations under the License.
 #include <chrono>
 
 #include <sftrie/set.hpp>
+#include <paramset.hpp>
 
 #include "string_util.hpp"
 
@@ -116,19 +117,33 @@ int exec(const std::string& corpus_path)
 
 int main(int argc, char* argv[])
 {
-	if(argc < 2){
-		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
-		return 0;
-	}
+	paramset::definitions defs = {
+		{"symbol_type", "char", "config", 's', "symbol type"},
+		{"min_binary_search", 42, {"set", "min_binary_search"}, "set-min-binary-search", 0, "minumum number of children for binary search"},
+		{"min_tail", 1, {"set", "min_tail"}, "set-min-tail", 0, "minumum length to copress tail strings"},
+		{"conf_path", "", "config", 'c', "config file path"}
+	};
+	paramset::manager pm(defs);
 
-	std::string corpus_path = argv[1];
-	std::string type = argc > 2 ? argv[2] : "s";
-	if(type == "u16")
-		return exec<std::u16string, integer>(corpus_path);
-	else if(type == "u32")
-		return exec<std::u32string, integer>(corpus_path);
-	else if(type == "w")
-		return exec<std::wstring, integer>(corpus_path);
-	else
-		return exec<std::string, integer>(corpus_path);
+	try{
+		pm.load(argc, argv, "config");
+
+		if(!pm.rest.empty())
+			pm["corpus_path"] = pm.rest.front().as<std::string>();
+
+		std::string corpus_path = pm["corpus_path"];
+		std::string symbol_type = pm["symbol_type"];
+		if(symbol_type == "char")
+			return exec<std::string, integer>(corpus_path);
+		else if(symbol_type == "wchar_t")
+			return exec<std::wstring, integer>(corpus_path);
+		else if(symbol_type == "char16_t")
+			return exec<std::u16string, integer>(corpus_path);
+		else if(symbol_type == "char32_t")
+			return exec<std::u32string, integer>(corpus_path);
+	}
+	catch(const std::exception& e){
+		std::cerr << "error: " << e.what() << std::endl;
+		exit(1);
+	}
 }
