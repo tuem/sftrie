@@ -24,8 +24,6 @@ limitations under the License.
 #include <locale>
 #include <codecvt>
 
-void init_locale();
-
 template<typename src_type, typename dest_type>
 void cast_string(const src_type& src, dest_type& dest);
 
