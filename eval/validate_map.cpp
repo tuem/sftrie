@@ -38,9 +38,9 @@ limitations under the License.
 using object = unsigned int;
 using integer = unsigned int;
 
-template<typename text, typename map>
+template<typename text_object_pair, typename map>
 std::map<std::string, size_t> evaluate(const map& dict,
-	const std::vector<text>& true_queries, const std::vector<text>& false_queries)
+	const std::vector<text_object_pair>& true_queries, const std::vector<text_object_pair>& false_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	std::cerr << "validating...";
