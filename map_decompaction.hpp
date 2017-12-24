@@ -132,7 +132,7 @@ private:
 		for(iterator i = begin; i < end; head.push_back(i))
 			for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
 
-		if(container_size<integer>(head) > min_decompaction){
+		if(min_decompaction != 0 && container_size<integer>(head) > min_decompaction){
 			// reserve siblings first
 			integer old_data_size = container_size<integer>(data);
 			for(symbol c = min_symbol; true; ++c){
