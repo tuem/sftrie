@@ -19,23 +19,7 @@ limitations under the License.
 
 #include "string_util.hpp"
 
-#include <stdlib.h>
-
-#include <locale>
 #include <codecvt>
-#include <iostream>
-
-void init_locale()
-{
-	std::ios_base::sync_with_stdio(false);
-	std::locale default_loc("");
-	std::locale::global(std::locale(default_loc, new std::codecvt_utf8<wchar_t>));
-	std::locale ctype_default_loc(std::locale::classic(), default_loc, std::locale::ctype);
-	std::wcin.imbue(std::locale());
-	std::wcout.imbue(ctype_default_loc);
-	std::wcerr.imbue(ctype_default_loc);
-	setlocale(LC_ALL, "");
-}
 
 template<>
 void cast_string(const std::string& src, std::wstring& dest)
