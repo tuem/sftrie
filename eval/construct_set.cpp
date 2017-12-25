@@ -118,6 +118,9 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		std::cout << "press any key to destruct" << std::flush;
 		getchar();
 	}
+	else{
+		throw std::runtime_error("unknown trie type: " + sftrie_type);
+	}
 
 	std::cout << std::endl;
 	std::cout << "size:" << std::endl;
@@ -176,6 +179,8 @@ int main(int argc, char* argv[])
 			space = exec<std::u16string, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char32_t")
 			space = exec<std::u32string, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
+		else
+			throw std::runtime_error("unknown symbol type: " + symbol_type);
 		std::cout << "calculated space: " << space << std::endl;
 
 		std::cout << "press any key to exit" << std::flush;

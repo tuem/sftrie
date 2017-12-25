@@ -160,6 +160,9 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		history.record("search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
+	else{
+		throw std::runtime_error("unknown trie type: " + sftrie_type);
+	}
 
 	std::cout << std::endl;
 	std::cout << "size:" << std::endl;
@@ -214,6 +217,8 @@ int main(int argc, char* argv[])
 			return exec<std::u16string, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char32_t")
 			return exec<std::u32string, integer>(corpus_path, sftrie_type, min_binary_search, min_tail, min_decompaction);
+		else
+			throw std::runtime_error("unknown symbol type: " + symbol_type);
 	}
 	catch(const std::exception& e){
 		std::cerr << "error: " << e.what() << std::endl;
