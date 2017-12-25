@@ -24,7 +24,7 @@ limitations under the License.
 //#define SFTRIE_SET_USE_NAIVE
 //#define SFTRIE_SET_USE_BASIC
 //#define SFTRIE_SET_USE_TAIL
-#define SFTRIE_SET_USE_DECOMPACTION
+//#define SFTRIE_SET_USE_DECOMPACTION
 #include <sftrie/set.hpp>
 
 using text = std::string;
