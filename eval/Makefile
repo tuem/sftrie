@@ -27,7 +27,7 @@ all: $(BINS)
 
 
 CXX := g++
-CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I../..
+CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I../.. -isystem include -isystem include/cmdline -isystem include/json
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
