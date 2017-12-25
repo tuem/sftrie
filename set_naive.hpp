@@ -31,14 +31,7 @@ class set_naive
 {
 	using symbol = typename text::value_type;
 
-	struct element
-	{
-		bool match: 1;
-		bool leaf: 1;
-		integer index: bit_width<integer>() - 2;
-		symbol label;
-	};
-
+	struct element;
 	struct common_prefix_iterator;
 
 public:
@@ -130,6 +123,15 @@ private:
 		}
 		return current;
 	}
+};
+
+template<typename text, typename integer>
+struct set_naive<text, integer>::element
+{
+	bool match: 1;
+	bool leaf: 1;
+	integer index: bit_width<integer>() - 2;
+	symbol label;
 };
 
 template<typename text, typename integer>
