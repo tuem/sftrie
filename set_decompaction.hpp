@@ -297,7 +297,6 @@ struct set_decompaction<text, integer>::common_prefix_iterator
 					result.erase(std::end(result) - (data[path.back() + 1].tail - data[path.back()].tail),
 						std::end(result));
 				}
-				// TODO: check dummy nodes
 				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].index].index){
 					path.pop_back();
 					result.pop_back();
@@ -308,7 +307,8 @@ struct set_decompaction<text, integer>::common_prefix_iterator
 					path.pop_back();
 			}
 		}while(!path.empty() && !data[path.back()].match &&
-			!(path.size() > 1 && path.back() == path[path.size() - 2]));
+			!(path.size() > 1 && path.back() == path[path.size() - 2]) &&
+			!(!data[path.back()].leaf || data[path.back()].tail < data[path.back() + 1].tail));
 		return *this;
 	}
 };
