@@ -307,8 +307,7 @@ struct set_decompaction<text, integer>::common_prefix_iterator
 					path.pop_back();
 			}
 		}while(!path.empty() && !data[path.back()].match &&
-			!(path.size() > 1 && path.back() == path[path.size() - 2]) &&
-			!(!data[path.back()].leaf || data[path.back()].tail < data[path.back() + 1].tail));
+			!(path.size() > 1 && path.back() == path[path.size() - 2]));
 		return *this;
 	}
 };
