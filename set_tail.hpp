@@ -188,7 +188,9 @@ struct set_tail<text, integer>::common_prefix_iterator
 			integer root, const text& prefix):
 		data(data), tails(tails), path(1, root), result(prefix)
 	{
-		if(!data[root].match)
+		if(!data[root].match && data[root].leaf)
+			path.push_back(path.back());
+		else if(!data[root].match)
 			++*this;
 	}
 
