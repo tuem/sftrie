@@ -92,10 +92,24 @@ public:
 
 	common_prefix_iterator prefix(const text& pattern) const
 	{
-		integer current = search(pattern);
-		return current < data.size() - 1 ?
-			common_prefix_iterator(data, tails, current, pattern) :
-			common_prefix_iterator(data, tails);
+		integer current = 0;
+		for(integer i = 0; i < pattern.size(); ++i){
+			if(data[current].leaf)
+				return check_tail_prefix(pattern, i, current) ?
+					common_prefix_iterator(data, tails, current, pattern, i) :
+					common_prefix_iterator(data, tails);
+			integer l = data[current].index, r = data[l].index;
+			for(integer w = r - l, m; w > min_binary_search; w = m){
+				m = w >> 1;
+				l += data[l + m].label < pattern[i] ? w - m : 0;
+			}
+			for(; l < r && data[l].label < pattern[i]; ++l);
+			if(l < r && data[l].label == pattern[i])
+				current = l;
+			else
+				return common_prefix_iterator(data, tails);
+		}
+		return common_prefix_iterator(data, tails, current, pattern);
 	}
 
 private:
@@ -148,29 +162,15 @@ private:
 		}
 	}
 
-	integer search(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return check_tail(pattern, i, current) ? current : data.size() - 1;
-			integer l = data[current].index, r = data[l].index;
-			for(integer w = r - l, m; w > min_binary_search; w = m){
-				m = w >> 1;
-				l += data[l + m].label < pattern[i] ? w - m : 0;
-			}
-			for(; l < r && data[l].label < pattern[i]; ++l);
-			if(l < r && data[l].label == pattern[i])
-				current = l;
-			else
-				return data.size() - 1;
-		}
-		return current;
-	}
-
 	bool check_tail(const text& pattern, integer i, integer current) const
 	{
 		return container_size<integer>(pattern) - i == data[current + 1].tail - data[current].tail &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
+	}
+
+	bool check_tail_prefix(const text& pattern, integer i, integer current) const
+	{
+		return container_size<integer>(pattern) - i <= data[current + 1].tail - data[current].tail &&
 			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
 	}
 };
@@ -185,12 +185,10 @@ struct set_tail<text, integer>::common_prefix_iterator
 	text result;
 
 	common_prefix_iterator(const std::vector<element>& data, const std::vector<symbol>& tails,
-			integer root, const text& prefix):
-		data(data), tails(tails), path(1, root), result(prefix)
+			integer root, const text& prefix, integer length = 0):
+		data(data), tails(tails), path(1, root), result(std::begin(prefix), std::begin(prefix) + (length > 0 ? length : prefix.size()))
 	{
-		if(!data[root].match && data[root].leaf)
-			path.push_back(path.back());
-		else if(!data[root].match)
+		if((length != 0 && length < prefix.size()) || !data[root].match)
 			++*this;
 	}
 
@@ -251,7 +249,8 @@ struct set_tail<text, integer>::common_prefix_iterator
 				else
 					path.pop_back();
 			}
-		}while(!path.empty() && !data[path.back()].match && !(path.size() > 1 && path.back() == path[path.size() - 2]));
+		}while(!path.empty() && !data[path.back()].match &&
+			!(path.size() > 1 && path.back() == path[path.size() - 2]));
 		return *this;
 	}
 };
