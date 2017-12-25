@@ -1,0 +1,16 @@
+{
+	"set": {
+		"symbol_type": "char",
+		"sftrie_type": "tail",
+		"min_binary_search": 42,
+		"min_tail": 1,
+		"min_decompaction": 0
+	},
+	"map": {
+		"symbol_type": "char",
+		"sftrie_type": "tail",
+		"min_binary_search": 42,
+		"min_tail": 1,
+		"min_decompaction": 0
+	}
+}
