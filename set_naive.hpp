@@ -34,15 +34,13 @@ class set_naive
 	struct element;
 	struct common_prefix_iterator;
 
+	const std::size_t num_texts;
+
+	std::vector<element> data;
+
 public:
 	template<typename random_access_iterator>
-	set_naive(random_access_iterator begin, random_access_iterator end):
-		num_texts(end - begin), data(1, {false, false, 1, {}})
-	{
-		construct(begin, end, 0, 0);
-		data.push_back({false, false, container_size<integer>(data), {}});
-		data.shrink_to_fit();
-	}
+	set_naive(random_access_iterator begin, random_access_iterator end);
 
 	std::size_t size() const
 	{
@@ -67,11 +65,6 @@ public:
 			common_prefix_iterator(data, current, pattern) :
 			common_prefix_iterator(data);
 	}
-
-private:
-	const std::size_t num_texts;
-
-	std::vector<element> data;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)
@@ -133,6 +126,16 @@ struct set_naive<text, integer>::element
 	integer index: bit_width<integer>() - 2;
 	symbol label;
 };
+
+template<typename text, typename integer>
+template<typename random_access_iterator>
+set_naive<text, integer>::set_naive(random_access_iterator begin, random_access_iterator end):
+	num_texts(end - begin), data(1, {false, false, 1, {}})
+{
+	construct(begin, end, 0, 0);
+	data.push_back({false, false, container_size<integer>(data), {}});
+	data.shrink_to_fit();
+}
 
 template<typename text, typename integer>
 struct set_naive<text, integer>::common_prefix_iterator
