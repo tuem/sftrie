@@ -21,7 +21,7 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-#define SFTRIE_MAP_USE_NAIVE
+//#define SFTRIE_MAP_USE_NAIVE
 //#define SFTRIE_MAP_USE_BASIC
 //#define SFTRIE_MAP_USE_TAIL
 //#define SFTRIE_MAP_USE_DECOMPACTION
