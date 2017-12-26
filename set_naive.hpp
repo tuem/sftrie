@@ -45,6 +45,7 @@ public:
 
 private:
 	const std::size_t num_texts;
+
 	std::vector<element> data;
 
 	template<typename iterator>
