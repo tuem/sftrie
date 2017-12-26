@@ -76,7 +76,7 @@ struct map_decompaction<text, object, integer>::element
 {
 	bool match: 1;
 	bool leaf: 1;
-	integer index: bit_width<integer>() - 2;
+	integer next: bit_width<integer>() - 2;
 	integer tail;
 	symbol label;
 	object value;
@@ -123,8 +123,8 @@ map_decompaction<text, object, integer>::find(const text& pattern) const
 	for(integer i = 0; i < pattern.size(); ++i){
 		if(data[current].leaf)
 			return check_tail(pattern, i, current);
-		current = data[current].index;
-		integer end = data[current].index;
+		current = data[current].next;
+		integer end = data[current].next;
 		if(current + alphabet_size == end){
 			current += pattern[i] - min_symbol;
 			continue;
@@ -150,8 +150,8 @@ map_decompaction<text, object, integer>::prefix(const text& pattern) const
 			return check_tail_prefix(pattern, i, current) ?
 				common_prefix_iterator(data, tails, current, pattern, i) :
 				common_prefix_iterator(data, tails);
-		current = data[current].index;
-		integer end = data[current].index;
+		current = data[current].next;
+		integer end = data[current].next;
 		if(current + alphabet_size == end){
 			current += pattern[i] - min_symbol;
 			continue;
@@ -198,7 +198,7 @@ void map_decompaction<text, object, integer>::construct(iterator begin, iterator
 
 		// extract tail strings of leaves
 		for(integer i = 0, j = 0; i < alphabet_size; ++i){
-			integer child = data[current].index + i;
+			integer child = data[current].next + i;
 			if(j == head.size() - 1 || head[j]->first[depth] != data[child].label){
 				data[child].leaf = true;
 				continue;
@@ -217,8 +217,8 @@ void map_decompaction<text, object, integer>::construct(iterator begin, iterator
 
 		// recursively construct subtries
 		for(integer i = 0, j = 0; i < alphabet_size; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
+			integer child = data[current].next + i;
+			data[child].next = container_size<integer>(data);
 			if(j == head.size() - 1 || head[j]->first[depth] != data[child].label)
 				continue;
 			if(head[j + 1] - head[j] != 1 || container_size<integer>(head[j]->first) - (depth + 1) < min_tail)
@@ -230,7 +230,7 @@ void map_decompaction<text, object, integer>::construct(iterator begin, iterator
 		// reserve siblings first
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 			data.push_back({false, false, 0, 0, head[i]->first[depth], {}});
-			integer child = data[current].index + i;
+			integer child = data[current].next + i;
 			if(head[i + 1] - head[i] == 1 && container_size<integer>(head[i]->first) - (depth + 1) >= min_tail){
 				data[child].match = container_size<integer>(head[i]->first) == depth + 1;
 				data[child].leaf = true;
@@ -244,8 +244,8 @@ void map_decompaction<text, object, integer>::construct(iterator begin, iterator
 
 		// recursively construct subtries
 		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
+			integer child = data[current].next + i;
+			data[child].next = container_size<integer>(data);
 			if(head[i + 1] - head[i] != 1 || container_size<integer>(head[i]->first) - (depth + 1) < min_tail)
 				construct(head[i], head[i + 1], depth + 1, child);
 		}
@@ -317,7 +317,7 @@ struct map_decompaction<text, object, integer>::common_prefix_iterator
 	{
 		do{
 			if(!data[path.back()].leaf){
-				integer child = data[path.back()].index;
+				integer child = data[path.back()].next;
 				path.push_back(child);
 				result.push_back(data[child].label);
 			}
@@ -333,7 +333,7 @@ struct map_decompaction<text, object, integer>::common_prefix_iterator
 					result.erase(std::end(result) - (data[path.back() + 1].tail - data[path.back()].tail),
 						std::end(result));
 				}
-				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].index].index){
+				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].next].next){
 					path.pop_back();
 					result.pop_back();
 				}
