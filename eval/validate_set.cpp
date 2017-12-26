@@ -201,19 +201,19 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		throw std::runtime_error("unknown trie type: " + sftrie_type);
 	}
 
-	std::cout << "texts:" << std::endl;
+	std::cout << "input:" << std::endl;
 	std::cout << "  " << std::setw(25) << "alphabet size: " << std::setw(12) << alphabet.size() << std::endl;
 	std::cout << "  " << std::setw(25) << "min symbol (as integer): " << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
 	std::cout << "  " << std::setw(25) << "max symbol (as integer): " << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
 	std::cout << "  " << std::setw(25) << "number of texts: " << std::setw(12) << texts.size() << std::endl;
 	std::cout << "  " << std::setw(25) << "total length: " << std::setw(12) << total_length << std::endl;
-	std::cout << "queries:" << std::endl;
+	std::cout << "exact match:" << std::endl;
 	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (true_queries.size() + false_queries.size()) << std::endl;
 	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << result_em["tp"] << std::endl;
 	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << result_em["tn"] << std::endl;
 	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << result_em["fp"] << std::endl;
 	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << result_em["fn"] << std::endl;
-	std::cout << "prefix search queries:" << std::endl;
+	std::cout << "prefix search:" << std::endl;
 	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (prefix_search_queries.size() + false_queries.size()) << std::endl;
 	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << result_ps["tp"] << std::endl;
 	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << result_ps["tn"] << std::endl;
