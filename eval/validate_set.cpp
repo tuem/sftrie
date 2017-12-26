@@ -38,7 +38,7 @@ limitations under the License.
 using integer = unsigned int;
 
 template<typename text, typename set>
-std::map<std::string, size_t> evaluate(const set& index,
+std::map<std::string, size_t> validate_exact_match(const set& index,
 	const std::vector<text>& true_queries, const std::vector<text>& false_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
@@ -58,7 +58,7 @@ std::map<std::string, size_t> evaluate(const set& index,
 }
 
 template<typename text, typename set>
-std::map<std::string, size_t> evaluate_prefix_search(const set& index,
+std::map<std::string, size_t> validate_prefix_search(const set& index,
 	const std::vector<text>& true_queries,
 	const std::vector<integer>& common_prefix_borders,
 	const std::vector<text>& false_queries)
@@ -164,44 +164,42 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 
-	std::map<std::string, size_t> result;
+	std::map<std::string, size_t> result_em;
 	std::map<std::string, size_t> result_ps;
 	if(sftrie_type == "naive"){
 		std::cerr << "constructing index...";
 		sftrie::set_naive<text, integer> index(std::begin(texts), std::end(texts));
 		std::cerr << "done." << std::endl;
-		result = evaluate(index, true_queries, false_queries);
-		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
+		result_em = validate_exact_match(index, true_queries, false_queries);
+		result_ps = validate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else if(sftrie_type == "basic"){
 		std::cerr << "constructing index...";
 		sftrie::set_basic<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search);
 		std::cerr << "done." << std::endl;
-		result = evaluate(index, true_queries, false_queries);
-		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
+		result_em = validate_exact_match(index, true_queries, false_queries);
+		result_ps = validate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else if(sftrie_type == "tail"){
 		std::cerr << "constructing index...";
 		sftrie::set_tail<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail);
 		std::cerr << "done." << std::endl;
-		result = evaluate(index, true_queries, false_queries);
-		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
+		result_em = validate_exact_match(index, true_queries, false_queries);
+		result_ps = validate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else if(sftrie_type == "decompaction"){
 		std::cerr << "constructing index...";
 		sftrie::set_decompaction<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail, min_decompaction);
 		std::cerr << "done." << std::endl;
-		result = evaluate(index, true_queries, false_queries);
-		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
+		result_em = validate_exact_match(index, true_queries, false_queries);
+		result_ps = validate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else{
 		throw std::runtime_error("unknown trie type: " + sftrie_type);
 	}
-	size_t tp = result["tp"], tn = result["tn"], fp = result["fp"], fn = result["fn"];
-	size_t tp_ps = result_ps["tp"], tn_ps = result_ps["tn"], fp_ps = result_ps["fp"], fn_ps = result_ps["fn"];
 
 	std::cout << "texts:" << std::endl;
 	std::cout << "  " << std::setw(25) << "alphabet size: " << std::setw(12) << alphabet.size() << std::endl;
@@ -211,18 +209,21 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	std::cout << "  " << std::setw(25) << "total length: " << std::setw(12) << total_length << std::endl;
 	std::cout << "queries:" << std::endl;
 	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (true_queries.size() + false_queries.size()) << std::endl;
-	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << tp << std::endl;
-	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn << std::endl;
-	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp << std::endl;
-	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << fn << std::endl;
+	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << result_em["tp"] << std::endl;
+	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << result_em["tn"] << std::endl;
+	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << result_em["fp"] << std::endl;
+	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << result_em["fn"] << std::endl;
 	std::cout << "prefix search queries:" << std::endl;
 	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (prefix_search_queries.size() + false_queries.size()) << std::endl;
-	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << tp_ps << std::endl;
-	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn_ps << std::endl;
-	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp_ps << std::endl;
-	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << fn_ps << std::endl;
+	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << result_ps["tp"] << std::endl;
+	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << result_ps["tn"] << std::endl;
+	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << result_ps["fp"] << std::endl;
+	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << result_ps["fn"] << std::endl;
 
-	return (tp == true_queries.size() && tn == false_queries.size() && fp == 0 && fn == 0) ? 0 : 1;
+	return
+		(result_em["tp"] == true_queries.size() && result_em["tn"] == false_queries.size() && result_em["fp"] == 0 && result_em["fn"] == 0) &&
+		(result_ps["tp"] == prefix_search_queries.size() && result_ps["tn"] == false_queries.size() && result_ps["fp"] == 0 && result_ps["fn"] == 0) ?
+		0 : 1;
 }
 
 int main(int argc, char* argv[])
