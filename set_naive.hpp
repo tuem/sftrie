@@ -50,6 +50,7 @@ private:
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
+
 	integer search(const text& pattern) const;
 };
 

@@ -39,8 +39,7 @@ public:
 	template<typename random_access_iterator>
 	map_tail(random_access_iterator begin, random_access_iterator end,
 			integer min_binary_search = 42, integer min_tail = 4);
-
-	std::size_t size() const;
+std::size_t size() const;
 	std::size_t space() const;
 	result find(const text& pattern) const;
 	common_prefix_iterator prefix(const text& pattern) const;
@@ -58,6 +57,7 @@ private:
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
+
 	result check_tail(const text& pattern, integer i, integer current) const;
 	bool check_tail_prefix(const text& pattern, integer i, integer current) const;
 };

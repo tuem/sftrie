@@ -63,6 +63,7 @@ private:
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
+
 	bool check_tail(const text& pattern, integer i, integer current) const;
 	bool check_tail_prefix(const text& pattern, integer i, integer current) const;
 };
