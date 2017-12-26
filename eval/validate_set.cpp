@@ -216,7 +216,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp << std::endl;
 	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << fn << std::endl;
 	std::cout << "prefix search queries:" << std::endl;
-	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (true_queries.size() + false_queries.size()) << std::endl;
+	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (prefix_search_queries.size() + false_queries.size()) << std::endl;
 	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << tp_ps << std::endl;
 	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn_ps << std::endl;
 	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp_ps << std::endl;
