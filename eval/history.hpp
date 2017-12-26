@@ -32,6 +32,7 @@ public:
     History();
 
     void record(const std::string& task, int count = 1);
+    void refresh();
 
     void dump(std::ostream& os = std::cout,
             bool show_header = true, bool show_count = false) const;
