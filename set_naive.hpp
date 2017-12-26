@@ -31,49 +31,17 @@ class set_naive
 {
 	using symbol = typename text::value_type;
 
-	struct element
-	{
-		bool match: 1;
-		bool leaf: 1;
-		integer index: bit_width<integer>() - 2;
-		symbol label;
-	};
-
+	struct element;
 	struct common_prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
-	set_naive(random_access_iterator begin, random_access_iterator end):
-		num_texts(end - begin), data(1, {false, false, 1, {}})
-	{
-		construct(begin, end, 0, 0);
-		data.push_back({false, false, container_size<integer>(data), {}});
-		data.shrink_to_fit();
-	}
+	set_naive(random_access_iterator begin, random_access_iterator end);
 
-	std::size_t size() const
-	{
-		return num_texts;
-	}
-
-	std::size_t space() const
-	{
-		return sizeof(element) * data.size();
-	}
-
-	bool exists(const text& pattern) const
-	{
-		integer current = search(pattern);
-		return data[current].match;
-	}
-
-	common_prefix_iterator prefix(const text& pattern) const
-	{
-		integer current = search(pattern);
-		return current < data.size() - 1 ?
-			common_prefix_iterator(data, current, pattern) :
-			common_prefix_iterator(data);
-	}
+	std::size_t size() const;
+	std::size_t space() const;
+	bool exists(const text& pattern) const;
+	common_prefix_iterator prefix(const text& pattern) const;
 
 private:
 	const std::size_t num_texts;
@@ -81,56 +49,110 @@ private:
 	std::vector<element> data;
 
 	template<typename iterator>
-	void construct(iterator begin, iterator end, integer depth, integer current)
-	{
-		if(depth == container_size<integer>(*begin)){
-			data[current].match = true;
-			if(++begin == end){
-				data[current].leaf = true;
-				return;
-			}
-		}
-
-		// reserve siblings first
-		std::vector<iterator> head{begin};
-		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, (*i)[depth]});
-			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
-		}
-
-		// recursively construct subtries
-		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
-			construct(head[i], head[i + 1], depth + 1, child);
-		}
-	}
-
-	integer search(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return data.size() - 1;
-			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
-				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
-					l = m + 1;
-				}
-				else if(data[m].label > pattern[i]){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
-			}
-			return data.size() - 1;
-			NEXT:;
-		}
-		return current;
-	}
+	void construct(iterator begin, iterator end, integer depth, integer current);
+	integer search(const text& pattern) const;
 };
+
+template<typename text, typename integer>
+struct set_naive<text, integer>::element
+{
+	bool match: 1;
+	bool leaf: 1;
+	integer index: bit_width<integer>() - 2;
+	symbol label;
+};
+
+template<typename text, typename integer>
+template<typename random_access_iterator>
+set_naive<text, integer>::set_naive(random_access_iterator begin, random_access_iterator end):
+	num_texts(end - begin), data(1, {false, false, 1, {}})
+{
+	construct(begin, end, 0, 0);
+	data.push_back({false, false, container_size<integer>(data), {}});
+	data.shrink_to_fit();
+}
+
+template<typename text, typename integer>
+std::size_t set_naive<text, integer>::size() const
+{
+	return num_texts;
+}
+
+template<typename text, typename integer>
+std::size_t set_naive<text, integer>::space() const
+{
+	return sizeof(element) * data.size();
+}
+
+template<typename text, typename integer>
+bool set_naive<text, integer>::exists(const text& pattern) const
+{
+	integer current = search(pattern);
+	return data[current].match;
+}
+
+template<typename text, typename integer>
+typename set_naive<text, integer>::common_prefix_iterator
+set_naive<text, integer>::prefix(const text& pattern) const
+{
+	integer current = search(pattern);
+	return current < data.size() - 1 ?
+		common_prefix_iterator(data, current, pattern) :
+		common_prefix_iterator(data);
+}
+
+template<typename text, typename integer>
+template<typename iterator>
+void set_naive<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
+{
+	if(depth == container_size<integer>(*begin)){
+		data[current].match = true;
+		if(++begin == end){
+			data[current].leaf = true;
+			return;
+		}
+	}
+
+	// reserve siblings first
+	std::vector<iterator> head{begin};
+	for(iterator i = begin; i < end; head.push_back(i)){
+		data.push_back({false, false, 0, (*i)[depth]});
+		for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
+	}
+
+	// recursively construct subtries
+	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+		integer child = data[current].index + i;
+		data[child].index = container_size<integer>(data);
+		construct(head[i], head[i + 1], depth + 1, child);
+	}
+}
+
+template<typename text, typename integer>
+integer set_naive<text, integer>::search(const text& pattern) const
+{
+	integer current = 0;
+	for(integer i = 0; i < pattern.size(); ++i){
+		if(data[current].leaf)
+			return data.size() - 1;
+		for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
+			integer m = (l + r) / 2;
+			if(data[m].label < pattern[i]){
+				l = m + 1;
+			}
+			else if(data[m].label > pattern[i]){
+				r = m - 1;
+			}
+			else{
+				current = m;
+				goto NEXT;
+			}
+		}
+		return data.size() - 1;
+		NEXT:;
+	}
+	return current;
+}
 
 template<typename text, typename integer>
 struct set_naive<text, integer>::common_prefix_iterator

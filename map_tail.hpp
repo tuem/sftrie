@@ -32,87 +32,18 @@ class map_tail
 	using symbol = typename text::value_type;
 	using result = std::pair<bool, const object&>;
 
-#pragma pack(1)
-	struct element
-	{
-		bool match: 1;
-		bool leaf: 1;
-		integer index: bit_width<integer>() - 2;
-		integer tail;
-		symbol label;
-		object value;
-	};
-#pragma pack()
-
+	struct element;
 	struct common_prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
 	map_tail(random_access_iterator begin, random_access_iterator end,
-			integer min_binary_search = 42, integer min_tail = 4):
-		num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}}), not_found(false, data[0].value),
-		min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
-	{
-		construct(begin, end, 0, 0);
-		data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}, {}});
-		data.shrink_to_fit();
-		for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
-			data[i].tail = data.back().tail;
-		tails.push_back({});
-		tails.shrink_to_fit();
-	}
+			integer min_binary_search = 42, integer min_tail = 4);
 
-	std::size_t size() const
-	{
-		return num_texts;
-	}
-
-	std::size_t space() const
-	{
-		return sizeof(element) * data.size() + sizeof(symbol) * tails.size();
-	}
-
-	result find(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return check_tail(pattern, i, current);
-			integer l = data[current].index, r = data[l].index;
-			for(integer w = r - l, m; w > min_binary_search; w = m){
-				m = w >> 1;
-				l += data[l + m].label < pattern[i] ? w - m : 0;
-			}
-			for(; l < r && data[l].label < pattern[i]; ++l);
-			if(l < r && data[l].label == pattern[i])
-				current = l;
-			else
-				return not_found;
-		}
-		return data[current].match ? result(true, data[current].value) : not_found;
-	}
-
-	common_prefix_iterator prefix(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return check_tail_prefix(pattern, i, current) ?
-					common_prefix_iterator(data, tails, current, pattern, i) :
-					common_prefix_iterator(data, tails);
-			integer l = data[current].index, r = data[l].index;
-			for(integer w = r - l, m; w > min_binary_search; w = m){
-				m = w >> 1;
-				l += data[l + m].label < pattern[i] ? w - m : 0;
-			}
-			for(; l < r && data[l].label < pattern[i]; ++l);
-			if(l < r && data[l].label == pattern[i])
-				current = l;
-			else
-				return common_prefix_iterator(data, tails);
-		}
-		return common_prefix_iterator(data, tails, current, pattern);
-	}
+	std::size_t size() const;
+	std::size_t space() const;
+	result find(const text& pattern) const;
+	common_prefix_iterator prefix(const text& pattern) const;
 
 private:
 	const std::size_t num_texts;
@@ -126,60 +57,156 @@ private:
 	const integer min_tail;
 
 	template<typename iterator>
-	void construct(iterator begin, iterator end, integer depth, integer current)
-	{
-		if(depth == container_size<integer>(begin->first)){
-			data[current].match = true;
-			data[current].value = begin->second;
-			if(++begin == end){
-				data[current].leaf = true;
-				return;
-			}
-		}
-
-		// reserve siblings first
-		std::vector<iterator> head{begin};
-		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, 0, i->first[depth], {}});
-			for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
-		}
-
-		// extract tail strings of leaves
-		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			if(head[i + 1] - head[i] == 1 && container_size<integer>(head[i]->first) - (depth + 1) >= min_tail){
-				data[child].match = container_size<integer>(head[i]->first) == depth + 1;
-				data[child].leaf = true;
-				data[child].tail = container_size<integer>(tails);
-				data[child].value = head[i]->second;
-				for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
-					data[j].tail = data[child].tail;
-				std::copy(std::begin(head[i]->first) + depth + 1, std::end(head[i]->first), std::back_inserter(tails));
-			}
-		}
-
-		// recursively construct subtries
-		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
-			if(head[i + 1] - head[i] != 1 || container_size<integer>(head[i]->first) - (depth + 1) < min_tail)
-				construct(head[i], head[i + 1], depth + 1, child);
-		}
-	}
-
-	result check_tail(const text& pattern, integer i, integer current) const
-	{
-		return container_size<integer>(pattern) - i == data[current + 1].tail - data[current].tail &&
-				std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail) ?
-			result(true, data[current].value) : not_found;
-	}
-
-	bool check_tail_prefix(const text& pattern, integer i, integer current) const
-	{
-		return container_size<integer>(pattern) - i <= data[current + 1].tail - data[current].tail &&
-			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
-	}
+	void construct(iterator begin, iterator end, integer depth, integer current);
+	result check_tail(const text& pattern, integer i, integer current) const;
+	bool check_tail_prefix(const text& pattern, integer i, integer current) const;
 };
+
+#pragma pack(1)
+template<typename text, typename object, typename integer>
+struct map_tail<text, object, integer>::element
+{
+	bool match: 1;
+	bool leaf: 1;
+	integer index: bit_width<integer>() - 2;
+	integer tail;
+	symbol label;
+	object value;
+};
+#pragma pack()
+
+template<typename text, typename object, typename integer>
+template<typename random_access_iterator>
+map_tail<text, object, integer>::map_tail(random_access_iterator begin, random_access_iterator end,
+		integer min_binary_search, integer min_tail):
+	num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}}), not_found(false, data[0].value),
+	min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
+{
+	construct(begin, end, 0, 0);
+	data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}, {}});
+	data.shrink_to_fit();
+	for(integer i = container_size<integer>(data) - 2; i > 0 && data[i].tail == 0; --i)
+		data[i].tail = data.back().tail;
+	tails.push_back({});
+	tails.shrink_to_fit();
+}
+
+template<typename text, typename object, typename integer>
+std::size_t map_tail<text, object, integer>::size() const
+{
+	return num_texts;
+}
+
+template<typename text, typename object, typename integer>
+std::size_t map_tail<text, object, integer>::space() const
+{
+	return sizeof(element) * data.size() + sizeof(symbol) * tails.size();
+}
+
+template<typename text, typename object, typename integer>
+typename map_tail<text, object, integer>::result
+map_tail<text, object, integer>::find(const text& pattern) const
+{
+	integer current = 0;
+	for(integer i = 0; i < pattern.size(); ++i){
+		if(data[current].leaf)
+			return check_tail(pattern, i, current);
+		integer l = data[current].index, r = data[l].index;
+		for(integer w = r - l, m; w > min_binary_search; w = m){
+			m = w >> 1;
+			l += data[l + m].label < pattern[i] ? w - m : 0;
+		}
+		for(; l < r && data[l].label < pattern[i]; ++l);
+		if(l < r && data[l].label == pattern[i])
+			current = l;
+		else
+			return not_found;
+	}
+	return data[current].match ? result(true, data[current].value) : not_found;
+}
+
+template<typename text, typename object, typename integer>
+typename map_tail<text, object, integer>::common_prefix_iterator
+map_tail<text, object, integer>::prefix(const text& pattern) const
+{
+	integer current = 0;
+	for(integer i = 0; i < pattern.size(); ++i){
+		if(data[current].leaf)
+			return check_tail_prefix(pattern, i, current) ?
+				common_prefix_iterator(data, tails, current, pattern, i) :
+				common_prefix_iterator(data, tails);
+		integer l = data[current].index, r = data[l].index;
+		for(integer w = r - l, m; w > min_binary_search; w = m){
+			m = w >> 1;
+			l += data[l + m].label < pattern[i] ? w - m : 0;
+		}
+		for(; l < r && data[l].label < pattern[i]; ++l);
+		if(l < r && data[l].label == pattern[i])
+			current = l;
+		else
+			return common_prefix_iterator(data, tails);
+	}
+	return common_prefix_iterator(data, tails, current, pattern);
+}
+
+template<typename text, typename object, typename integer>
+template<typename iterator>
+void map_tail<text, object, integer>::construct(iterator begin, iterator end, integer depth, integer current)
+{
+	if(depth == container_size<integer>(begin->first)){
+		data[current].match = true;
+		data[current].value = begin->second;
+		if(++begin == end){
+			data[current].leaf = true;
+			return;
+		}
+	}
+
+	// reserve siblings first
+	std::vector<iterator> head{begin};
+	for(iterator i = begin; i < end; head.push_back(i)){
+		data.push_back({false, false, 0, 0, i->first[depth], {}});
+		for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
+	}
+
+	// extract tail strings of leaves
+	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+		integer child = data[current].index + i;
+		if(head[i + 1] - head[i] == 1 && container_size<integer>(head[i]->first) - (depth + 1) >= min_tail){
+			data[child].match = container_size<integer>(head[i]->first) == depth + 1;
+			data[child].leaf = true;
+			data[child].tail = container_size<integer>(tails);
+			data[child].value = head[i]->second;
+			for(integer j = child - 1; j > 0 && data[j].tail == 0; --j)
+				data[j].tail = data[child].tail;
+			std::copy(std::begin(head[i]->first) + depth + 1, std::end(head[i]->first), std::back_inserter(tails));
+		}
+	}
+
+	// recursively construct subtries
+	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+		integer child = data[current].index + i;
+		data[child].index = container_size<integer>(data);
+		if(head[i + 1] - head[i] != 1 || container_size<integer>(head[i]->first) - (depth + 1) < min_tail)
+			construct(head[i], head[i + 1], depth + 1, child);
+	}
+}
+
+template<typename text, typename object, typename integer>
+typename map_tail<text, object, integer>::result
+map_tail<text, object, integer>::check_tail(const text& pattern, integer i, integer current) const
+{
+	return container_size<integer>(pattern) - i == data[current + 1].tail - data[current].tail &&
+			std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail) ?
+		result(true, data[current].value) : not_found;
+}
+
+template<typename text, typename object, typename integer>
+bool map_tail<text, object, integer>::check_tail_prefix(const text& pattern, integer i, integer current) const
+{
+	return container_size<integer>(pattern) - i <= data[current + 1].tail - data[current].tail &&
+		std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
+}
 
 template<typename text, typename object, typename integer>
 struct map_tail<text, object, integer>::common_prefix_iterator
