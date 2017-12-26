@@ -32,22 +32,22 @@ DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
 validate_set: validate_set.o string_util.o
-	$(CXX) -o $@ validate_set.o string_util.o
+	$(CXX) -o $@ $^
 
 validate_map: validate_map.o string_util.o
-	$(CXX) -o $@ validate_map.o string_util.o
+	$(CXX) -o $@ $^
 
 construct_set: construct_set.o string_util.o history.o
-	$(CXX) -o $@ construct_set.o string_util.o history.o
+	$(CXX) -o $@ $^
 
 construct_map: construct_map.o string_util.o history.o
-	$(CXX) -o $@ construct_map.o string_util.o history.o
+	$(CXX) -o $@ $^
 
 benchmark_set: benchmark_set.o string_util.o history.o
-	$(CXX) -o $@ benchmark_set.o string_util.o history.o
+	$(CXX) -o $@ $^
 
 benchmark_map: benchmark_map.o string_util.o history.o
-	$(CXX) -o $@ benchmark_map.o string_util.o history.o
+	$(CXX) -o $@ $^
 
 
 clean:
