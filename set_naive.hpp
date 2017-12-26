@@ -34,21 +34,19 @@ class set_naive
 	struct element;
 	struct common_prefix_iterator;
 
-	const std::size_t num_texts;
-
-	std::vector<element> data;
-
 public:
 	template<typename random_access_iterator>
 	set_naive(random_access_iterator begin, random_access_iterator end);
 
 	std::size_t size() const;
 	std::size_t space() const;
-
 	bool exists(const text& pattern) const;
 	common_prefix_iterator prefix(const text& pattern) const;
 
 private:
+	const std::size_t num_texts;
+	std::vector<element> data;
+
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 	integer search(const text& pattern) const;
