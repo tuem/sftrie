@@ -33,50 +33,17 @@ class map_naive
 	using symbol = typename text::value_type;
 	using result = std::pair<bool, const object&>;
 
-	struct element
-	{
-		bool match: 1;
-		bool leaf: 1;
-		integer index: bit_width<integer>() - 2;
-		symbol label;
-		object value;
-	};
-
+	struct element;
 	struct common_prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
-	map_naive(random_access_iterator begin, random_access_iterator end):
-		num_texts(end - begin), data(1, {false, false, 1, {}, {}}), not_found(false, data[0].value)
-	{
-		construct(begin, end, 0, 0);
-		data.push_back({false, false, container_size<integer>(data), {}, {}});
-		data.shrink_to_fit();
-	}
+	map_naive(random_access_iterator begin, random_access_iterator end);
 
-	std::size_t size() const
-	{
-		return num_texts;
-	}
-
-	std::size_t space() const
-	{
-		return sizeof(element) * data.size();
-	}
-
-	result find(const text& pattern) const
-	{
-		integer current = search(pattern);
-		return data[current].match ? result(true, data[current].value) : not_found;
-	}
-
-	common_prefix_iterator prefix(const text& pattern) const
-	{
-		integer current = search(pattern);
-		return current < data.size() - 1 ?
-			common_prefix_iterator(data, current, pattern) :
-			common_prefix_iterator(data);
-	}
+	std::size_t size() const;
+	std::size_t space() const;
+	result find(const text& pattern) const;
+	common_prefix_iterator prefix(const text& pattern) const;
 
 private:
 	const std::size_t num_texts;
@@ -85,57 +52,115 @@ private:
 	const result not_found;
 
 	template<typename iterator>
-	void construct(iterator begin, iterator end, integer depth, integer current)
-	{
-		if(depth == container_size<integer>(begin->first)){
-			data[current].match = true;
-			data[current].value = begin->second;
-			if(++begin == end){
-				data[current].leaf = true;
-				return;
-			}
-		}
+	void construct(iterator begin, iterator end, integer depth, integer current);
 
-		// reserve siblings first
-		std::vector<iterator> head{begin};
-		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, i->first[depth], {}});
-			for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
-		}
-
-		// recursively construct subtries
-		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
-			construct(head[i], head[i + 1], depth + 1, child);
-		}
-	}
-
-	integer search(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return data.size() - 1;
-			for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
-				integer m = (l + r) / 2;
-				if(data[m].label < pattern[i]){
-					l = m + 1;
-				}
-				else if(data[m].label > pattern[i]){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
-			}
-			return data.size() - 1;
-			NEXT:;
-		}
-		return current;
-	}
+	integer search(const text& pattern) const;
 };
+
+template<typename text, typename object, typename integer>
+struct map_naive<text, object, integer>::element
+{
+	bool match: 1;
+	bool leaf: 1;
+	integer index: bit_width<integer>() - 2;
+	symbol label;
+	object value;
+};
+
+template<typename text, typename object, typename integer>
+template<typename random_access_iterator>
+map_naive<text, object, integer>::map_naive(random_access_iterator begin, random_access_iterator end):
+	num_texts(end - begin), data(1, {false, false, 1, {}, {}}), not_found(false, data[0].value)
+{
+	construct(begin, end, 0, 0);
+	data.push_back({false, false, container_size<integer>(data), {}, {}});
+	data.shrink_to_fit();
+}
+
+template<typename text, typename object, typename integer>
+std::size_t map_naive<text, object, integer>::size() const
+{
+	return num_texts;
+}
+
+template<typename text, typename object, typename integer>
+std::size_t map_naive<text, object, integer>::space() const
+{
+	return sizeof(element) * data.size();
+}
+
+template<typename text, typename object, typename integer>
+typename map_naive<text, object, integer>::result
+map_naive<text, object, integer>::find(const text& pattern) const
+{
+	integer current = search(pattern);
+	return data[current].match ? result(true, data[current].value) : not_found;
+}
+
+template<typename text, typename object, typename integer>
+typename map_naive<text, object, integer>::common_prefix_iterator
+map_naive<text, object, integer>::prefix(const text& pattern) const
+{
+	integer current = search(pattern);
+	return current < data.size() - 1 ?
+		common_prefix_iterator(data, current, pattern) :
+		common_prefix_iterator(data);
+}
+
+template<typename text, typename object, typename integer>
+template<typename iterator>
+void map_naive<text, object, integer>::construct(
+	iterator begin, iterator end, integer depth, integer current)
+{
+	if(depth == container_size<integer>(begin->first)){
+		data[current].match = true;
+		data[current].value = begin->second;
+		if(++begin == end){
+			data[current].leaf = true;
+			return;
+		}
+	}
+
+	// reserve siblings first
+	std::vector<iterator> head{begin};
+	for(iterator i = begin; i < end; head.push_back(i)){
+		data.push_back({false, false, 0, i->first[depth], {}});
+		for(symbol c = i->first[depth]; i < end && i->first[depth] == c; ++i);
+	}
+
+	// recursively construct subtries
+	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+		integer child = data[current].index + i;
+		data[child].index = container_size<integer>(data);
+		construct(head[i], head[i + 1], depth + 1, child);
+	}
+}
+
+template<typename text, typename object, typename integer>
+integer map_naive<text, object, integer>::search(const text& pattern) const
+{
+	integer current = 0;
+	for(integer i = 0; i < pattern.size(); ++i){
+		if(data[current].leaf)
+			return data.size() - 1;
+		for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
+			integer m = (l + r) / 2;
+			if(data[m].label < pattern[i]){
+				l = m + 1;
+			}
+			else if(data[m].label > pattern[i]){
+				r = m - 1;
+			}
+			else{
+				current = m;
+				goto NEXT;
+			}
+		}
+		return data.size() - 1;
+		NEXT:;
+	}
+	return current;
+}
 
 template<typename text, typename object, typename integer>
 struct map_naive<text, object, integer>::common_prefix_iterator
