@@ -118,19 +118,18 @@ bool set_decompaction<text, integer>::exists(const text& pattern) const
 	for(integer i = 0; i < pattern.size(); ++i){
 		if(data[current].leaf)
 			return check_tail(pattern, i, current);
-		integer l = data[current].index, r = data[l].index;
-		if(l + alphabet_size == r){
-			current = l + pattern[i] - min_symbol;
+		current = data[current].index;
+		integer end = data[current].index;
+		if(current + alphabet_size == end){
+			current += pattern[i] - min_symbol;
 			continue;
 		}
-		for(integer w = r - l, m; w > min_binary_search; w = m){
+		for(integer w = end - current, m; w > min_binary_search; w = m){
 			m = w >> 1;
-			l += data[l + m].label < pattern[i] ? w - m : 0;
+			current += data[current + m].label < pattern[i] ? w - m : 0;
 		}
-		for(; l < r && data[l].label < pattern[i]; ++l);
-		if(l < r && data[l].label == pattern[i])
-			current = l;
-		else
+		for(; current < end && data[current].label < pattern[i]; ++current);
+		if(!(current < end && data[current].label == pattern[i]))
 			return false;
 	}
 	return data[current].match;
@@ -146,19 +145,18 @@ set_decompaction<text, integer>::prefix(const text& pattern) const
 			return check_tail_prefix(pattern, i, current) ?
 				common_prefix_iterator(data, tails, current, pattern, i) :
 				common_prefix_iterator(data, tails);
-		integer l = data[current].index, r = data[l].index;
-		if(l + alphabet_size == r){
-			current = l + pattern[i] - min_symbol;
+		current = data[current].index;
+		integer end = data[current].index;
+		if(current + alphabet_size == end){
+			current += pattern[i] - min_symbol;
 			continue;
 		}
-		for(integer w = r - l, m; w > min_binary_search; w = m){
+		for(integer w = end - current, m; w > min_binary_search; w = m){
 			m = w >> 1;
-			l += data[l + m].label < pattern[i] ? w - m : 0;
+			current += data[current + m].label < pattern[i] ? w - m : 0;
 		}
-		for(; l < r && data[l].label < pattern[i]; ++l);
-		if(l < r && data[l].label == pattern[i])
-			current = l;
-		else
+		for(; current < end && data[current].label < pattern[i]; ++current);
+		if(!(current < end && data[current].label == pattern[i]))
 			return common_prefix_iterator(data, tails);
 	}
 	return common_prefix_iterator(data, tails, current, pattern);
