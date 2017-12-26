@@ -22,36 +22,29 @@ limitations under the License.
 
 #include <string>
 
+#include "set_naive.hpp"
+#include "set_basic.hpp"
+#include "set_tail.hpp"
+#include "set_decompaction.hpp"
+
 #if defined SFTRIE_SET_USE_DECOMPACTION
-	#include "set_decompaction.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename integer = typename text::size_type>
-		using set = set_decompaction<text, integer>;
-	};
+	#define SFTRIE_SET_TYPE set_decompaction
 #elif defined SFTRIE_SET_USE_TAIL
-	#include "set_tail.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename integer = typename text::size_type>
-		using set = set_tail<text, integer>;
-	};
+	#define SFTRIE_SET_TYPE set_tail
 #elif defined SFTRIE_SET_USE_BASIC
-	#include "set_basic.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename integer = typename text::size_type>
-		using set = set_basic<text, integer>;
-	};
+	#define SFTRIE_SET_TYPE set_basic
 #elif defined SFTRIE_SET_USE_NAIVE
-	#include "set_naive.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename integer = typename text::size_type>
-		using set = set_naive<text, integer>;
-	};
+	#define SFTRIE_SET_TYPE set_naive
 #else
-	#include "set_decompaction.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename integer = typename text::size_type>
-		using set = set_decompaction<text, integer>;
-	};
+	#define SFTRIE_SET_TYPE set_tail
 #endif
+
+namespace sftrie{
+	template<typename text = std::string,
+		typename integer = typename text::size_type>
+	using set = SFTRIE_SET_TYPE<text, integer>;
+};
+
+#undef SFTRIE_SET_TYPE
 
 #endif
