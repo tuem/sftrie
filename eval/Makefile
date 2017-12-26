@@ -15,13 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-VALIDATE_SET_BIN = validate_set
-VALIDATE_MAP_BIN = validate_map
-CONSTRUCT_SET_BIN = construct_set
-CONSTRUCT_MAP_BIN = construct_map
-BENCHMARK_SET_BIN = benchmark_set
-BENCHMARK_MAP_BIN = benchmark_map
-BINS = $(VALIDATE_SET_BIN) $(VALIDATE_MAP_BIN) $(CONSTRUCT_SET_BIN) $(CONSTRUCT_MAP_BIN) $(BENCHMARK_SET_BIN) $(BENCHMARK_MAP_BIN)
+BINS = validate_set validate_map construct_set construct_map benchmark_set benchmark_map
 
 all: $(BINS)
 
@@ -32,68 +26,28 @@ CXXFLAGS := -Wall -Wextra -O3 -std=c++11 -I../.. -isystem include -isystem inclu
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
 
-naive: clean all
-naive: CXXFLAGS += -DSFTRIE_SET_USE_NAIVE
-naive: CXXFLAGS += -DSFTRIE_MAP_USE_NAIVE
-naive: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_naive
-naive: VALIDATE_MAP_BIN := $(VALIDATE_MAP_BIN)_naive
-naive: CONSTRUCT_SET_BIN := $(CONSTRUCT_SET_BIN)_naive
-naive: CONSTRUCT_MAP_BIN := $(CONSTRUCT_MAP_BIN)_naive
-naive: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_naive
-naive: BENCHMARK_MAP_BIN := $(BENCHMARK_MAP_BIN)_naive
-
-basic: clean all
-basic: CXXFLAGS += -DSFTRIE_SET_USE_BASIC
-basic: CXXFLAGS += -DSFTRIE_MAP_USE_BASIC
-basic: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_basic
-basic: VALIDATE_MAP_BIN := $(VALIDATE_MAP_BIN)_basic
-basic: CONSTRUCT_SET_BIN := $(CONSTRUCT_SET_BIN)_basic
-basic: CONSTRUCT_MAP_BIN := $(CONSTRUCT_MAP_BIN)_basic
-basic: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_basic
-basic: BENCHMARK_MAP_BIN := $(BENCHMARK_MAP_BIN)_basic
-
-tail: clean all
-tail: CXXFLAGS += -DSFTRIE_SET_USE_TAIL
-tail: CXXFLAGS += -DSFTRIE_MAP_USE_TAIL
-tail: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_tail
-tail: VALIDATE_MAP_BIN := $(VALIDATE_MAP_BIN)_tail
-tail: CONSTRUCT_SET_BIN := $(CONSTRUCT_SET_BIN)_tail
-tail: CONSTRUCT_MAP_BIN := $(CONSTRUCT_MAP_BIN)_tail
-tail: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_tail
-tail: BENCHMARK_MAP_BIN := $(BENCHMARK_MAP_BIN)_tail
-
-decompaction: clean all
-decompaction: CXXFLAGS += -DSFTRIE_SET_USE_DECOMPACTION
-decompaction: CXXFLAGS += -DSFTRIE_MAP_USE_DECOMPACTION
-decompaction: VALIDATE_SET_BIN := $(VALIDATE_SET_BIN)_decompaction
-decompaction: VALIDATE_MAP_BIN := $(VALIDATE_MAP_BIN)_decompaction
-decompaction: CONSTRUCT_SET_BIN := $(CONSTRUCT_SET_BIN)_decompaction
-decompaction: CONSTRUCT_MAP_BIN := $(CONSTRUCT_MAP_BIN)_decompaction
-decompaction: BENCHMARK_SET_BIN := $(BENCHMARK_SET_BIN)_decompaction
-decompaction: BENCHMARK_MAP_BIN := $(BENCHMARK_MAP_BIN)_decompaction
-
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-$(VALIDATE_SET_BIN): validate_set.o string_util.o
-	$(CXX) -o $(VALIDATE_SET_BIN) validate_set.o string_util.o
+validate_set: validate_set.o string_util.o
+	$(CXX) -o $@ validate_set.o string_util.o
 
-$(VALIDATE_MAP_BIN): validate_map.o string_util.o
-	$(CXX) -o $(VALIDATE_MAP_BIN) validate_map.o string_util.o
+validate_map: validate_map.o string_util.o
+	$(CXX) -o $@ validate_map.o string_util.o
 
-$(CONSTRUCT_SET_BIN): construct_set.o string_util.o history.o
-	$(CXX) -o $(CONSTRUCT_SET_BIN) construct_set.o string_util.o history.o
+construct_set: construct_set.o string_util.o history.o
+	$(CXX) -o $@ construct_set.o string_util.o history.o
 
-$(CONSTRUCT_MAP_BIN): construct_map.o string_util.o history.o
-	$(CXX) -o $(CONSTRUCT_MAP_BIN) construct_map.o string_util.o history.o
+construct_map: construct_map.o string_util.o history.o
+	$(CXX) -o $@ construct_map.o string_util.o history.o
 
-$(BENCHMARK_SET_BIN): benchmark_set.o string_util.o history.o
-	$(CXX) -o $(BENCHMARK_SET_BIN) benchmark_set.o string_util.o history.o
+benchmark_set: benchmark_set.o string_util.o history.o
+	$(CXX) -o $@ benchmark_set.o string_util.o history.o
 
-$(BENCHMARK_MAP_BIN): benchmark_map.o string_util.o history.o
-	$(CXX) -o $(BENCHMARK_MAP_BIN) benchmark_map.o string_util.o history.o
+benchmark_map: benchmark_map.o string_util.o history.o
+	$(CXX) -o $@ benchmark_map.o string_util.o history.o
 
 
 clean:
