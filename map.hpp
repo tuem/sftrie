@@ -41,9 +41,9 @@ limitations under the License.
 
 namespace sftrie{
 	template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
-	using map = MAP<text, object, integer>;
+	using map = SFTRIE_MAP_TYPE<text, object, integer>;
 };
 
-#undef SFTRIE_MAP_TYPE map_decompaction
+#undef SFTRIE_MAP_TYPE
 
 #endif
