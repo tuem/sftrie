@@ -31,52 +31,18 @@ class set_basic
 {
 	using symbol = typename text::value_type;
 
-#pragma pack(1)
-	struct element
-	{
-		bool match: 1;
-		bool leaf: 1;
-		integer index: bit_width<integer>() - 2;
-		symbol label;
-	};
-#pragma pack()
-
+	struct element;
 	struct common_prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
 	set_basic(random_access_iterator begin, random_access_iterator end,
-			integer min_binary_search = 42):
-		num_texts(end - begin), data(1, {false, false, 1, {}}),
-		min_binary_search(min_binary_search)
-	{
-		construct(begin, end, 0, 0);
-		data.push_back({false, false, container_size<integer>(data), {}});
-		data.shrink_to_fit();
-	}
+		integer min_binary_search = 42);
 
-	std::size_t size() const
-	{
-		return num_texts;
-	}
-
-	std::size_t space() const
-	{
-		return sizeof(element) * data.size();
-	}
-
-	bool exists(const text& pattern) const
-	{
-		return data[search(pattern)].match;
-	}
-
-	common_prefix_iterator prefix(const text& pattern) const
-	{
-		integer current = search(pattern);
-		return current < data.size() - 1 ?
-			common_prefix_iterator(data, current, pattern) :
-			common_prefix_iterator(data);
-	}
+	std::size_t size() const;
+	std::size_t space() const;
+	bool exists(const text& pattern) const;
+	common_prefix_iterator prefix(const text& pattern) const;
 
 private:
 	const std::size_t num_texts;
@@ -86,51 +52,108 @@ private:
 	const integer min_binary_search;
 
 	template<typename iterator>
-	void construct(iterator begin, iterator end, integer depth, integer current)
-	{
-		if(depth == container_size<integer>(*begin)){
-			data[current].match = true;
-			if(++begin == end){
-				data[current].leaf = true;
-				return;
-			}
-		}
-
-		// reserve siblings first
-		std::vector<iterator> head{begin};
-		for(iterator i = begin; i < end; head.push_back(i)){
-			data.push_back({false, false, 0, (*i)[depth]});
-			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
-		}
-
-		// recursively construct subtries
-		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			integer child = data[current].index + i;
-			data[child].index = container_size<integer>(data);
-			construct(head[i], head[i + 1], depth + 1, child);
-		}
-	}
-
-	integer search(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size(); ++i){
-			if(data[current].leaf)
-				return data.size() - 1;
-			integer l = data[current].index, r = data[l].index;
-			for(integer w = r - l, m; w > min_binary_search; w = m){
-				m = w >> 1;
-				l += data[l + m].label < pattern[i] ? w - m : 0;
-			}
-			for(; l < r && data[l].label < pattern[i]; ++l);
-			if(l < r && data[l].label == pattern[i])
-				current = l;
-			else
-				return data.size() - 1;
-		}
-		return current;
-	}
+	void construct(iterator begin, iterator end, integer depth, integer current);
+	integer search(const text& pattern) const;
 };
+
+#pragma pack(1)
+template<typename text, typename integer>
+struct set_basic<text, integer>::element
+{
+	bool match: 1;
+	bool leaf: 1;
+	integer index: bit_width<integer>() - 2;
+	symbol label;
+};
+#pragma pack()
+
+template<typename text, typename integer>
+template<typename random_access_iterator>
+set_basic<text, integer>::set_basic(random_access_iterator begin, random_access_iterator end,
+		integer min_binary_search):
+	num_texts(end - begin), data(1, {false, false, 1, {}}),
+	min_binary_search(min_binary_search)
+{
+	construct(begin, end, 0, 0);
+	data.push_back({false, false, container_size<integer>(data), {}});
+	data.shrink_to_fit();
+}
+
+template<typename text, typename integer>
+std::size_t set_basic<text, integer>::size() const
+{
+	return num_texts;
+}
+
+template<typename text, typename integer>
+std::size_t set_basic<text, integer>::space() const
+{
+	return sizeof(element) * data.size();
+}
+
+template<typename text, typename integer>
+bool set_basic<text, integer>::exists(const text& pattern) const
+{
+	return data[search(pattern)].match;
+}
+
+template<typename text, typename integer>
+typename set_basic<text, integer>::common_prefix_iterator
+set_basic<text, integer>::prefix(const text& pattern) const
+{
+	integer current = search(pattern);
+	return current < data.size() - 1 ?
+		common_prefix_iterator(data, current, pattern) :
+		common_prefix_iterator(data);
+}
+
+template<typename text, typename integer>
+template<typename iterator>
+void set_basic<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
+{
+	if(depth == container_size<integer>(*begin)){
+		data[current].match = true;
+		if(++begin == end){
+			data[current].leaf = true;
+			return;
+		}
+	}
+
+	// reserve siblings first
+	std::vector<iterator> head{begin};
+	for(iterator i = begin; i < end; head.push_back(i)){
+		data.push_back({false, false, 0, (*i)[depth]});
+		for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
+	}
+
+	// recursively construct subtries
+	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+		integer child = data[current].index + i;
+		data[child].index = container_size<integer>(data);
+		construct(head[i], head[i + 1], depth + 1, child);
+	}
+}
+
+template<typename text, typename integer>
+integer set_basic<text, integer>::search(const text& pattern) const
+{
+	integer current = 0;
+	for(integer i = 0; i < pattern.size(); ++i){
+		if(data[current].leaf)
+			return data.size() - 1;
+		integer l = data[current].index, r = data[l].index;
+		for(integer w = r - l, m; w > min_binary_search; w = m){
+			m = w >> 1;
+			l += data[l + m].label < pattern[i] ? w - m : 0;
+		}
+		for(; l < r && data[l].label < pattern[i]; ++l);
+		if(l < r && data[l].label == pattern[i])
+			current = l;
+		else
+			return data.size() - 1;
+	}
+	return current;
+}
 
 template<typename text, typename integer>
 struct set_basic<text, integer>::common_prefix_iterator
