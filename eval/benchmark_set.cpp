@@ -55,6 +55,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	History history;
 
 	std::cerr << "loading corpus...";
+	history.refresh();
 	std::size_t total_length = 0;
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
@@ -71,43 +72,49 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		texts.push_back(t);
 		total_length += t.size();
 	}
-	std::cerr << "done." << std::endl;
 	history.record("load");
+	std::cerr << "done." << std::endl;
 
 	std::cerr << "sorting texts...";
+	history.refresh();
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
-	std::cerr << "done." << std::endl;
 	history.record("sort");
+	std::cerr << "done." << std::endl;
 
 	std::cerr << "generating queries...";
+	history.refresh();
 	std::vector<text> queries = texts;
 	std::vector<text> shuffled_queries = queries;
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle(std::begin(shuffled_queries), std::end(shuffled_queries), std::default_random_engine(seed));
-	std::cerr << "done." << std::endl;
 	history.record("(prepare)");
+	std::cerr << "done." << std::endl;
 
 	size_t space = 0;
 	size_t found_ordered = 0, found_shuffled = 0;
 	if(sftrie_type == "naive"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::set_naive<text, integer> index(std::begin(texts), std::end(texts));
 		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 		space = index.space();
 
 		std::cerr << "searching (ordered)...";
+		history.refresh();
 		found_ordered = evaluate(index, queries);
 		history.record("search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "searching (shuffled)...";
+		history.refresh();
 		found_shuffled = evaluate(index, shuffled_queries);
 		history.record("search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
 	else if(sftrie_type == "basic"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::set_basic<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search);
 		history.record("construction", texts.size());
@@ -115,17 +122,20 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		space = index.space();
 
 		std::cerr << "searching (ordered)...";
+		history.refresh();
 		found_ordered = evaluate(index, queries);
 		history.record("search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "searching (shuffled)...";
+		history.refresh();
 		found_shuffled = evaluate(index, shuffled_queries);
 		history.record("search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
 	else if(sftrie_type == "tail"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::set_tail<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail);
 		history.record("construction", texts.size());
@@ -133,17 +143,20 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		space = index.space();
 
 		std::cerr << "searching (ordered)...";
+		history.refresh();
 		found_ordered = evaluate(index, queries);
 		history.record("search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "searching (shuffled)...";
+		history.refresh();
 		found_shuffled = evaluate(index, shuffled_queries);
 		history.record("search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
 	else if(sftrie_type == "decompaction"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::set_decompaction<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail, min_decompaction);
 		history.record("construction", texts.size());
@@ -151,11 +164,13 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		space = index.space();
 
 		std::cerr << "searching (ordered)...";
+		history.refresh();
 		found_ordered = evaluate(index, queries);
 		history.record("search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "searching (shuffled)...";
+		history.refresh();
 		found_shuffled = evaluate(index, shuffled_queries);
 		history.record("search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;

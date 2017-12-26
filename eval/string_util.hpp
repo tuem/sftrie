@@ -30,21 +30,21 @@ void cast_string(const src_type& src, dest_type& dest);
 template<typename src_type>
 void cast_string(const src_type& src, src_type& dest)
 {
-    dest = src;
+	dest = src;
 }
 
 template<typename dest_type, typename src_type>
 dest_type cast_string(const src_type& src)
 {
-    dest_type desc;
-    cast_string(src, desc);
-    return desc;
+	dest_type desc;
+	cast_string(src, desc);
+	return desc;
 }
 
 template<typename dest_type>
 dest_type cast_string(const char* src)
 {
-    return cast_string<dest_type>(std::string(src));
+	return cast_string<dest_type>(std::string(src));
 }
 
 #endif
