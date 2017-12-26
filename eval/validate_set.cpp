@@ -57,6 +57,51 @@ std::map<std::string, size_t> evaluate(const set& index,
 	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
+template<typename text, typename set>
+std::map<std::string, size_t> evaluate_prefix_search(const set& index,
+	const std::vector<text>& true_queries,
+	const std::vector<integer>& common_prefix_borders,
+	const std::vector<text>& false_queries)
+{
+	size_t tp = 0, tn = 0, fp = 0, fn = 0;
+	std::cerr << "validating...";
+	for(size_t i = 0; i < common_prefix_borders.size(); ++i){
+		size_t answer_start = i, answer_end = common_prefix_borders[i];
+		bool correct = true;
+		size_t j = answer_start, count = 0;
+		for(const auto& result: index.prefix(true_queries[answer_start])){
+			if(result != true_queries[j]){
+				correct = false;
+				break;
+			}
+			++j;
+			++count;
+		}
+		if(correct && count < answer_end - answer_start)
+			correct = false;
+
+		if(correct)
+			++tp;
+		else
+			++fn;
+	}
+	for(const auto& query: false_queries){
+		bool correct = true;
+		for(const auto& result: index.prefix(query)){
+			if(result == query){
+				correct = false;
+				break;
+			}
+		}
+		if(correct)
+			++tn;
+		else
+			++fp;
+	}
+	std::cerr << "done." << std::endl;
+	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
+}
+
 template<typename text, typename integer>
 int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	int min_binary_search, int min_tail, int min_decompaction)
@@ -102,16 +147,31 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	texts.erase(std::begin(texts) + texts.size() / 2, std::end(texts));
 	std::cerr << "done." << std::endl;
 
+	std::cerr << "generating queries for prefix search...";
+	std::vector<text> prefix_search_queries = true_queries;
+	std::vector<integer> common_prefix_borders;
+	sftrie::sort_texts(std::begin(prefix_search_queries), std::end(prefix_search_queries));
+	for(size_t i = 0; i < prefix_search_queries.size(); ++i){
+		size_t end = i + 1;
+		while(end < prefix_search_queries.size() &&
+				std::equal(std::begin(prefix_search_queries[i]), std::end(prefix_search_queries[i]), std::begin(prefix_search_queries[end])))
+			++end;
+		common_prefix_borders.push_back(end);
+	}
+	std::cerr << "done." << std::endl;
+
 	std::cerr << "sorting texts...";
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 
 	std::map<std::string, size_t> result;
+	std::map<std::string, size_t> result_ps;
 	if(sftrie_type == "naive"){
 		std::cerr << "constructing index...";
 		sftrie::set_naive<text, integer> index(std::begin(texts), std::end(texts));
 		std::cerr << "done." << std::endl;
 		result = evaluate(index, true_queries, false_queries);
+		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else if(sftrie_type == "basic"){
 		std::cerr << "constructing index...";
@@ -119,6 +179,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 			min_binary_search);
 		std::cerr << "done." << std::endl;
 		result = evaluate(index, true_queries, false_queries);
+		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else if(sftrie_type == "tail"){
 		std::cerr << "constructing index...";
@@ -126,6 +187,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 			min_binary_search, min_tail);
 		std::cerr << "done." << std::endl;
 		result = evaluate(index, true_queries, false_queries);
+		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else if(sftrie_type == "decompaction"){
 		std::cerr << "constructing index...";
@@ -133,11 +195,13 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 			min_binary_search, min_tail, min_decompaction);
 		std::cerr << "done." << std::endl;
 		result = evaluate(index, true_queries, false_queries);
+		result_ps = evaluate_prefix_search(index, prefix_search_queries, common_prefix_borders, false_queries);
 	}
 	else{
 		throw std::runtime_error("unknown trie type: " + sftrie_type);
 	}
 	size_t tp = result["tp"], tn = result["tn"], fp = result["fp"], fn = result["fn"];
+	size_t tp_ps = result_ps["tp"], tn_ps = result_ps["tn"], fp_ps = result_ps["fp"], fn_ps = result_ps["fn"];
 
 	std::cout << "texts:" << std::endl;
 	std::cout << "  " << std::setw(25) << "alphabet size: " << std::setw(12) << alphabet.size() << std::endl;
@@ -151,6 +215,12 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn << std::endl;
 	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp << std::endl;
 	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << fn << std::endl;
+	std::cout << "prefix search queries:" << std::endl;
+	std::cout << "  " << std::setw(25) << "total queries: " << std::setw(12) << (true_queries.size() + false_queries.size()) << std::endl;
+	std::cout << "  " << std::setw(25) << "true positive: " << std::setw(12) << tp_ps << std::endl;
+	std::cout << "  " << std::setw(25) << "true negative: " << std::setw(12) << tn_ps << std::endl;
+	std::cout << "  " << std::setw(25) << "false positive: " << std::setw(12) << fp_ps << std::endl;
+	std::cout << "  " << std::setw(25) << "false negative: " << std::setw(12) << fn_ps << std::endl;
 
 	return (tp == true_queries.size() && tn == false_queries.size() && fp == 0 && fn == 0) ? 0 : 1;
 }
