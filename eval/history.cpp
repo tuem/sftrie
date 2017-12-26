@@ -8,7 +8,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -23,30 +23,37 @@ limitations under the License.
 
 History::History()
 {
-    time_records.push_back({std::chrono::system_clock::now(), "", 0});
+	time_records.push_back({std::chrono::system_clock::now(), {}, -1});
 }
 
 void History::record(const std::string& task, int count)
 {
-    time_records.push_back({std::chrono::system_clock::now(), task, count});
+	time_records.push_back({std::chrono::system_clock::now(), task, count});
+}
+
+void History::refresh()
+{
+	time_records.push_back({std::chrono::system_clock::now(), {}, -1});
 }
 
 void History::dump(std::ostream& os, bool show_header, bool show_count) const
 {
-    if(show_header){
-        os << std::setw(20) << "task" << std::setw(12) << "time[us]";
-        if(show_count)
-            os << std::setw(12) << "count" << std::setw(16) << "average[ns]";
-        os << std::endl;
-    }
-    for(size_t i = 1; i < time_records.size(); ++i){
-        auto t = std::chrono::duration_cast<std::chrono::microseconds>(
-                time_records[i].time - time_records[i - 1].time).count();
-        os << std::setw(20) << time_records[i].task <<
-            std::setw(12) << std::setprecision(8) << t;
-        if(show_count && time_records[i].count > 1)
-            os << std::setw(12) << time_records[i].count <<
-                std::setw(16) << std::setprecision(12) << (static_cast<double>(t * 1000) / time_records[i].count);
-        os << std::endl;
-    }
+	if(show_header){
+		os << std::setw(20) << "task" << std::setw(12) << "time[us]";
+		if(show_count)
+			os << std::setw(12) << "count" << std::setw(16) << "average[ns]";
+		os << std::endl;
+	}
+	for(size_t i = 1; i < time_records.size(); ++i){
+		if(time_records[i].count < 0)
+			continue;
+		auto t = std::chrono::duration_cast<std::chrono::microseconds>(
+				time_records[i].time - time_records[i - 1].time).count();
+		os << std::setw(20) << time_records[i].task <<
+			std::setw(12) << std::setprecision(8) << t;
+		if(show_count && time_records[i].count > 1)
+			os << std::setw(12) << time_records[i].count <<
+				std::setw(16) << std::setprecision(12) << (static_cast<double>(t * 1000) / time_records[i].count);
+		os << std::endl;
+	}
 }

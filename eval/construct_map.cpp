@@ -43,6 +43,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	History history;
 
 	std::cerr << "loading corpus...";
+	history.refresh();
 	std::size_t total_length = 0;
 	std::vector<std::pair<text, object>> texts;
 	object value = 0;
@@ -61,10 +62,11 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 		total_length += t.size();
 	}
 	ifs.close();
-	std::cerr << "done." << std::endl;
 	history.record("load");
+	std::cerr << "done." << std::endl;
 
 	std::cerr << "sorting texts...";
+	history.refresh();
 	sftrie::sort_text_object_pairs(std::begin(texts), std::end(texts));
 	std::cerr << "done." << std::endl;
 	history.record("sort");
@@ -75,6 +77,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	size_t space = 0;
 	if(sftrie_type == "naive"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::map_naive<text, object, integer> dict(std::begin(texts), std::end(texts));
 		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
@@ -86,6 +89,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	}
 	else if(sftrie_type == "basic"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::map_basic<text, object, integer> dict(std::begin(texts), std::end(texts),
 			min_binary_search);
 		history.record("construction", texts.size());
@@ -98,6 +102,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	}
 	else if(sftrie_type == "tail"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::map_tail<text, object, integer> dict(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail);
 		history.record("construction", texts.size());
@@ -110,6 +115,7 @@ int exec(const std::string& corpus_path, const std::string& sftrie_type,
 	}
 	else if(sftrie_type == "decompaction"){
 		std::cerr << "constructing index...";
+		history.refresh();
 		sftrie::map_decompaction<text, object, integer> dict(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail, min_decompaction);
 		history.record("construction", texts.size());

@@ -8,7 +8,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+	http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -29,22 +29,23 @@ limitations under the License.
 class History
 {
 public:
-    History();
+	History();
 
-    void record(const std::string& task, int count = 1);
+	void record(const std::string& task, int count = 1);
+	void refresh();
 
-    void dump(std::ostream& os = std::cout,
-            bool show_header = true, bool show_count = false) const;
+	void dump(std::ostream& os = std::cout,
+			bool show_header = true, bool show_count = false) const;
 
 private:
-    struct TimeRecord
-    {
-        std::chrono::system_clock::time_point time;
-        std::string task;
-        int count;
-    };
+	struct TimeRecord
+	{
+		std::chrono::system_clock::time_point time;
+		std::string task;
+		int count;
+	};
 
-    std::vector<TimeRecord> time_records;
+	std::vector<TimeRecord> time_records;
 };
 
 #endif
