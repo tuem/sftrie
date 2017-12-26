@@ -24,34 +24,26 @@ limitations under the License.
 
 #if defined SFTRIE_MAP_USE_DECOMPACTION
 	#include "map_decompaction.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
-		using map = map_decompaction<text, object, integer>;
-	};
+	#define SFTRIE_MAP_TYPE map_decompaction
 #elif defined SFTRIE_MAP_USE_TAIL
 	#include "map_tail.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
-		using map = map_tail<text, object, integer>;
-	};
+	#define SFTRIE_MAP_TYPE map_tail
 #elif defined SFTRIE_MAP_USE_BASIC
 	#include "map_basic.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
-		using map = map_basic<text, object, integer>;
-	};
+	#define SFTRIE_MAP_TYPE map_basic
 #elif defined SFTRIE_MAP_USE_NAIVE
 	#include "map_naive.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
-		using map = map_naive<text, object, integer>;
-	};
+	#define SFTRIE_MAP_TYPE map_naive
 #else
 	#include "map_decompaction.hpp"
-	namespace sftrie{
-		template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
-		using map = map_decompaction<text, object, integer>;
-	};
+	#define SFTRIE_MAP_TYPE map_decompaction
 #endif
+
+namespace sftrie{
+	template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
+	using map = MAP<text, object, integer>;
+};
+
+#undef SFTRIE_MAP_TYPE map_decompaction
 
 #endif
