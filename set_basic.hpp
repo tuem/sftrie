@@ -142,15 +142,14 @@ integer set_basic<text, integer>::search(const text& pattern) const
 	for(integer i = 0; i < pattern.size(); ++i){
 		if(data[current].leaf)
 			return data.size() - 1;
-		integer l = data[current].index, r = data[l].index;
-		for(integer w = r - l, m; w > min_binary_search; w = m){
+		current = data[current].index;
+		integer end = data[current].index;
+		for(integer w = end - current, m; w > min_binary_search; w = m){
 			m = w >> 1;
-			l += data[l + m].label < pattern[i] ? w - m : 0;
+			current += data[current + m].label < pattern[i] ? w - m : 0;
 		}
-		for(; l < r && data[l].label < pattern[i]; ++l);
-		if(l < r && data[l].label == pattern[i])
-			current = l;
-		else
+		for(; current < end && data[current].label < pattern[i]; ++current);
+		if(!(current < end && data[current].label == pattern[i]))
 			return data.size() - 1;
 	}
 	return current;
