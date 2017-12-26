@@ -41,7 +41,7 @@ limitations under the License.
 
 namespace sftrie{
 	template<typename text = std::string, typename integer = typename text::size_type>
-	using set = set_decompaction<text, integer>;
+	using set = SFTRIE_SET_TYPE<text, integer>;
 };
 
 #undef SFTRIE_SET_TYPE
