@@ -249,6 +249,7 @@ int main(int argc, char* argv[])
 		int min_decompaction = pm["min_decompaction"];
 
 		std::cerr << "Configuration" << std::endl;
+		std::cerr << std::setw(12) << std::left << "  corpus_path: " << corpus_path << std::endl;
 		std::cerr << std::setw(12) << std::left << "  symbol_type: " << symbol_type << std::endl;
 		std::cerr << std::setw(12) << std::left << "  sftrie_type: " << sftrie_type << std::endl;
 		std::cerr << std::setw(12) << std::left << "  min_binary_search: " << min_binary_search << std::endl;
