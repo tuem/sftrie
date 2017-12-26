@@ -27,10 +27,7 @@ limitations under the License.
 #include <random>
 #include <chrono>
 
-#include <sftrie/set_naive.hpp>
-#include <sftrie/set_basic.hpp>
-#include <sftrie/set_tail.hpp>
-#include <sftrie/set_decompaction.hpp>
+#include <sftrie/set.hpp>
 #include <paramset.hpp>
 
 #include "string_util.hpp"
