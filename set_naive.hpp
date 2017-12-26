@@ -59,7 +59,7 @@ struct set_naive<text, integer>::element
 {
 	bool match: 1;
 	bool leaf: 1;
-	integer index: bit_width<integer>() - 2;
+	integer next: bit_width<integer>() - 2;
 	symbol label;
 };
 
@@ -123,8 +123,8 @@ void set_naive<text, integer>::construct(iterator begin, iterator end, integer d
 
 	// recursively construct subtries
 	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-		integer child = data[current].index + i;
-		data[child].index = container_size<integer>(data);
+		integer child = data[current].next + i;
+		data[child].next = container_size<integer>(data);
 		construct(head[i], head[i + 1], depth + 1, child);
 	}
 }
@@ -136,7 +136,7 @@ integer set_naive<text, integer>::search(const text& pattern) const
 	for(integer i = 0; i < pattern.size(); ++i){
 		if(data[current].leaf)
 			return data.size() - 1;
-		for(integer l = data[current].index, r = data[l].index - 1; l <= r; ){
+		for(integer l = data[current].next, r = data[l].next - 1; l <= r; ){
 			integer m = (l + r) / 2;
 			if(data[m].label < pattern[i]){
 				l = m + 1;
@@ -200,12 +200,12 @@ struct set_naive<text, integer>::common_prefix_iterator
 	{
 		do{
 			if(!data[path.back()].leaf){
-				integer child = data[path.back()].index;
+				integer child = data[path.back()].next;
 				path.push_back(child);
 				result.push_back(data[child].label);
 			}
 			else{
-				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].index].index){
+				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].next].next){
 					path.pop_back();
 					result.pop_back();
 				}
