@@ -22,25 +22,26 @@ limitations under the License.
 
 #include <string>
 
+#include "map_naive.hpp"
+#include "map_basic.hpp"
+#include "map_tail.hpp"
+#include "map_decompaction.hpp"
+
 #if defined SFTRIE_MAP_USE_DECOMPACTION
-	#include "map_decompaction.hpp"
 	#define SFTRIE_MAP_TYPE map_decompaction
 #elif defined SFTRIE_MAP_USE_TAIL
-	#include "map_tail.hpp"
 	#define SFTRIE_MAP_TYPE map_tail
 #elif defined SFTRIE_MAP_USE_BASIC
-	#include "map_basic.hpp"
 	#define SFTRIE_MAP_TYPE map_basic
 #elif defined SFTRIE_MAP_USE_NAIVE
-	#include "map_naive.hpp"
 	#define SFTRIE_MAP_TYPE map_naive
 #else
-	#include "map_decompaction.hpp"
-	#define SFTRIE_MAP_TYPE map_decompaction
+	#define SFTRIE_MAP_TYPE map_tail
 #endif
 
 namespace sftrie{
-	template<typename text = std::string, typename object = typename text::size_type, typename integer = typename text::size_type>
+	template<typename text = std::string, typename object = typename text::size_type,
+		typename integer = typename text::size_type>
 	using map = SFTRIE_MAP_TYPE<text, object, integer>;
 };
 
