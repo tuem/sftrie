@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BINS = validate construct_set construct_map benchmark_set benchmark_map
+BINS = validate construct_set construct_map benchmark
 
 all: $(BINS)
 
@@ -40,10 +40,7 @@ construct_set: construct_set.o string_util.o history.o
 construct_map: construct_map.o string_util.o history.o
 	$(CXX) -o $@ $^
 
-benchmark_set: benchmark_set.o string_util.o history.o
-	$(CXX) -o $@ $^
-
-benchmark_map: benchmark_map.o string_util.o history.o
+benchmark: benchmark.o string_util.o history.o
 	$(CXX) -o $@ $^
 
 
