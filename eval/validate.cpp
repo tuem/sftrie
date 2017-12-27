@@ -370,7 +370,7 @@ int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
 		{"symbol_type", "char", "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
-		{"index_type", "naive", "index-type", 'i', "index type (set or map)"},
+		{"index_type", "set", "index-type", 'i', "index type (set or map)"},
 		{"sftrie_type", "naive", "sftrie-type", 't', "sftrie type (naive, basic, tail or decompaction)"},
 		{"min_binary_search", 42, {"min_binary_search"}, "min-binary-search", 0, "minumum number of children for binary search"},
 		{"min_tail", 1, {"min_tail"}, "min-tail", 0, "minumum length to copress tail strings"},
