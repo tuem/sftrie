@@ -100,17 +100,17 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 
 template<typename text_object_pair, typename map>
 std::map<std::string, size_t> validate_map_exact_match(const map& dict,
-	const std::vector<text_object_pair>& true_queries, const std::vector<text_object_pair>& false_queries)
+	const std::vector<text_object_pair>& positive_queries, const std::vector<text_object_pair>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
-	for(const auto& query: true_queries){
+	for(const auto& query: positive_queries){
 		auto result = dict.find(query.first);
 		if(result.first && result.second == query.second)
 			++tp;
 		else
 			++fn;
 	}
-	for(const auto& query: false_queries){
+	for(const auto& query: negative_queries){
 		auto result = dict.find(query.first);
 		if(!result.first)
 			++tn;
