@@ -15,7 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BINS = validate_set validate_map construct_set construct_map benchmark_set benchmark_map
+BINS = validate construct_set construct_map benchmark_set benchmark_map
 
 all: $(BINS)
 
@@ -31,10 +31,7 @@ OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-validate_set: validate_set.o string_util.o
-	$(CXX) -o $@ $^
-
-validate_map: validate_map.o string_util.o
+validate: validate.o string_util.o
 	$(CXX) -o $@ $^
 
 construct_set: construct_set.o string_util.o history.o
