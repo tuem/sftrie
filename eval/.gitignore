@@ -1,5 +1,4 @@
 validate
 construct_set
 construct_map
-benchmark_set
-benchmark_map
+benchmark

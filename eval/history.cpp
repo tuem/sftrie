@@ -49,7 +49,7 @@ void History::dump(std::ostream& os, bool show_header, bool show_count) const
 			continue;
 		auto t = std::chrono::duration_cast<std::chrono::microseconds>(
 				time_records[i].time - time_records[i - 1].time).count();
-		os << std::setw(20) << time_records[i].task <<
+		os << std::setw(26) << time_records[i].task <<
 			std::setw(12) << std::setprecision(8) << t;
 		if(show_count && time_records[i].count > 1)
 			os << std::setw(12) << time_records[i].count <<
