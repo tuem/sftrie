@@ -165,8 +165,8 @@ std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
 }
 
 template<typename text, typename object, typename integer>
-void exec(const std::string& corpus_path, const std::string& index_type, const std::string& sftrie_type,
-	int min_binary_search, int min_tail, int min_decompaction)
+void exec(const std::string& corpus_path, const std::string& index_type,
+	const std::string& sftrie_type, int min_binary_search, int min_tail, int min_decompaction)
 {
 	using symbol = typename text::value_type;
 
