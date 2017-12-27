@@ -200,7 +200,7 @@ struct map_naive<text, object, integer>::common_prefix_iterator
 
 	const std::pair<const text&, const object&> operator*() const
 	{
-		return std::make_pair(result, data[path.back()].value);
+		return std::pair<const text&, const object&>(result, data[path.back()].value);
 	}
 
 	common_prefix_iterator& operator++()
