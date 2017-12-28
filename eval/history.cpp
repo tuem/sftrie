@@ -39,7 +39,7 @@ void History::refresh()
 void History::dump(std::ostream& os, bool show_header, bool show_count) const
 {
 	if(show_header){
-		os << std::setw(20) << "task" << std::setw(12) << "time[us]";
+		os << std::setw(26) << "task" << std::setw(12) << "time[us]";
 		if(show_count)
 			os << std::setw(12) << "count" << std::setw(16) << "average[ns]";
 		os << std::endl;

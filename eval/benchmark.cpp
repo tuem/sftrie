@@ -98,7 +98,7 @@ size_t benchmark_map_prefix_search(const map& dict,
 }
 
 template<typename text, typename object, typename integer>
-void exec(const std::string& corpus_path, const std::string& index_type,
+void exec(const std::string& corpus_path, const std::string& index_type, int prefix_search_max_result,
 	const std::string& sftrie_type, int min_binary_search, int min_tail, int min_decompaction)
 {
 	History history;
@@ -149,7 +149,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::set_naive<text, integer> index(std::begin(texts), std::end(texts));
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -167,13 +167,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_set_prefix_search(index, queries);
+		enumerated_ordered = benchmark_set_prefix_search(index, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries);
+		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -182,7 +182,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		history.refresh();
 		sftrie::set_basic<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search);
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -200,13 +200,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_set_prefix_search(index, queries);
+		enumerated_ordered = benchmark_set_prefix_search(index, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries);
+		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -215,7 +215,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		history.refresh();
 		sftrie::set_tail<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail);
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -233,13 +233,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_set_prefix_search(index, queries);
+		enumerated_ordered = benchmark_set_prefix_search(index, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries);
+		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -248,7 +248,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		history.refresh();
 		sftrie::set_decompaction<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search, min_tail, min_decompaction);
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -266,13 +266,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_set_prefix_search(index, queries);
+		enumerated_ordered = benchmark_set_prefix_search(index, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries);
+		enumerated_shuffled = benchmark_set_prefix_search(index, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -281,7 +281,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		history.refresh();
 		sftrie::map_naive<text, object, integer> dict(
 			std::begin(text_object_pairs), std::end(text_object_pairs));
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -299,13 +299,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_map_prefix_search(dict, queries);
+		enumerated_ordered = benchmark_map_prefix_search(dict, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -315,7 +315,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		sftrie::map_basic<text, object, integer> dict(
 			std::begin(text_object_pairs), std::end(text_object_pairs),
 			min_binary_search);
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -333,13 +333,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_map_prefix_search(dict, queries);
+		enumerated_ordered = benchmark_map_prefix_search(dict, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -349,7 +349,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		sftrie::map_tail<text, object, integer> dict(
 			std::begin(text_object_pairs), std::end(text_object_pairs),
 			min_binary_search, min_tail);
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -367,13 +367,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_map_prefix_search(dict, queries);
+		enumerated_ordered = benchmark_map_prefix_search(dict, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -383,7 +383,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		sftrie::map_decompaction<text, object, integer> dict(
 			std::begin(text_object_pairs), std::end(text_object_pairs),
 			min_binary_search, min_tail, min_decompaction);
-		history.record("construction");
+		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "exact match (ordered)...";
@@ -401,13 +401,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 
 		std::cerr << "prefix search (ordered)...";
 		history.refresh();
-		enumerated_ordered = benchmark_map_prefix_search(dict, queries);
+		enumerated_ordered = benchmark_map_prefix_search(dict, queries, prefix_search_max_result);
 		history.record("prefix search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "prefix search (shuffled)...";
 		history.refresh();
-		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		enumerated_shuffled = benchmark_map_prefix_search(dict, shuffled_queries, prefix_search_max_result);
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
@@ -428,12 +428,13 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
-		{"symbol_type", "char", "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
-		{"index_type", "set", "index-type", 'i', "index type (set or map)"},
-		{"sftrie_type", "naive", "sftrie-type", 't', "sftrie type (naive, basic, tail or decompaction)"},
-		{"min_binary_search", 42, {"min_binary_search"}, "min-binary-search", 0, "minumum number of children for binary search"},
-		{"min_tail", 1, {"min_tail"}, "min-tail", 0, "minumum length to copress tail strings"},
-		{"min_decompaction", 0, {"min_decompaction"}, "min-decompaction", 0, "minumum number of children to enable decompaction"},
+		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
+		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
+		{"prefix_search_max_result", 0, {"prefix_search", "max_result"}, "prefix-search-max-result", 0, "max number to enumerate texts in common prefix search"},
+		{"sftrie_type", "naive", {"sftrie", "type"}, "sftrie-type", 't', "sftrie type (naive, basic, tail or decompaction)"},
+		{"min_binary_search", 42, {"sftrie", "min_binary_search"}, "min-binary-search", 0, "minumum number of children for binary search"},
+		{"min_tail", 1, {"sftrie", "min_tail"}, "min-tail", 0, "minumum length to copress tail strings"},
+		{"min_decompaction", 0, {"sftrie", "min_decompaction"}, "min-decompaction", 0, "minumum number of children to enable decompaction"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
 	paramset::manager pm(defs);
@@ -447,29 +448,35 @@ int main(int argc, char* argv[])
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
 		std::string index_type = pm["index_type"];
+		int prefix_search_max_result = pm["prefix_search_max_result"];
 		std::string sftrie_type = pm["sftrie_type"];
 		int min_binary_search = pm["min_binary_search"];
 		int min_tail = pm["min_tail"];
 		int min_decompaction = pm["min_decompaction"];
 
-		std::cerr << "Configuration" << std::endl;
-		std::cerr << std::setw(12) << std::left << "  corpus_path: " << corpus_path << std::endl;
-		std::cerr << std::setw(12) << std::left << "  symbol_type: " << symbol_type << std::endl;
-		std::cerr << std::setw(12) << std::left << "  index_type: " << index_type << std::endl;
-		std::cerr << std::setw(12) << std::left << "  sftrie_type: " << sftrie_type << std::endl;
-		std::cerr << std::setw(12) << std::left << "  min_binary_search: " << min_binary_search << std::endl;
-		std::cerr << std::setw(12) << std::left << "  min_tail: " << min_tail << std::endl;
-		std::cerr << std::setw(12) << std::left << "  min_decompaction: " << min_decompaction << std::endl;
-		std::cerr << std::endl;
+		std::cout << "Configuration" << std::endl;
+		std::cout << std::setw(12) << std::left << "  corpus_path: " << corpus_path << std::endl;
+		std::cout << std::setw(12) << std::left << "  symbol_type: " << symbol_type << std::endl;
+		std::cout << std::setw(12) << std::left << "  index_type: " << index_type << std::endl;
+		std::cout << std::setw(12) << std::left << "  prefix_search_max_result: " << prefix_search_max_result << std::endl;
+		std::cout << std::setw(12) << std::left << "  sftrie_type: " << sftrie_type << std::endl;
+		std::cout << std::setw(12) << std::left << "  min_binary_search: " << min_binary_search << std::endl;
+		std::cout << std::setw(12) << std::left << "  min_tail: " << min_tail << std::endl;
+		std::cout << std::setw(12) << std::left << "  min_decompaction: " << min_decompaction << std::endl;
+		std::cout << std::endl;
 
 		if(symbol_type == "char")
-			exec<std::string, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			exec<std::string, object, integer>(corpus_path, index_type, prefix_search_max_result,
+				sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "wchar_t")
-			exec<std::wstring, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			exec<std::wstring, object, integer>(corpus_path, index_type, prefix_search_max_result,
+				sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char16_t")
-			exec<std::u16string, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			exec<std::u16string, object, integer>(corpus_path, index_type, prefix_search_max_result,
+				sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else if(symbol_type == "char32_t")
-			exec<std::u32string, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			exec<std::u32string, object, integer>(corpus_path, index_type, prefix_search_max_result,
+				sftrie_type, min_binary_search, min_tail, min_decompaction);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 
