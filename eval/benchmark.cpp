@@ -50,7 +50,7 @@ size_t benchmark_set_exact_match(const set& index,
 
 template<typename text, typename set>
 size_t benchmark_set_prefix_search(const set& index,
-	const std::vector<text>& queries, size_t max_result = 256)
+	const std::vector<text>& queries, size_t max_result = 0)
 {
 	size_t found = 0;
 	auto searcher = index.searcher();
