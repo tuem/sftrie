@@ -177,7 +177,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
-    else if(index_type == "set" && sftrie_type == "basic"){
+	else if(index_type == "set" && sftrie_type == "basic"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::set_basic<text, integer> index(std::begin(texts), std::end(texts),
@@ -210,7 +210,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
-    else if(index_type == "set" && sftrie_type == "tail"){
+	else if(index_type == "set" && sftrie_type == "tail"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::set_tail<text, integer> index(std::begin(texts), std::end(texts),
@@ -243,7 +243,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
-    else if(index_type == "set" && sftrie_type == "decompaction"){
+	else if(index_type == "set" && sftrie_type == "decompaction"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::set_decompaction<text, integer> index(std::begin(texts), std::end(texts),
@@ -276,7 +276,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
-    else if(index_type == "map" && sftrie_type == "naive"){
+	else if(index_type == "map" && sftrie_type == "naive"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::map_naive<text, object, integer> dict(
@@ -309,7 +309,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
-    else if(index_type == "map" && sftrie_type == "basic"){
+	else if(index_type == "map" && sftrie_type == "basic"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::map_basic<text, object, integer> dict(
@@ -343,7 +343,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
-    else if(index_type == "map" && sftrie_type == "tail"){
+	else if(index_type == "map" && sftrie_type == "tail"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::map_tail<text, object, integer> dict(
@@ -377,7 +377,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
-    else if(index_type == "map" && sftrie_type == "decompaction"){
+	else if(index_type == "map" && sftrie_type == "decompaction"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::map_decompaction<text, object, integer> dict(
@@ -417,9 +417,9 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 
 	std::cout << std::endl;
 	std::cout << "size:" << std::endl;
-	std::cout << std::setw(16) << "# of texts: " << std::setw(16) << texts.size() << std::endl;
-	std::cout << std::setw(16) << "total length: " << std::setw(16) << total_length << std::endl;
-	std::cout << std::setw(16) << "index size: " << std::setw(16) << space << std::endl;
+	std::cout << std::right << std::setw(26) << "# of texts" << std::setw(12) << texts.size() << std::endl;
+	std::cout << std::right << std::setw(26) << "total length" << std::setw(12) << total_length << std::endl;
+	std::cout << std::right << std::setw(26) << "index size" << std::setw(12) << space << std::endl;
 	std::cout << std::endl;
 	std::cout << "time:" << std::endl;
 	history.dump(std::cout, true, true);
