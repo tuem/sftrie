@@ -61,11 +61,12 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 	const std::vector<text>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
+	auto searcher = index.searcher();
 	for(size_t i = 0; i < common_prefix_borders.size(); ++i){
 		size_t answer_start = i, answer_end = common_prefix_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto& result: index.prefix(positive_queries[answer_start])){
+		for(const auto& result: searcher.common_prefix(positive_queries[answer_start])){
 			if(result != positive_queries[j]){
 				correct = false;
 				break;
@@ -83,7 +84,7 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto& result: index.prefix(query)){
+		for(const auto& result: searcher.common_prefix(query)){
 			if(result == query){
 				correct = false;
 				break;
@@ -127,11 +128,12 @@ std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
 	const std::vector<std::pair<text, object>>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
+	auto searcher = dict.searcher();
 	for(size_t i = 0; i < common_prefix_borders.size(); ++i){
 		size_t answer_start = i, answer_end = common_prefix_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto& result: dict.prefix(positive_queries[answer_start].first)){
+		for(const auto& result: searcher.common_prefix(positive_queries[answer_start].first)){
 			if(result.first != positive_queries[j].first || result.second != positive_queries[j].second){
 				correct = false;
 				break;
@@ -149,7 +151,7 @@ std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto& result: dict.prefix(query.first)){
+		for(const auto& result: searcher.common_prefix(query.first)){
 			if(result.first == query.first){
 				correct = false;
 				break;
