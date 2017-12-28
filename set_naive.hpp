@@ -32,6 +32,7 @@ class set_naive
 	using symbol = typename text::value_type;
 
 	struct element;
+	struct common_prefix_searcher;
 	struct common_prefix_iterator;
 
 public:
@@ -41,7 +42,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
-	common_prefix_iterator prefix(const text& pattern) const;
+	common_prefix_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -93,13 +94,10 @@ bool set_naive<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
-typename set_naive<text, integer>::common_prefix_iterator
-set_naive<text, integer>::prefix(const text& pattern) const
+typename set_naive<text, integer>::common_prefix_searcher
+set_naive<text, integer>::searcher() const
 {
-	integer current = search(pattern);
-	return current < data.size() - 1 ?
-		common_prefix_iterator(data, current, pattern) :
-		common_prefix_iterator(data);
+	return common_prefix_searcher(*this);
 }
 
 template<typename text, typename integer>
@@ -156,20 +154,50 @@ integer set_naive<text, integer>::search(const text& pattern) const
 }
 
 template<typename text, typename integer>
+struct set_naive<text, integer>::common_prefix_searcher
+{
+	const set_naive<text, integer>& index;
+
+	std::vector<integer> path;
+	text result;
+	std::vector<integer> path_end;
+	text result_end;
+
+	common_prefix_searcher(const set_naive<text, integer>& index): index(index){}
+
+	common_prefix_iterator common_prefix(const text& pattern)
+	{
+		path.clear();
+		result.clear();
+		integer current = index.search(pattern);
+		return current < index.data.size() - 1 ?
+			common_prefix_iterator(index.data, path, result, path_end, result_end, current, pattern) :
+			common_prefix_iterator(index.data, path_end, result_end);
+	}
+};
+
+template<typename text, typename integer>
 struct set_naive<text, integer>::common_prefix_iterator
 {
 	const std::vector<element>& data;
-	std::vector<integer> path;
-	text result;
 
-	common_prefix_iterator(const std::vector<element>& data, integer root, const text& prefix):
-		data(data), path(1, root), result(prefix)
+	std::vector<integer>& path;
+	text& result;
+	std::vector<integer>& path_end;
+	text& result_end;
+
+	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
+			std::vector<integer>& path_end, text& result_end, integer root, const text& prefix):
+		data(data), path(path), result(result), path_end(path_end), result_end(result_end)
 	{
+		path.push_back(root);
+		std::copy(std::begin(prefix), std::end(prefix), std::back_inserter(result));
 		if(!data[root].match)
 			++*this;
 	}
 
-	common_prefix_iterator(const std::vector<element>& data): data(data){}
+	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
+		data(data), path(path), result(result), path_end(path), result_end(result) {}
 
 	common_prefix_iterator& begin()
 	{
@@ -178,7 +206,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 
 	common_prefix_iterator end() const
 	{
-		return common_prefix_iterator(data);
+		return common_prefix_iterator(data, path_end, result_end);
 	}
 
 	bool operator!=(const common_prefix_iterator& i) const
@@ -191,7 +219,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 			return this->path.back() != i.path.back();
 	}
 
-	const text& operator*()
+	const text& operator*() const
 	{
 		return result;
 	}
