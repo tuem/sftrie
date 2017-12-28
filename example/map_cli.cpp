@@ -60,6 +60,7 @@ int main(int argc, char* argv[])
 	texts.clear();
 	std::cerr << "done." << std::endl;
 
+	auto searcher = dict.searcher();
 	while(true){
 		std::cerr << "> ";
 		std::string query;
@@ -69,7 +70,7 @@ int main(int argc, char* argv[])
 
 		if(query.back() == '*'){
 			query.pop_back();
-			for(const auto& result: dict.prefix(query))
+			for(const auto& result: searcher.common_prefix(query))
 				std::cout << result.first << ", line=" << result.second << std::endl;
 		}
 		else{
