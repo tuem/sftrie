@@ -205,8 +205,8 @@ struct set_tail<text, integer>::common_prefix_searcher
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(index.data[current].leaf)
 				return index.check_tail_prefix(pattern, i, current) ?
-					common_prefix_iterator(index.data, index.tails, path, result, path_end, result_end, current, pattern, i) :
-					common_prefix_iterator(index.data, index.tails, path_end, result_end);
+					common_prefix_iterator(index, path, result, path_end, result_end, current, pattern, i) :
+					common_prefix_iterator(index, path_end, result_end);
 			current = index.data[current].next;
 			integer end = index.data[current].next;
 			for(integer w = end - current, m; w > index.min_binary_search; w = m){
@@ -215,39 +215,38 @@ struct set_tail<text, integer>::common_prefix_searcher
 			}
 			for(; current < end && index.data[current].label < pattern[i]; ++current);
 			if(!(current < end && index.data[current].label == pattern[i]))
-				return common_prefix_iterator(index.data, index.tails, path_end, result_end);
+				return common_prefix_iterator(index, path_end, result_end);
 		}
-		return common_prefix_iterator(index.data, index.tails, path, result, path_end, result_end, current, pattern);
+		return common_prefix_iterator(index, path, result, path_end, result_end, current, pattern);
 	}
 };
 
 template<typename text, typename integer>
 struct set_tail<text, integer>::common_prefix_iterator
 {
-	const std::vector<element>& data;
-	const std::vector<symbol>& tails;
+	const set_tail<text, integer>& index;
 
 	std::vector<integer>& path;
 	text& result;
 	std::vector<integer>& path_end;
 	text& result_end;
 
-	common_prefix_iterator(const std::vector<element>& data, const std::vector<symbol>& tails,
+	common_prefix_iterator(const set_tail<text, integer>& index,
 			std::vector<integer>& path, text& result,
 			std::vector<integer>& path_end, text& result_end,
 			integer root, const text& prefix, integer length = 0):
-		data(data), tails(tails), path(path), result(result), path_end(path_end), result_end(result_end)
+		index(index), path(path), result(result), path_end(path_end), result_end(result_end)
 	{
 		path.push_back(root);
 		std::copy(std::begin(prefix), std::begin(prefix) + (length > 0 ? length : prefix.size()),
 			std::back_inserter(result));
-		if((length != 0 && length < prefix.size()) || !data[root].match)
+		if((length != 0 && length < prefix.size()) || !index.data[root].match)
 			++*this;
 	}
 
-	common_prefix_iterator(const std::vector<element>& data, const std::vector<symbol>& tails,
+	common_prefix_iterator(const set_tail<text, integer>& index,
 			std::vector<integer>& path, text& result):
-		data(data), tails(tails), path(path), result(result), path_end(path), result_end(result) {}
+		index(index), path(path), result(result), path_end(path), result_end(result) {}
 
 	common_prefix_iterator& begin()
 	{
@@ -256,7 +255,7 @@ struct set_tail<text, integer>::common_prefix_iterator
 
 	common_prefix_iterator end() const
 	{
-		return common_prefix_iterator(data, tails, path_end, result_end);
+		return common_prefix_iterator(index, path_end, result_end);
 	}
 
 	bool operator!=(const common_prefix_iterator& i) const
@@ -277,33 +276,33 @@ struct set_tail<text, integer>::common_prefix_iterator
 	common_prefix_iterator& operator++()
 	{
 		do{
-			if(!data[path.back()].leaf){
-				integer child = data[path.back()].next;
+			if(!index.data[path.back()].leaf){
+				integer child = index.data[path.back()].next;
 				path.push_back(child);
-				result.push_back(data[child].label);
+				result.push_back(index.data[child].label);
 			}
-			else if(data[path.back()].tail < data[path.back() + 1].tail &&
+			else if(index.data[path.back()].tail < index.data[path.back() + 1].tail &&
 					(path.size() < 2 || path[path.size() - 2] != path.back())){
 				path.push_back(path.back());
-				std::copy(std::begin(tails) + data[path.back()].tail,
-					std::begin(tails) + data[path.back() + 1].tail, std::back_inserter(result));
+				std::copy(std::begin(index.tails) + index.data[path.back()].tail,
+					std::begin(index.tails) + index.data[path.back() + 1].tail, std::back_inserter(result));
 			}
 			else{
 				if(path.size() > 1 && path[path.size() - 2] == path.back()){
 					path.pop_back();
-					result.erase(std::end(result) - (data[path.back() + 1].tail - data[path.back()].tail),
+					result.erase(std::end(result) - (index.data[path.back() + 1].tail - index.data[path.back()].tail),
 						std::end(result));
 				}
-				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].next].next){
+				while(path.size() > 1 && path.back() + 1 == index.data[index.data[path[path.size() - 2]].next].next){
 					path.pop_back();
 					result.pop_back();
 				}
 				if(path.size() > 1)
-					result.back() = data[++path.back()].label;
+					result.back() = index.data[++path.back()].label;
 				else
 					path.pop_back();
 			}
-		}while(!path.empty() && !data[path.back()].match &&
+		}while(!path.empty() && !index.data[path.back()].match &&
 			!(path.size() > 1 && path.back() == path[path.size() - 2]));
 		return *this;
 	}
