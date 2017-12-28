@@ -177,10 +177,10 @@ template<typename text, typename integer>
 struct set_naive<text, integer>::common_prefix_iterator
 {
 	common_prefix_searcher& searcher;
-	const integer root;
+	integer current;
 
 	common_prefix_iterator(common_prefix_searcher& searcher, integer root, const text& prefix):
-		searcher(searcher), root(root)
+		searcher(searcher), current(root)
 	{
 		searcher.path.push_back(root);
 		std::copy(std::begin(prefix), std::end(prefix), std::back_inserter(searcher.result));
@@ -189,7 +189,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 	}
 
 	common_prefix_iterator(common_prefix_searcher& searcher):
-		searcher(searcher), root(searcher.index.data.size()) {}
+		searcher(searcher), current(searcher.index.data.size()) {}
 
 	common_prefix_iterator& begin()
 	{
@@ -203,7 +203,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 
 	bool operator!=(const common_prefix_iterator& i) const
 	{
-		return this->root != i.root;
+		return this->current != i.current;
 	}
 
 	const text& operator*() const
@@ -231,8 +231,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 					searcher.path.pop_back();
 			}
 		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
-		if(searcher.path.empty())
-			root = searcher.index.data.size();
+		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size();
 		return *this;
 	}
 };
