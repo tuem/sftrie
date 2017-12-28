@@ -21,7 +21,6 @@ limitations under the License.
 #define SFTRIE_MAP_NAIVE_HPP
 
 #include <vector>
-#include <functional>
 
 #include "util.hpp"
 
@@ -216,19 +215,6 @@ struct map_naive<text, object, integer>::common_prefix_iterator
 
 	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
 		data(data), path(path), result(result), path_end(path), result_end(result) {}
-/*
-	std::vector<integer> path;
-	text result;
-
-	common_prefix_iterator(const std::vector<element>& data, integer root, const text& prefix):
-		data(data), path(1, root), result(prefix)
-	{
-		if(!data[root].match)
-			++*this;
-	}
-
-	common_prefix_iterator(const std::vector<element>& data): data(data){}
-*/
 
 	common_prefix_iterator& begin()
 	{
