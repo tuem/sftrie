@@ -50,12 +50,13 @@ size_t benchmark_set_exact_match(const set& index,
 
 template<typename text, typename set>
 size_t benchmark_set_prefix_search(const set& index,
-	const std::vector<text>& queries, size_t max_result = 0)
+	const std::vector<text>& queries, size_t max_result = 256)
 {
 	size_t found = 0;
+	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto& result: index.prefix(query)){
+		for(const auto& result: searcher.common_prefix(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)
@@ -82,9 +83,10 @@ size_t benchmark_map_prefix_search(const map& dict,
 	const std::vector<text>& queries, size_t max_result = 0)
 {
 	size_t found = 0;
+	auto searcher = dict.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto& result: dict.prefix(query)){
+		for(const auto& result: searcher.common_prefix(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)
