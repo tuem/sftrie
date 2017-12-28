@@ -274,6 +274,10 @@ struct map_decompaction<text, object, integer>::common_prefix_searcher
 					common_prefix_iterator(index.data, index.tails, path_end, result_end);
 			current = index.data[current].next;
 			integer end = index.data[current].next;
+			if(current + index.alphabet_size == end){
+				current += pattern[i] - index.min_symbol;
+				continue;
+			}
 			for(integer w = end - current, m; w > index.min_binary_search; w = m){
 				m = w >> 1;
 				current += index.data[current + m].label < pattern[i] ? w - m : 0;
