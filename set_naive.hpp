@@ -160,8 +160,6 @@ struct set_naive<text, integer>::common_prefix_searcher
 
 	std::vector<integer> path;
 	text result;
-	std::vector<integer> path_end;
-	text result_end;
 
 	common_prefix_searcher(const set_naive<text, integer>& index): index(index){}
 
@@ -171,33 +169,27 @@ struct set_naive<text, integer>::common_prefix_searcher
 		result.clear();
 		integer current = index.search(pattern);
 		return current < index.data.size() - 1 ?
-			common_prefix_iterator(index.data, path, result, path_end, result_end, current, pattern) :
-			common_prefix_iterator(index.data, path_end, result_end);
+			common_prefix_iterator(*this, current, pattern) : common_prefix_iterator(*this);
 	}
 };
 
 template<typename text, typename integer>
 struct set_naive<text, integer>::common_prefix_iterator
 {
-	const std::vector<element>& data;
+	common_prefix_searcher& searcher;
+	const integer root;
 
-	std::vector<integer>& path;
-	text& result;
-	std::vector<integer>& path_end;
-	text& result_end;
-
-	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
-			std::vector<integer>& path_end, text& result_end, integer root, const text& prefix):
-		data(data), path(path), result(result), path_end(path_end), result_end(result_end)
+	common_prefix_iterator(common_prefix_searcher& searcher, integer root, const text& prefix):
+		searcher(searcher), root(root)
 	{
-		path.push_back(root);
-		std::copy(std::begin(prefix), std::end(prefix), std::back_inserter(result));
-		if(!data[root].match)
+		searcher.path.push_back(root);
+		std::copy(std::begin(prefix), std::end(prefix), std::back_inserter(searcher.result));
+		if(!searcher.index.data[root].match)
 			++*this;
 	}
 
-	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
-		data(data), path(path), result(result), path_end(path), result_end(result) {}
+	common_prefix_iterator(common_prefix_searcher& searcher):
+		searcher(searcher), root(searcher.index.data.size()) {}
 
 	common_prefix_iterator& begin()
 	{
@@ -206,43 +198,41 @@ struct set_naive<text, integer>::common_prefix_iterator
 
 	common_prefix_iterator end() const
 	{
-		return common_prefix_iterator(data, path_end, result_end);
+		return common_prefix_iterator(searcher);
 	}
 
 	bool operator!=(const common_prefix_iterator& i) const
 	{
-		if(this->path.size() != i.path.size())
-			return true;
-		else if(this->path.empty() && i.path.empty())
-			return false;
-		else
-			return this->path.back() != i.path.back();
+		return this->root != i.root;
 	}
 
 	const text& operator*() const
 	{
-		return result;
+		return searcher.result;
 	}
 
 	common_prefix_iterator& operator++()
 	{
 		do{
-			if(!data[path.back()].leaf){
-				integer child = data[path.back()].next;
-				path.push_back(child);
-				result.push_back(data[child].label);
+			if(!searcher.index.data[searcher.path.back()].leaf){
+				integer child = searcher.index.data[searcher.path.back()].next;
+				searcher.path.push_back(child);
+				searcher.result.push_back(searcher.index.data[child].label);
 			}
 			else{
-				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].next].next){
-					path.pop_back();
-					result.pop_back();
+				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
+						searcher.index.data[searcher.index.data[searcher.path[searcher.path.size() - 2]].next].next){
+					searcher.path.pop_back();
+					searcher.result.pop_back();
 				}
-				if(path.size() > 1)
-					result.back() = data[++path.back()].label;
+				if(searcher.path.size() > 1)
+					searcher.result.back() = searcher.index.data[++searcher.path.back()].label;
 				else
-					path.pop_back();
+					searcher.path.pop_back();
 			}
-		}while(!path.empty() && !data[path.back()].match);
+		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
+		if(searcher.path.empty())
+			root = searcher.index.data.size();
 		return *this;
 	}
 };
