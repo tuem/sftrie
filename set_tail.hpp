@@ -259,18 +259,6 @@ struct set_tail<text, integer>::common_prefix_iterator
 		return common_prefix_iterator(data, tails, path_end, result_end);
 	}
 
-
-	common_prefix_iterator(const std::vector<element>& data, const std::vector<symbol>& tails,
-			integer root, const text& prefix, integer length = 0):
-		data(data), tails(tails), path(1, root), result(std::begin(prefix), std::begin(prefix) + (length > 0 ? length : prefix.size()))
-	{
-		if((length != 0 && length < prefix.size()) || !data[root].match)
-			++*this;
-	}
-
-	common_prefix_iterator(const std::vector<element>& data, const std::vector<symbol>& tails):
-		data(data), tails(tails){}
-
 	bool operator!=(const common_prefix_iterator& i) const
 	{
 		if(this->path.size() != i.path.size())
