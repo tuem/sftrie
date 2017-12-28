@@ -157,7 +157,6 @@ template<typename text, typename integer>
 struct set_naive<text, integer>::common_prefix_searcher
 {
 	const set_naive<text, integer>& index;
-
 	std::vector<integer> path;
 	text result;
 
@@ -165,11 +164,14 @@ struct set_naive<text, integer>::common_prefix_searcher
 
 	common_prefix_iterator common_prefix(const text& pattern)
 	{
-		path.clear();
-		result.clear();
-		integer current = index.search(pattern);
-		return current < index.data.size() - 1 ?
-			common_prefix_iterator(*this, current, pattern) : common_prefix_iterator(*this);
+		integer root = index.search(pattern);
+		if(root < index.data.size() - 1){
+			path.clear();
+			result.clear();
+			path.push_back(root);
+			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
+		}
+		return common_prefix_iterator(*this, pattern, root);
 	}
 };
 
@@ -177,19 +179,15 @@ template<typename text, typename integer>
 struct set_naive<text, integer>::common_prefix_iterator
 {
 	common_prefix_searcher& searcher;
+	const text& prefix;
 	integer current;
 
-	common_prefix_iterator(common_prefix_searcher& searcher, integer root, const text& prefix):
-		searcher(searcher), current(root)
+	common_prefix_iterator(common_prefix_searcher& searcher, const text& prefix, integer root):
+		searcher(searcher), prefix(prefix), current(root)
 	{
-		searcher.path.push_back(root);
-		std::copy(std::begin(prefix), std::end(prefix), std::back_inserter(searcher.result));
-		if(!searcher.index.data[root].match)
+		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
 			++*this;
 	}
-
-	common_prefix_iterator(common_prefix_searcher& searcher):
-		searcher(searcher), current(searcher.index.data.size()) {}
 
 	common_prefix_iterator& begin()
 	{
@@ -198,7 +196,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 
 	common_prefix_iterator end() const
 	{
-		return common_prefix_iterator(searcher);
+		return common_prefix_iterator(searcher, prefix, searcher.index.data.size() - 1);
 	}
 
 	bool operator!=(const common_prefix_iterator& i) const
@@ -231,7 +229,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 					searcher.path.pop_back();
 			}
 		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
-		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size();
+		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
 		return *this;
 	}
 };
