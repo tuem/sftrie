@@ -98,7 +98,7 @@ size_t benchmark_map_prefix_search(const map& dict,
 }
 
 template<typename text, typename object, typename integer>
-void exec(const std::string& corpus_path, const std::string& index_type, int prefix_search_max_result,
+bool exec(const std::string& corpus_path, const std::string& index_type, int prefix_search_max_result,
 	const std::string& sftrie_type, int min_binary_search, int min_tail, int min_decompaction)
 {
 	History history;
@@ -392,7 +392,6 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 		space = dict.space();
-
 		std::cerr << "exact match (shuffled)...";
 		history.refresh();
 		found_shuffled = benchmark_map_exact_match(dict, shuffled_queries);
@@ -423,6 +422,9 @@ void exec(const std::string& corpus_path, const std::string& index_type, int pre
 	std::cout << std::endl;
 	std::cout << "time:" << std::endl;
 	history.dump(std::cout, true, true);
+
+	return found_ordered == queries.size() && found_shuffled == shuffled_queries.size() &&
+		enumerated_ordered >= queries.size() && enumerated_shuffled >= shuffled_queries.size();
 }
 
 int main(int argc, char* argv[])
