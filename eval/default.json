@@ -1,15 +1,15 @@
 {
-    "common": {
+	"common": {
 		"symbol_type": "char",
 		"index_type": "set"
-    },
-    "prefix_search": {
+	},
+	"prefix_search": {
 		"max_result": 0
-    },
-    "sftrie": {
+	},
+	"sftrie": {
 		"type": "tail",
 		"min_binary_search": 42,
 		"min_tail": 1,
-		"min_decompaction": 0
-    }
+		"min_decompaction": 32
+	}
 }
