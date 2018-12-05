@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
 
 		if(query.back() == '*'){
 			query.pop_back();
-			for(const auto& result: searcher.common_prefix(query))
+			for(const auto& result: searcher.traverse(query))
 				std::cout << result.first << ", line=" << result.second << std::endl;
 		}
 		else{

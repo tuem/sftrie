@@ -33,8 +33,8 @@ class map_naive
 	using result = std::pair<bool, const object&>;
 
 	struct element;
-	struct common_prefix_searcher;
-	struct common_prefix_iterator;
+	struct traversal_searcher;
+	struct traversal_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -43,7 +43,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	result find(const text& pattern) const;
-	common_prefix_searcher searcher() const;
+	traversal_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -98,20 +98,20 @@ map_naive<text, object, integer>::find(const text& pattern) const
 }
 
 template<typename text, typename object, typename integer>
-typename map_naive<text, object, integer>::common_prefix_searcher
+typename map_naive<text, object, integer>::traversal_searcher
 map_naive<text, object, integer>::searcher() const
 {
-	return common_prefix_searcher(*this);
+	return traversal_searcher(*this);
 }
 /*
 template<typename text, typename object, typename integer>
-typename map_naive<text, object, integer>::common_prefix_iterator
+typename map_naive<text, object, integer>::traversal_iterator
 map_naive<text, object, integer>::prefix(const text& pattern) const
 {
 	integer current = search(pattern);
 	return current < data.size() - 1 ?
-		common_prefix_iterator(data, current, pattern) :
-		common_prefix_iterator(data);
+		traversal_iterator(data, current, pattern) :
+		traversal_iterator(data);
 }
 */
 
@@ -171,7 +171,7 @@ integer map_naive<text, object, integer>::search(const text& pattern) const
 }
 
 template<typename text, typename object, typename integer>
-struct map_naive<text, object, integer>::common_prefix_searcher
+struct map_naive<text, object, integer>::traversal_searcher
 {
 	const map_naive<text, object, integer>& index;
 
@@ -180,21 +180,21 @@ struct map_naive<text, object, integer>::common_prefix_searcher
 	std::vector<integer> path_end;
 	text result_end;
 
-	common_prefix_searcher(const map_naive<text, object, integer>& index): index(index){}
+	traversal_searcher(const map_naive<text, object, integer>& index): index(index){}
 
-	common_prefix_iterator common_prefix(const text& pattern)
+	traversal_iterator traverse(const text& pattern)
 	{
 		path.clear();
 		result.clear();
 		integer current = index.search(pattern);
 		return current < index.data.size() - 1 ?
-			common_prefix_iterator(index.data, path, result, path_end, result_end, current, pattern) :
-			common_prefix_iterator(index.data, path_end, result_end);
+			traversal_iterator(index.data, path, result, path_end, result_end, current, pattern) :
+			traversal_iterator(index.data, path_end, result_end);
 	}
 };
 
 template<typename text, typename object, typename integer>
-struct map_naive<text, object, integer>::common_prefix_iterator
+struct map_naive<text, object, integer>::traversal_iterator
 {
 	const std::vector<element>& data;
 
@@ -203,7 +203,7 @@ struct map_naive<text, object, integer>::common_prefix_iterator
 	std::vector<integer>& path_end;
 	text& result_end;
 
-	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
+	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
 			std::vector<integer>& path_end, text& result_end, integer root, const text& prefix):
 		data(data), path(path), result(result), path_end(path_end), result_end(result_end)
 	{
@@ -213,20 +213,20 @@ struct map_naive<text, object, integer>::common_prefix_iterator
 			++*this;
 	}
 
-	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
+	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
 		data(data), path(path), result(result), path_end(path), result_end(result) {}
 
-	common_prefix_iterator& begin()
+	traversal_iterator& begin()
 	{
 		return *this;
 	}
 
-	common_prefix_iterator end() const
+	traversal_iterator end() const
 	{
-		return common_prefix_iterator(data, path_end, result_end);
+		return traversal_iterator(data, path_end, result_end);
 	}
 
-	bool operator!=(const common_prefix_iterator& i) const
+	bool operator!=(const traversal_iterator& i) const
 	{
 		if(this->path.size() != i.path.size())
 			return true;
@@ -241,7 +241,7 @@ struct map_naive<text, object, integer>::common_prefix_iterator
 		return std::pair<const text&, const object&>(result, data[path.back()].value);
 	}
 
-	common_prefix_iterator& operator++()
+	traversal_iterator& operator++()
 	{
 		do{
 			if(!data[path.back()].leaf){
