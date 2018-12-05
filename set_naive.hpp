@@ -32,8 +32,8 @@ class set_naive
 	using symbol = typename text::value_type;
 
 	struct element;
-	struct common_prefix_searcher;
-	struct common_prefix_iterator;
+	struct traversal_searcher;
+	struct traversal_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -42,7 +42,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
-	common_prefix_searcher searcher() const;
+	traversal_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -94,10 +94,10 @@ bool set_naive<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
-typename set_naive<text, integer>::common_prefix_searcher
+typename set_naive<text, integer>::traversal_searcher
 set_naive<text, integer>::searcher() const
 {
-	return common_prefix_searcher(*this);
+	return traversal_searcher(*this);
 }
 
 template<typename text, typename integer>
@@ -154,15 +154,15 @@ integer set_naive<text, integer>::search(const text& pattern) const
 }
 
 template<typename text, typename integer>
-struct set_naive<text, integer>::common_prefix_searcher
+struct set_naive<text, integer>::traversal_searcher
 {
 	const set_naive<text, integer>& index;
 	std::vector<integer> path;
 	text result;
 
-	common_prefix_searcher(const set_naive<text, integer>& index): index(index){}
+	traversal_searcher(const set_naive<text, integer>& index): index(index){}
 
-	common_prefix_iterator common_prefix(const text& pattern)
+	traversal_iterator traverse(const text& pattern)
 	{
 		integer root = index.search(pattern);
 		if(root < index.data.size() - 1){
@@ -171,35 +171,35 @@ struct set_naive<text, integer>::common_prefix_searcher
 			path.push_back(root);
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
-		return common_prefix_iterator(*this, pattern, root);
+		return traversal_iterator(*this, pattern, root);
 	}
 };
 
 template<typename text, typename integer>
-struct set_naive<text, integer>::common_prefix_iterator
+struct set_naive<text, integer>::traversal_iterator
 {
-	common_prefix_searcher& searcher;
+	traversal_searcher& searcher;
 	const text& prefix;
 	integer current;
 
-	common_prefix_iterator(common_prefix_searcher& searcher, const text& prefix, integer root):
+	traversal_iterator(traversal_searcher& searcher, const text& prefix, integer root):
 		searcher(searcher), prefix(prefix), current(root)
 	{
 		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
 			++*this;
 	}
 
-	common_prefix_iterator& begin()
+	traversal_iterator& begin()
 	{
 		return *this;
 	}
 
-	common_prefix_iterator end() const
+	traversal_iterator end() const
 	{
-		return common_prefix_iterator(searcher, prefix, searcher.index.data.size() - 1);
+		return traversal_iterator(searcher, prefix, searcher.index.data.size() - 1);
 	}
 
-	bool operator!=(const common_prefix_iterator& i) const
+	bool operator!=(const traversal_iterator& i) const
 	{
 		return this->current != i.current;
 	}
@@ -209,7 +209,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 		return searcher.result;
 	}
 
-	common_prefix_iterator& operator++()
+	traversal_iterator& operator++()
 	{
 		do{
 			if(!searcher.index.data[searcher.path.back()].leaf){

@@ -32,8 +32,8 @@ class set_basic
 	using symbol = typename text::value_type;
 
 	struct element;
-	struct common_prefix_searcher;
-	struct common_prefix_iterator;
+	struct traversal_searcher;
+	struct traversal_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -43,7 +43,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
-	common_prefix_searcher searcher() const;
+	traversal_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -100,14 +100,14 @@ bool set_basic<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
-typename set_basic<text, integer>::common_prefix_searcher
+typename set_basic<text, integer>::traversal_searcher
 set_basic<text, integer>::searcher() const
 {
-	return common_prefix_searcher(*this);
+	return traversal_searcher(*this);
 }
 
 template<typename text, typename integer>
-struct set_basic<text, integer>::common_prefix_searcher
+struct set_basic<text, integer>::traversal_searcher
 {
 	const set_basic<text, integer>& index;
 
@@ -116,16 +116,16 @@ struct set_basic<text, integer>::common_prefix_searcher
 	std::vector<integer> path_end;
 	text result_end;
 
-	common_prefix_searcher(const set_basic<text, integer>& index): index(index){}
+	traversal_searcher(const set_basic<text, integer>& index): index(index){}
 
-	common_prefix_iterator common_prefix(const text& pattern)
+	traversal_iterator traverse(const text& pattern)
 	{
 		path.clear();
 		result.clear();
 		integer current = index.search(pattern);
 		return current < index.data.size() - 1 ?
-			common_prefix_iterator(index.data, path, result, path_end, result_end, current, pattern) :
-			common_prefix_iterator(index.data, path_end, result_end);
+			traversal_iterator(index.data, path, result, path_end, result_end, current, pattern) :
+			traversal_iterator(index.data, path_end, result_end);
 	}
 };
 
@@ -177,7 +177,7 @@ integer set_basic<text, integer>::search(const text& pattern) const
 }
 
 template<typename text, typename integer>
-struct set_basic<text, integer>::common_prefix_iterator
+struct set_basic<text, integer>::traversal_iterator
 {
 	const std::vector<element>& data;
 
@@ -186,7 +186,7 @@ struct set_basic<text, integer>::common_prefix_iterator
 	std::vector<integer>& path_end;
 	text& result_end;
 
-	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
+	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
 			std::vector<integer>& path_end, text& result_end, integer root, const text& prefix):
 		data(data), path(path), result(result), path_end(path_end), result_end(result_end)
 	{
@@ -196,20 +196,20 @@ struct set_basic<text, integer>::common_prefix_iterator
 			++*this;
 	}
 
-	common_prefix_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
+	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
 		data(data), path(path), result(result), path_end(path), result_end(result) {}
 
-	common_prefix_iterator& begin()
+	traversal_iterator& begin()
 	{
 		return *this;
 	}
 
-	common_prefix_iterator end() const
+	traversal_iterator end() const
 	{
-		return common_prefix_iterator(data, path_end, result_end);
+		return traversal_iterator(data, path_end, result_end);
 	}
 
-	bool operator!=(const common_prefix_iterator& i) const
+	bool operator!=(const traversal_iterator& i) const
 	{
 		if(this->path.size() != i.path.size())
 			return true;
@@ -224,7 +224,7 @@ struct set_basic<text, integer>::common_prefix_iterator
 		return result;
 	}
 
-	common_prefix_iterator& operator++()
+	traversal_iterator& operator++()
 	{
 		do{
 			if(!data[path.back()].leaf){

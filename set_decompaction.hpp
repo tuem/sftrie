@@ -32,8 +32,8 @@ class set_decompaction
 	using symbol = typename text::value_type;
 
 	struct element;
-	struct common_prefix_searcher;
-	struct common_prefix_iterator;
+	struct traversal_searcher;
+	struct traversal_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -45,7 +45,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
-	common_prefix_searcher searcher() const;
+	traversal_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -137,10 +137,10 @@ bool set_decompaction<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
-typename set_decompaction<text, integer>::common_prefix_searcher
+typename set_decompaction<text, integer>::traversal_searcher
 set_decompaction<text, integer>::searcher() const
 {
-	return common_prefix_searcher(*this);
+	return traversal_searcher(*this);
 }
 
 template<typename text, typename integer>
@@ -239,7 +239,7 @@ bool set_decompaction<text, integer>::check_tail_prefix(const text& pattern, int
 }
 
 template<typename text, typename integer>
-struct set_decompaction<text, integer>::common_prefix_searcher
+struct set_decompaction<text, integer>::traversal_searcher
 {
 	const set_decompaction<text, integer>& index;
 
@@ -248,9 +248,9 @@ struct set_decompaction<text, integer>::common_prefix_searcher
 	std::vector<integer> path_end;
 	text result_end;
 
-	common_prefix_searcher(const set_decompaction<text, integer>& index): index(index){}
+	traversal_searcher(const set_decompaction<text, integer>& index): index(index){}
 
-	common_prefix_iterator common_prefix(const text& pattern)
+	traversal_iterator traverse(const text& pattern)
 	{
 		path.clear();
 		result.clear();
@@ -259,8 +259,8 @@ struct set_decompaction<text, integer>::common_prefix_searcher
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(index.data[current].leaf)
 				return index.check_tail_prefix(pattern, i, current) ?
-					common_prefix_iterator(index, path, result, path_end, result_end, current, pattern, i) :
-					common_prefix_iterator(index, path_end, result_end);
+					traversal_iterator(index, path, result, path_end, result_end, current, pattern, i) :
+					traversal_iterator(index, path_end, result_end);
 			current = index.data[current].next;
 			integer end = index.data[current].next;
 			if(current + index.alphabet_size == end){
@@ -273,14 +273,14 @@ struct set_decompaction<text, integer>::common_prefix_searcher
 			}
 			for(; current < end && index.data[current].label < pattern[i]; ++current);
 			if(!(current < end && index.data[current].label == pattern[i]))
-				return common_prefix_iterator(index, path_end, result_end);
+				return traversal_iterator(index, path_end, result_end);
 		}
-		return common_prefix_iterator(index, path, result, path_end, result_end, current, pattern);
+		return traversal_iterator(index, path, result, path_end, result_end, current, pattern);
 	}
 };
 
 template<typename text, typename integer>
-struct set_decompaction<text, integer>::common_prefix_iterator
+struct set_decompaction<text, integer>::traversal_iterator
 {
 	const set_decompaction<text, integer>& index;
 
@@ -289,7 +289,7 @@ struct set_decompaction<text, integer>::common_prefix_iterator
 	std::vector<integer>& path_end;
 	text& result_end;
 
-	common_prefix_iterator(const set_decompaction<text, integer>& index,
+	traversal_iterator(const set_decompaction<text, integer>& index,
 			std::vector<integer>& path, text& result,
 			std::vector<integer>& path_end, text& result_end,
 			integer root, const text& prefix, integer length = 0):
@@ -302,21 +302,21 @@ struct set_decompaction<text, integer>::common_prefix_iterator
 			++*this;
 	}
 
-	common_prefix_iterator(const set_decompaction<text, integer>& index,
+	traversal_iterator(const set_decompaction<text, integer>& index,
 			std::vector<integer>& path, text& result):
 		index(index), path(path), result(result), path_end(path), result_end(result) {}
 
-	common_prefix_iterator& begin()
+	traversal_iterator& begin()
 	{
 		return *this;
 	}
 
-	common_prefix_iterator end() const
+	traversal_iterator end() const
 	{
-		return common_prefix_iterator(index, path_end, result_end);
+		return traversal_iterator(index, path_end, result_end);
 	}
 
-	bool operator!=(const common_prefix_iterator& i) const
+	bool operator!=(const traversal_iterator& i) const
 	{
 		if(this->path.size() != i.path.size())
 			return true;
@@ -331,7 +331,7 @@ struct set_decompaction<text, integer>::common_prefix_iterator
 		return result;
 	}
 
-	common_prefix_iterator& operator++()
+	traversal_iterator& operator++()
 	{
 		do{
 			if(!index.data[path.back()].leaf){
