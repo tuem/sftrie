@@ -56,7 +56,7 @@ size_t benchmark_set_prefix_search(const set& index,
 	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto& result: searcher.common_prefix(query)){
+		for(const auto& result: searcher.traverse(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)
@@ -86,7 +86,7 @@ size_t benchmark_map_prefix_search(const map& dict,
 	auto searcher = dict.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto& result: searcher.common_prefix(query)){
+		for(const auto& result: searcher.traverse(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)
@@ -421,7 +421,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 	std::cout << std::right << std::setw(26) << "index size" << std::setw(12) << space << std::endl;
 	std::cout << std::endl;
 	std::cout << "time:" << std::endl;
-	history.dump(std::cout, true, true);
+	history.dump();
 
 	return found_ordered == queries.size() && found_shuffled == shuffled_queries.size() &&
 		enumerated_ordered >= queries.size() && enumerated_shuffled >= shuffled_queries.size();

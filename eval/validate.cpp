@@ -55,18 +55,18 @@ std::map<std::string, size_t> validate_set_exact_match(const set& index,
 }
 
 template<typename text, typename set>
-std::map<std::string, size_t> validate_set_prefix_search(const set& index,
+std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	const std::vector<text>& positive_queries,
-	const std::vector<integer>& common_prefix_borders,
+	const std::vector<integer>& traversal_borders,
 	const std::vector<text>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
-	for(size_t i = 0; i < common_prefix_borders.size(); ++i){
-		size_t answer_start = i, answer_end = common_prefix_borders[i];
+	for(size_t i = 0; i < traversal_borders.size(); ++i){
+		size_t answer_start = i, answer_end = traversal_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto& result: searcher.common_prefix(positive_queries[answer_start])){
+		for(const auto& result: searcher.traverse(positive_queries[answer_start])){
 			if(result != positive_queries[j]){
 				correct = false;
 				break;
@@ -84,7 +84,7 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto& result: searcher.common_prefix(query)){
+		for(const auto& result: searcher.traverse(query)){
 			if(result == query){
 				correct = false;
 				break;
@@ -122,18 +122,18 @@ std::map<std::string, size_t> validate_map_exact_match(const map& dict,
 }
 
 template<typename text, typename object, typename map>
-std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
+std::map<std::string, size_t> validate_map_predictive_search(const map& dict,
 	const std::vector<std::pair<text, object>>& positive_queries,
-	const std::vector<integer>& common_prefix_borders,
+	const std::vector<integer>& traversal_borders,
 	const std::vector<std::pair<text, object>>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = dict.searcher();
-	for(size_t i = 0; i < common_prefix_borders.size(); ++i){
-		size_t answer_start = i, answer_end = common_prefix_borders[i];
+	for(size_t i = 0; i < traversal_borders.size(); ++i){
+		size_t answer_start = i, answer_end = traversal_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto& result: searcher.common_prefix(positive_queries[answer_start].first)){
+		for(const auto& result: searcher.traverse(positive_queries[answer_start].first)){
 			if(result.first != positive_queries[j].first || result.second != positive_queries[j].second){
 				correct = false;
 				break;
@@ -151,7 +151,7 @@ std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto& result: searcher.common_prefix(query.first)){
+		for(const auto& result: searcher.traverse(query.first)){
 			if(result.first == query.first){
 				correct = false;
 				break;
@@ -209,14 +209,14 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 	std::cerr << "generating queries...";
 
 	std::vector<text> set_positive_queries, set_negative_queries;
-	std::vector<text> set_prefix_search_queries;
-	std::vector<integer> set_common_prefix_borders;
+	std::vector<text> set_predictive_search_queries;
+	std::vector<integer> set_traversal_borders;
 
 	std::vector<std::pair<text, object>> map_positive_queries, map_negative_queries;
-	std::vector<std::pair<text, object>> map_prefix_search_queries;
-	std::vector<integer> map_common_prefix_borders;
+	std::vector<std::pair<text, object>> map_predictive_search_queries;
+	std::vector<integer> map_traversal_borders;
 
-	size_t positive_queries_size, negative_queries_size, prefix_search_queries_size;
+	size_t positive_queries_size, negative_queries_size, predictive_search_queries_size;
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
 	if(index_type == "set"){
 		std::shuffle(std::begin(texts), std::end(texts), std::default_random_engine(seed));
@@ -224,21 +224,21 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::copy(std::begin(texts) + texts.size() / 2, std::end(texts), std::back_inserter(set_negative_queries));
 		texts.erase(std::begin(texts) + texts.size() / 2, std::end(texts));
 
-		set_prefix_search_queries = set_positive_queries;
-		sftrie::sort_texts(std::begin(set_prefix_search_queries), std::end(set_prefix_search_queries));
-		for(size_t i = 0; i < set_prefix_search_queries.size(); ++i){
+		set_predictive_search_queries = set_positive_queries;
+		sftrie::sort_texts(std::begin(set_predictive_search_queries), std::end(set_predictive_search_queries));
+		for(size_t i = 0; i < set_predictive_search_queries.size(); ++i){
 			size_t end = i + 1;
-			while(end < set_prefix_search_queries.size() &&
-					std::equal(std::begin(set_prefix_search_queries[i]), std::end(set_prefix_search_queries[i]), std::begin(set_prefix_search_queries[end])))
+			while(end < set_predictive_search_queries.size() &&
+					std::equal(std::begin(set_predictive_search_queries[i]), std::end(set_predictive_search_queries[i]), std::begin(set_predictive_search_queries[end])))
 				++end;
-			set_common_prefix_borders.push_back(end);
+			set_traversal_borders.push_back(end);
 		}
 
 		sftrie::sort_texts(std::begin(texts), std::end(texts));
 
 		positive_queries_size = set_positive_queries.size();
 		negative_queries_size = set_negative_queries.size();
-		prefix_search_queries_size = set_prefix_search_queries.size();
+		predictive_search_queries_size = set_predictive_search_queries.size();
 	}
 	else{
 		std::shuffle(std::begin(text_object_pairs), std::end(text_object_pairs), std::default_random_engine(seed));
@@ -246,21 +246,21 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::copy(std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::end(text_object_pairs), std::back_inserter(map_negative_queries));
 		text_object_pairs.erase(std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::end(text_object_pairs));
 
-		map_prefix_search_queries = map_positive_queries;
-		sftrie::sort_text_object_pairs(std::begin(map_prefix_search_queries), std::end(map_prefix_search_queries));
-		for(size_t i = 0; i < map_prefix_search_queries.size(); ++i){
+		map_predictive_search_queries = map_positive_queries;
+		sftrie::sort_text_object_pairs(std::begin(map_predictive_search_queries), std::end(map_predictive_search_queries));
+		for(size_t i = 0; i < map_predictive_search_queries.size(); ++i){
 			size_t end = i + 1;
-			while(end < map_prefix_search_queries.size() &&
-					std::equal(std::begin(map_prefix_search_queries[i].first), std::end(map_prefix_search_queries[i].first), std::begin(map_prefix_search_queries[end].first)))
+			while(end < map_predictive_search_queries.size() &&
+					std::equal(std::begin(map_predictive_search_queries[i].first), std::end(map_predictive_search_queries[i].first), std::begin(map_predictive_search_queries[end].first)))
 				++end;
-			map_common_prefix_borders.push_back(end);
+			map_traversal_borders.push_back(end);
 		}
 
 		sftrie::sort_text_object_pairs(std::begin(text_object_pairs), std::end(text_object_pairs));
 
 		positive_queries_size = map_positive_queries.size();
 		negative_queries_size = map_negative_queries.size();
-		prefix_search_queries_size = map_prefix_search_queries.size();
+		predictive_search_queries_size = map_predictive_search_queries.size();
 	}
 	std::cerr << "done." << std::endl;
 
@@ -272,7 +272,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
-		result_ps = validate_set_prefix_search(index, set_prefix_search_queries, set_common_prefix_borders, set_negative_queries);
+		result_ps = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "set" && sftrie_type == "basic"){
@@ -282,7 +282,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
-		result_ps = validate_set_prefix_search(index, set_prefix_search_queries, set_common_prefix_borders, set_negative_queries);
+		result_ps = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "set" && sftrie_type == "tail"){
@@ -292,7 +292,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
-		result_ps = validate_set_prefix_search(index, set_prefix_search_queries, set_common_prefix_borders, set_negative_queries);
+		result_ps = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "set" && sftrie_type == "decompaction"){
@@ -302,7 +302,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
-		result_ps = validate_set_prefix_search(index, set_prefix_search_queries, set_common_prefix_borders, set_negative_queries);
+		result_ps = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "map" && sftrie_type == "naive"){
@@ -311,7 +311,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_ps = validate_map_prefix_search(dict, map_prefix_search_queries, map_common_prefix_borders, map_negative_queries);
+		result_ps = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "map" && sftrie_type == "basic"){
@@ -321,7 +321,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_ps = validate_map_prefix_search(dict, map_prefix_search_queries, map_common_prefix_borders, map_negative_queries);
+		result_ps = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "map" && sftrie_type == "tail"){
@@ -331,7 +331,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_ps = validate_map_prefix_search(dict, map_prefix_search_queries, map_common_prefix_borders, map_negative_queries);
+		result_ps = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "map" && sftrie_type == "decompaction"){
@@ -341,7 +341,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_em = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_ps = validate_map_prefix_search(dict, map_prefix_search_queries, map_common_prefix_borders, map_negative_queries);
+		result_ps = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else{
@@ -360,8 +360,8 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 	std::cout << "  " << std::setw(20) << "true negative: " << std::setw(12) << result_em["tn"] << std::endl;
 	std::cout << "  " << std::setw(20) << "false positive: " << std::setw(12) << result_em["fp"] << std::endl;
 	std::cout << "  " << std::setw(20) << "false negative: " << std::setw(12) << result_em["fn"] << std::endl;
-	std::cout << "prefix search:" << std::endl;
-	std::cout << "  " << std::setw(20) << "total queries: " << std::setw(12) << (prefix_search_queries_size + negative_queries_size) << std::endl;
+	std::cout << "predictive search:" << std::endl;
+	std::cout << "  " << std::setw(20) << "total queries: " << std::setw(12) << (predictive_search_queries_size + negative_queries_size) << std::endl;
 	std::cout << "  " << std::setw(20) << "true positive: " << std::setw(12) << result_ps["tp"] << std::endl;
 	std::cout << "  " << std::setw(20) << "true negative: " << std::setw(12) << result_ps["tn"] << std::endl;
 	std::cout << "  " << std::setw(20) << "false positive: " << std::setw(12) << result_ps["fp"] << std::endl;
