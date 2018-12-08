@@ -133,32 +133,6 @@ struct set_basic<text, integer>::common_searcher
 		result.clear();
 		return prefix_iterator(*this, pattern, 0, 0);
 	}
-/*
-	const set_basic<text, integer>& index;
-
-	std::vector<integer> path;
-	text result;
-	std::vector<integer> path_end;
-	text result_end;
-
-	common_searcher(const set_basic<text, integer>& index): index(index){}
-
-	traversal_iterator traverse(const text& pattern)
-	{
-		path.clear();
-		result.clear();
-		integer current = index.search(pattern);
-		return current < index.data.size() - 1 ?
-			traversal_iterator(index.data, path, result, path_end, result_end, current, pattern) :
-			traversal_iterator(index.data, path_end, result_end);
-	}
-
-	prefix_iterator prefix(const text& pattern)
-	{
-		result.clear();
-		return prefix_iterator(*this, pattern, 0, 0);
-	}
-*/
 };
 
 template<typename text, typename integer>
@@ -265,74 +239,6 @@ struct set_basic<text, integer>::traversal_iterator
 		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
 		return *this;
 	}
-/*
-	const std::vector<element>& data;
-
-	std::vector<integer>& path;
-	text& result;
-	std::vector<integer>& path_end;
-	text& result_end;
-
-	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
-			std::vector<integer>& path_end, text& result_end, integer root, const text& prefix):
-		data(data), path(path), result(result), path_end(path_end), result_end(result_end)
-	{
-		path.push_back(root);
-		std::copy(std::begin(prefix), std::end(prefix), std::back_inserter(result));
-		if(!data[root].match)
-			++*this;
-	}
-
-	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
-		data(data), path(path), result(result), path_end(path), result_end(result) {}
-
-	traversal_iterator& begin()
-	{
-		return *this;
-	}
-
-	traversal_iterator end() const
-	{
-		return traversal_iterator(data, path_end, result_end);
-	}
-
-	bool operator!=(const traversal_iterator& i) const
-	{
-		if(this->path.size() != i.path.size())
-			return true;
-		else if(this->path.empty() && i.path.empty())
-			return false;
-		else
-			return this->path.back() != i.path.back();
-	}
-
-	const text& operator*()
-	{
-		return result;
-	}
-
-	traversal_iterator& operator++()
-	{
-		do{
-			if(!data[path.back()].leaf){
-				integer child = data[path.back()].next;
-				path.push_back(child);
-				result.push_back(data[child].label);
-			}
-			else{
-				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].next].next){
-					path.pop_back();
-					result.pop_back();
-				}
-				if(path.size() > 1)
-					result.back() = data[++path.back()].label;
-				else
-					path.pop_back();
-			}
-		}while(!path.empty() && !data[path.back()].match);
-		return *this;
-	}
-*/
 };
 
 template<typename text, typename integer>
