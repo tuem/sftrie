@@ -32,8 +32,9 @@ class set_naive
 	using symbol = typename text::value_type;
 
 	struct element;
-	struct traversal_searcher;
+	struct common_searcher;
 	struct traversal_iterator;
+	struct common_prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -42,7 +43,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
-	traversal_searcher searcher() const;
+	common_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -94,10 +95,10 @@ bool set_naive<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
-typename set_naive<text, integer>::traversal_searcher
+typename set_naive<text, integer>::common_searcher
 set_naive<text, integer>::searcher() const
 {
-	return traversal_searcher(*this);
+	return common_searcher(*this);
 }
 
 template<typename text, typename integer>
@@ -154,13 +155,13 @@ integer set_naive<text, integer>::search(const text& pattern) const
 }
 
 template<typename text, typename integer>
-struct set_naive<text, integer>::traversal_searcher
+struct set_naive<text, integer>::common_searcher
 {
 	const set_naive<text, integer>& index;
 	std::vector<integer> path;
 	text result;
 
-	traversal_searcher(const set_naive<text, integer>& index): index(index){}
+	common_searcher(const set_naive<text, integer>& index): index(index){}
 
 	traversal_iterator traverse(const text& pattern)
 	{
@@ -173,16 +174,22 @@ struct set_naive<text, integer>::traversal_searcher
 		}
 		return traversal_iterator(*this, pattern, root);
 	}
+
+	common_prefix_iterator common_prefix(const text& pattern)
+	{
+		result.clear();
+		return common_prefix_iterator(*this, pattern, 0, 0);
+	}
 };
 
 template<typename text, typename integer>
 struct set_naive<text, integer>::traversal_iterator
 {
-	traversal_searcher& searcher;
+	common_searcher& searcher;
 	const text& prefix;
 	integer current;
 
-	traversal_iterator(traversal_searcher& searcher, const text& prefix, integer root):
+	traversal_iterator(common_searcher& searcher, const text& prefix, integer root):
 		searcher(searcher), prefix(prefix), current(root)
 	{
 		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
@@ -230,6 +237,65 @@ struct set_naive<text, integer>::traversal_iterator
 			}
 		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
 		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
+		return *this;
+	}
+};
+
+template<typename text, typename integer>
+struct set_naive<text, integer>::common_prefix_iterator
+{
+	common_searcher& searcher;
+	const text& pattern;
+	integer current;
+	integer depth;
+
+	common_prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
+		searcher(searcher), pattern(pattern), current(current), depth(depth)
+	{}
+
+	common_prefix_iterator& begin()
+	{
+		return *this;
+	}
+
+	common_prefix_iterator end() const
+	{
+		return common_prefix_iterator(searcher, pattern, searcher.index.size() - 1, pattern.size());
+	}
+
+	bool operator!=(const common_prefix_iterator& i) const
+	{
+		return this->current != i.current;
+	}
+
+	const text& operator*() const
+	{
+		return searcher.result;
+	}
+
+	common_prefix_iterator& operator++()
+	{
+		for(; !searcher.index.data[current].leaf && depth < pattern.size();){
+			for(integer l = searcher.index.data[current].next, r = searcher.index.data[l].next - 1; l <= r; ){
+				integer m = (l + r) / 2;
+				if(searcher.index.data[m].label < pattern[depth]){
+					l = m + 1;
+				}
+				else if(searcher.index.data[m].label > pattern[depth]){
+					r = m - 1;
+				}
+				else{
+					current = m;
+					goto NEXT;
+				}
+			}
+			break;
+		NEXT:
+			searcher.result.push_back(pattern[depth++]);
+			if(searcher.index.data[current].match)
+				return *this;
+		}
+		current = searcher.index.size() - 1;
 		return *this;
 	}
 };
