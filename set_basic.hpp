@@ -108,34 +108,6 @@ set_basic<text, integer>::searcher() const
 }
 
 template<typename text, typename integer>
-struct set_basic<text, integer>::common_searcher
-{
-	const set_basic<text, integer>& index;
-	std::vector<integer> path;
-	text result;
-
-	common_searcher(const set_basic<text, integer>& index): index(index){}
-
-	traversal_iterator traverse(const text& pattern)
-	{
-		integer root = index.search(pattern);
-		if(root < index.data.size() - 1){
-			path.clear();
-			result.clear();
-			path.push_back(root);
-			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
-		}
-		return traversal_iterator(*this, pattern, root);
-	}
-
-	prefix_iterator prefix(const text& pattern)
-	{
-		result.clear();
-		return prefix_iterator(*this, pattern, 0, 0);
-	}
-};
-
-template<typename text, typename integer>
 template<typename iterator>
 void set_basic<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
@@ -181,6 +153,34 @@ integer set_basic<text, integer>::search(const text& pattern) const
 	}
 	return current;
 }
+
+template<typename text, typename integer>
+struct set_basic<text, integer>::common_searcher
+{
+	const set_basic<text, integer>& index;
+	std::vector<integer> path;
+	text result;
+
+	common_searcher(const set_basic<text, integer>& index): index(index){}
+
+	traversal_iterator traverse(const text& pattern)
+	{
+		integer root = index.search(pattern);
+		if(root < index.data.size() - 1){
+			path.clear();
+			result.clear();
+			path.push_back(root);
+			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
+		}
+		return traversal_iterator(*this, pattern, root);
+	}
+
+	prefix_iterator prefix(const text& pattern)
+	{
+		result.clear();
+		return prefix_iterator(*this, pattern, 0, 0);
+	}
+};
 
 template<typename text, typename integer>
 struct set_basic<text, integer>::traversal_iterator
