@@ -254,7 +254,7 @@ struct set_naive<text, integer>::prefix_iterator
 	{
 		if(current == 0 && !searcher.index.data[current].match){
 			if(pattern.empty())
-				this->current = searcher.index.size() - 1;
+				this->current = searcher.index.data.size() - 1;
 			else
 				++*this;
 		}
@@ -267,7 +267,7 @@ struct set_naive<text, integer>::prefix_iterator
 
 	prefix_iterator end() const
 	{
-		return prefix_iterator(searcher, pattern, searcher.index.size() - 1, pattern.size());
+		return prefix_iterator(searcher, pattern, searcher.index.data.size() - 1, pattern.size());
 	}
 
 	bool operator!=(const prefix_iterator& i) const
@@ -302,7 +302,7 @@ struct set_naive<text, integer>::prefix_iterator
 			if(searcher.index.data[current].match)
 				return *this;
 		}
-		current = searcher.index.size() - 1;
+		current = searcher.index.data.size() - 1;
 		return *this;
 	}
 };
