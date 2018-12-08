@@ -34,7 +34,7 @@ class set_naive
 	struct element;
 	struct common_searcher;
 	struct traversal_iterator;
-	struct common_prefix_iterator;
+	struct prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -175,10 +175,10 @@ struct set_naive<text, integer>::common_searcher
 		return traversal_iterator(*this, pattern, root);
 	}
 
-	common_prefix_iterator common_prefix(const text& pattern)
+	prefix_iterator prefix(const text& pattern)
 	{
 		result.clear();
-		return common_prefix_iterator(*this, pattern, 0, 0);
+		return prefix_iterator(*this, pattern, 0, 0);
 	}
 };
 
@@ -242,28 +242,35 @@ struct set_naive<text, integer>::traversal_iterator
 };
 
 template<typename text, typename integer>
-struct set_naive<text, integer>::common_prefix_iterator
+struct set_naive<text, integer>::prefix_iterator
 {
 	common_searcher& searcher;
 	const text& pattern;
 	integer current;
 	integer depth;
 
-	common_prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
+	prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
 		searcher(searcher), pattern(pattern), current(current), depth(depth)
-	{}
+	{
+		if(current == 0 && !searcher.index.data[current].match){
+			if(pattern.empty())
+				this->current = searcher.index.size() - 1;
+			else
+				++*this;
+		}
+	}
 
-	common_prefix_iterator& begin()
+	prefix_iterator& begin()
 	{
 		return *this;
 	}
 
-	common_prefix_iterator end() const
+	prefix_iterator end() const
 	{
-		return common_prefix_iterator(searcher, pattern, searcher.index.size() - 1, pattern.size());
+		return prefix_iterator(searcher, pattern, searcher.index.size() - 1, pattern.size());
 	}
 
-	bool operator!=(const common_prefix_iterator& i) const
+	bool operator!=(const prefix_iterator& i) const
 	{
 		return this->current != i.current;
 	}
@@ -273,7 +280,7 @@ struct set_naive<text, integer>::common_prefix_iterator
 		return searcher.result;
 	}
 
-	common_prefix_iterator& operator++()
+	prefix_iterator& operator++()
 	{
 		for(; !searcher.index.data[current].leaf && depth < pattern.size();){
 			for(integer l = searcher.index.data[current].next, r = searcher.index.data[l].next - 1; l <= r; ){
