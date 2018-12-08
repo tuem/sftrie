@@ -131,6 +131,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 	std::cerr << "sorting texts...";
 	history.refresh();
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
+	sftrie::sort_text_object_pairs(std::begin(text_object_pairs), std::end(text_object_pairs));
 	history.record("sort");
 	std::cerr << "done." << std::endl;
 
