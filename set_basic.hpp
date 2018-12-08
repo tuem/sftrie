@@ -111,6 +111,30 @@ template<typename text, typename integer>
 struct set_basic<text, integer>::common_searcher
 {
 	const set_basic<text, integer>& index;
+	std::vector<integer> path;
+	text result;
+
+	common_searcher(const set_basic<text, integer>& index): index(index){}
+
+	traversal_iterator traverse(const text& pattern)
+	{
+		integer root = index.search(pattern);
+		if(root < index.data.size() - 1){
+			path.clear();
+			result.clear();
+			path.push_back(root);
+			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
+		}
+		return traversal_iterator(*this, pattern, root);
+	}
+
+	prefix_iterator prefix(const text& pattern)
+	{
+		result.clear();
+		return prefix_iterator(*this, pattern, 0, 0);
+	}
+/*
+	const set_basic<text, integer>& index;
 
 	std::vector<integer> path;
 	text result;
@@ -134,6 +158,7 @@ struct set_basic<text, integer>::common_searcher
 		result.clear();
 		return prefix_iterator(*this, pattern, 0, 0);
 	}
+*/
 };
 
 template<typename text, typename integer>
@@ -186,6 +211,61 @@ integer set_basic<text, integer>::search(const text& pattern) const
 template<typename text, typename integer>
 struct set_basic<text, integer>::traversal_iterator
 {
+	common_searcher& searcher;
+	const text& prefix;
+	integer current;
+
+	traversal_iterator(common_searcher& searcher, const text& prefix, integer root):
+		searcher(searcher), prefix(prefix), current(root)
+	{
+		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
+			++*this;
+	}
+
+	traversal_iterator& begin()
+	{
+		return *this;
+	}
+
+	traversal_iterator end() const
+	{
+		return traversal_iterator(searcher, prefix, searcher.index.data.size() - 1);
+	}
+
+	bool operator!=(const traversal_iterator& i) const
+	{
+		return this->current != i.current;
+	}
+
+	const text& operator*() const
+	{
+		return searcher.result;
+	}
+
+	traversal_iterator& operator++()
+	{
+		do{
+			if(!searcher.index.data[searcher.path.back()].leaf){
+				integer child = searcher.index.data[searcher.path.back()].next;
+				searcher.path.push_back(child);
+				searcher.result.push_back(searcher.index.data[child].label);
+			}
+			else{
+				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
+						searcher.index.data[searcher.index.data[searcher.path[searcher.path.size() - 2]].next].next){
+					searcher.path.pop_back();
+					searcher.result.pop_back();
+				}
+				if(searcher.path.size() > 1)
+					searcher.result.back() = searcher.index.data[++searcher.path.back()].label;
+				else
+					searcher.path.pop_back();
+			}
+		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
+		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
+		return *this;
+	}
+/*
 	const std::vector<element>& data;
 
 	std::vector<integer>& path;
@@ -252,6 +332,7 @@ struct set_basic<text, integer>::traversal_iterator
 		}while(!path.empty() && !data[path.back()].match);
 		return *this;
 	}
+*/
 };
 
 template<typename text, typename integer>
