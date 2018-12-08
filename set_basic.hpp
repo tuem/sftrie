@@ -32,8 +32,9 @@ class set_basic
 	using symbol = typename text::value_type;
 
 	struct element;
-	struct traversal_searcher;
+	struct common_searcher;
 	struct traversal_iterator;
+	struct prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -43,7 +44,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
-	traversal_searcher searcher() const;
+	common_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -100,14 +101,14 @@ bool set_basic<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
-typename set_basic<text, integer>::traversal_searcher
+typename set_basic<text, integer>::common_searcher
 set_basic<text, integer>::searcher() const
 {
-	return traversal_searcher(*this);
+	return common_searcher(*this);
 }
 
 template<typename text, typename integer>
-struct set_basic<text, integer>::traversal_searcher
+struct set_basic<text, integer>::common_searcher
 {
 	const set_basic<text, integer>& index;
 
@@ -116,7 +117,7 @@ struct set_basic<text, integer>::traversal_searcher
 	std::vector<integer> path_end;
 	text result_end;
 
-	traversal_searcher(const set_basic<text, integer>& index): index(index){}
+	common_searcher(const set_basic<text, integer>& index): index(index){}
 
 	traversal_iterator traverse(const text& pattern)
 	{
@@ -126,6 +127,12 @@ struct set_basic<text, integer>::traversal_searcher
 		return current < index.data.size() - 1 ?
 			traversal_iterator(index.data, path, result, path_end, result_end, current, pattern) :
 			traversal_iterator(index.data, path_end, result_end);
+	}
+
+	prefix_iterator prefix(const text& pattern)
+	{
+		result.clear();
+		return prefix_iterator(*this, pattern, 0, 0);
 	}
 };
 
@@ -243,6 +250,66 @@ struct set_basic<text, integer>::traversal_iterator
 					path.pop_back();
 			}
 		}while(!path.empty() && !data[path.back()].match);
+		return *this;
+	}
+};
+
+template<typename text, typename integer>
+struct set_basic<text, integer>::prefix_iterator
+{
+	common_searcher& searcher;
+	const text& pattern;
+	integer current;
+	integer depth;
+
+	prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
+		searcher(searcher), pattern(pattern), current(current), depth(depth)
+	{
+		if(current == 0 && !searcher.index.data[current].match){
+			if(pattern.empty())
+				this->current = searcher.index.data.size() - 1;
+			else
+				++*this;
+		}
+	}
+
+	prefix_iterator& begin()
+	{
+		return *this;
+	}
+
+	prefix_iterator end() const
+	{
+		return prefix_iterator(searcher, pattern, searcher.index.data.size() - 1, pattern.size());
+	}
+
+	bool operator!=(const prefix_iterator& i) const
+	{
+		return this->current != i.current;
+	}
+
+	const text& operator*() const
+	{
+		return searcher.result;
+	}
+
+	prefix_iterator& operator++()
+	{
+		for(; !searcher.index.data[current].leaf && depth < pattern.size(); ){
+			current = searcher.index.data[current].next;
+			integer end = searcher.index.data[current].next;
+			for(integer w = end - current, m; w > searcher.index.min_binary_search; w = m){
+				m = w >> 1;
+				current += searcher.index.data[current + m].label < pattern[depth] ? w - m : 0;
+			}
+			for(; current < end && searcher.index.data[current].label < pattern[depth]; ++current);
+			if(!(current < end && searcher.index.data[current].label == pattern[depth]))
+				break;
+			searcher.result.push_back(pattern[depth++]);
+			if(searcher.index.data[current].match)
+				return *this;
+		}
+		current = searcher.index.data.size() - 1;
 		return *this;
 	}
 };
