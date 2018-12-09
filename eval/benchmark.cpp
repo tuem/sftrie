@@ -163,14 +163,14 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		for(const auto& t: texts)
 			text_object_pairs.push_back(std::make_pair(t, value++));
 	}
-	history.record("load");
+	history.record("loading texts", texts.size());
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "sorting texts...";
 	history.refresh();
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
 	sftrie::sort_text_object_pairs(std::begin(text_object_pairs), std::end(text_object_pairs));
-	history.record("sort");
+	history.record("sorting texts", texts.size());
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "generating queries...";
@@ -179,7 +179,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 	std::vector<text> shuffled_queries = queries;
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::shuffle(std::begin(shuffled_queries), std::end(shuffled_queries), std::default_random_engine(seed));
-	history.record("prepare");
+	history.record("generating queries", queries.size());
 	std::cerr << "done." << std::endl;
 
 	size_t space = 0;
@@ -551,12 +551,13 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 	}
 
 	std::cout << std::endl;
-	std::cout << "size:" << std::endl;
-	std::cout << std::right << std::setw(26) << "# of texts" << std::setw(12) << texts.size() << std::endl;
-	std::cout << std::right << std::setw(26) << "total length" << std::setw(12) << total_length << std::endl;
-	std::cout << std::right << std::setw(26) << "index size" << std::setw(12) << space << std::endl;
+	std::cout << "[size]" << std::endl;
+	std::cout << std::left << std::setw(30) << "# of texts" << std::right << std::setw(12) << texts.size() << std::endl;
+	std::cout << std::left << std::setw(30) << "total length[symbols]" << std::right << std::setw(12) << total_length << std::endl;
+	std::cout << std::left << std::setw(30) << "total length[bytes]" << std::right << std::setw(12) << (sizeof(typename text::value_type) * total_length) << std::endl;
+	std::cout << std::left << std::setw(30) << "index size" << std::right << std::setw(12) << space << std::endl;
 	std::cout << std::endl;
-	std::cout << "time:" << std::endl;
+	std::cout << "[time]" << std::endl;
 	history.dump();
 
 	return found_ordered == queries.size() && found_shuffled == shuffled_queries.size() &&
@@ -593,15 +594,15 @@ int main(int argc, char* argv[])
 		int min_tail = pm["min_tail"];
 		int min_decompaction = pm["min_decompaction"];
 
-		std::cout << "Configuration" << std::endl;
-		std::cout << std::setw(12) << std::left << "  corpus_path: " << corpus_path << std::endl;
-		std::cout << std::setw(12) << std::left << "  symbol_type: " << symbol_type << std::endl;
-		std::cout << std::setw(12) << std::left << "  index_type: " << index_type << std::endl;
-		std::cout << std::setw(12) << std::left << "  predictive_search_max_result: " << predictive_search_max_result << std::endl;
-		std::cout << std::setw(12) << std::left << "  sftrie_type: " << sftrie_type << std::endl;
-		std::cout << std::setw(12) << std::left << "  min_binary_search: " << min_binary_search << std::endl;
-		std::cout << std::setw(12) << std::left << "  min_tail: " << min_tail << std::endl;
-		std::cout << std::setw(12) << std::left << "  min_decompaction: " << min_decompaction << std::endl;
+		std::cout << "[configuration]" << std::endl;
+		std::cout << std::setw(30) << std::left << "corpus_path" << corpus_path << std::endl;
+		std::cout << std::setw(30) << std::left << "symbol_type" << symbol_type << std::endl;
+		std::cout << std::setw(30) << std::left << "index_type" << index_type << std::endl;
+		std::cout << std::setw(30) << std::left << "predictive_search_max_result" << predictive_search_max_result << std::endl;
+		std::cout << std::setw(30) << std::left << "sftrie_type" << sftrie_type << std::endl;
+		std::cout << std::setw(30) << std::left << "min_binary_search" << min_binary_search << std::endl;
+		std::cout << std::setw(30) << std::left << "min_tail" << min_tail << std::endl;
+		std::cout << std::setw(30) << std::left << "min_decompaction" << min_decompaction << std::endl;
 		std::cout << std::endl;
 
 		if(symbol_type == "char")
