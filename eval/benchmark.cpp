@@ -139,11 +139,12 @@ template<typename text, typename object, typename integer>
 bool exec(const std::string& corpus_path, const std::string& index_type, int max_result,
 	const std::string& sftrie_type, int min_binary_search, int min_tail, int min_decompaction)
 {
+	using symbol = typename text::value_type;
+
 	History history;
 
 	std::cerr << "loading texts...";
 	history.refresh();
-	size_t total_length = 0;
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open())
@@ -155,7 +156,6 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int max
 			break;
 		auto t = cast_string<text>(line);
 		texts.push_back(t);
-		total_length += t.size();
 	}
 	std::vector<std::pair<text, object>> text_object_pairs;
 	if(index_type == "map"){
@@ -164,6 +164,32 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int max
 			text_object_pairs.push_back(std::make_pair(t, value++));
 	}
 	history.record("loading texts", texts.size());
+	std::cerr << "done." << std::endl;
+
+	std::cerr << "analyzing texts...";
+	std::set<symbol> alphabet;
+	symbol min_char = texts.front().front(), max_char = min_char;
+	bool first = true;
+	size_t min_length = 0, max_length = 0, total_length = 0;
+	for(const auto& t: texts){
+		for(auto c: t){
+			alphabet.insert(c);
+			min_char = std::min(min_char, c);
+			max_char = std::max(max_char, c);
+		}
+		if(first){
+			min_length = t.size();
+			max_length = t.size();
+			first = false;
+		}
+		else{
+			min_length = std::min(t.size(), min_length);
+			max_length = std::max(t.size(), max_length);
+		}
+		total_length += t.size();
+	}
+	double average_length = total_length / static_cast<double>(texts.size());
+	history.record("analyzing texts", texts.size());
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "sorting texts...";
@@ -575,14 +601,25 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int max
 	}
 
 	std::cout << std::endl;
+	std::cout << "[input]" << std::endl;
+	std::cout << std::left << std::setw(30) << "alphabet size" << std::right << std::setw(12) << alphabet.size() << std::endl;
+	std::cout << std::left << std::setw(30) << "min symbol" << std::right << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
+	std::cout << std::left << std::setw(30) << "max symbol" << std::right << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
+	std::cout << std::left << std::setw(30) << "number of texts" << std::right << std::setw(12) << texts.size() << std::endl;
+	std::cout << std::left << std::setw(30) << "max length" << std::right << std::setw(12) << max_length << std::endl;
+	std::cout << std::left << std::setw(30) << "min length" << std::right << std::setw(12) << min_length << std::endl;
+	std::cout << std::left << std::setw(30) << "average length" << std::right << std::setw(12) << average_length << std::endl;
+	std::cout << std::left << std::setw(30) << "total length" << std::right << std::setw(12) << total_length << std::endl;
+	std::cout << std::left << std::setw(30) << "total bytes" << std::right << std::setw(12) << sizeof(symbol) * total_length << std::endl;
+	std::cout << std::endl;
 	std::cout << "[size]" << std::endl;
-	std::cout << std::left << std::setw(30) << "symbol size[bytes]" << std::right << std::setw(12) << sizeof(typename text::value_type) << std::endl;
+	std::cout << std::left << std::setw(30) << "symbol size" << std::right << std::setw(12) << sizeof(symbol) << std::endl;
 	std::cout << std::left << std::setw(30) << "# of texts" << std::right << std::setw(12) << texts.size() << std::endl;
-	std::cout << std::left << std::setw(30) << "total length[symbols]" << std::right << std::setw(12) << total_length << std::endl;
-	std::cout << std::left << std::setw(30) << "total length[bytes]" << std::right << std::setw(12) << (sizeof(typename text::value_type) * total_length) << std::endl;
-	std::cout << std::left << std::setw(30) << "node size[bytes]" << std::right << std::setw(12) << node_size << std::endl;
-	std::cout << std::left << std::setw(30) << "trie size[nodes]" << std::right << std::setw(12) << trie_size << std::endl;
-	std::cout << std::left << std::setw(30) << "index size[bytes]" << std::right << std::setw(12) << space << std::endl;
+	std::cout << std::left << std::setw(30) << "total length" << std::right << std::setw(12) << total_length << std::endl;
+	std::cout << std::left << std::setw(30) << "total bytes" << std::right << std::setw(12) << (sizeof(symbol) * total_length) << std::endl;
+	std::cout << std::left << std::setw(30) << "node size" << std::right << std::setw(12) << node_size << std::endl;
+	std::cout << std::left << std::setw(30) << "trie size" << std::right << std::setw(12) << trie_size << std::endl;
+	std::cout << std::left << std::setw(30) << "index size" << std::right << std::setw(12) << space << std::endl;
 	std::cout << std::endl;
 	std::cout << "[time]" << std::endl;
 	history.dump();
