@@ -32,8 +32,9 @@ class set_decompaction
 	using symbol = typename text::value_type;
 
 	struct element;
-	struct traversal_searcher;
+	struct common_searcher;
 	struct traversal_iterator;
+	struct prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -45,7 +46,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
-	traversal_searcher searcher() const;
+	common_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -137,10 +138,10 @@ bool set_decompaction<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
-typename set_decompaction<text, integer>::traversal_searcher
+typename set_decompaction<text, integer>::common_searcher
 set_decompaction<text, integer>::searcher() const
 {
-	return traversal_searcher(*this);
+	return common_searcher(*this);
 }
 
 template<typename text, typename integer>
@@ -239,7 +240,7 @@ bool set_decompaction<text, integer>::check_tail_prefix(const text& pattern, int
 }
 
 template<typename text, typename integer>
-struct set_decompaction<text, integer>::traversal_searcher
+struct set_decompaction<text, integer>::common_searcher
 {
 	const set_decompaction<text, integer>& index;
 
@@ -248,7 +249,7 @@ struct set_decompaction<text, integer>::traversal_searcher
 	std::vector<integer> path_end;
 	text result_end;
 
-	traversal_searcher(const set_decompaction<text, integer>& index): index(index){}
+	common_searcher(const set_decompaction<text, integer>& index): index(index){}
 
 	traversal_iterator traverse(const text& pattern)
 	{
@@ -276,6 +277,12 @@ struct set_decompaction<text, integer>::traversal_searcher
 				return traversal_iterator(index, path_end, result_end);
 		}
 		return traversal_iterator(index, path, result, path_end, result_end, current, pattern);
+	}
+
+	prefix_iterator prefix(const text& pattern)
+	{
+		result.clear();
+		return prefix_iterator(*this, pattern, 0, 0);
 	}
 };
 
@@ -362,6 +369,88 @@ struct set_decompaction<text, integer>::traversal_iterator
 			}
 		}while(!path.empty() && !index.data[path.back()].match &&
 			!(path.size() > 1 && path.back() == path[path.size() - 2]));
+		return *this;
+	}
+};
+
+template<typename text, typename integer>
+struct set_decompaction<text, integer>::prefix_iterator
+{
+	common_searcher& searcher;
+	const text& pattern;
+	integer current;
+	integer depth;
+
+	prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
+		searcher(searcher), pattern(pattern), current(current), depth(depth)
+	{
+		if(current == 0 && !searcher.index.data[current].match){
+			if(pattern.empty())
+				this->current = searcher.index.data.size() - 1;
+			else
+				++*this;
+		}
+	}
+
+	prefix_iterator& begin()
+	{
+		return *this;
+	}
+
+	prefix_iterator end() const
+	{
+		return prefix_iterator(searcher, pattern, searcher.index.data.size() - 1, pattern.size());
+	}
+
+	bool operator!=(const prefix_iterator& i) const
+	{
+		return this->current != i.current;
+	}
+
+	const text& operator*() const
+	{
+		return searcher.result;
+	}
+
+	prefix_iterator& operator++()
+	{
+		if(!searcher.index.data[current].leaf){
+			while(depth < pattern.size()){
+				if(searcher.index.data[current].leaf){
+					if(
+						container_size<integer>(pattern) - depth >= searcher.index.data[current + 1].tail - searcher.index.data[current].tail &&
+						std::equal(
+							std::begin(pattern) + depth,
+							std::begin(pattern) + depth + (searcher.index.data[current + 1].tail - searcher.index.data[current].tail),
+							std::begin(searcher.index.tails) + searcher.index.data[current].tail
+						)
+					)
+						std::copy(std::begin(searcher.index.tails) + searcher.index.data[current].tail,
+							std::begin(searcher.index.tails) + searcher.index.data[current + 1].tail, std::back_inserter(searcher.result));
+					else
+						current = searcher.index.data.size() - 1;
+					return *this;
+				}
+				current = searcher.index.data[current].next;
+				integer end = searcher.index.data[current].next;
+				if(current + searcher.index.alphabet_size == end){
+					current += pattern[depth] - searcher.index.min_symbol;
+				}
+				else{
+					for(integer w = end - current, m; w > searcher.index.min_binary_search; w = m){
+						m = w >> 1;
+						current += searcher.index.data[current + m].label < pattern[depth] ? w - m : 0;
+					}
+					for(; current < end && searcher.index.data[current].label < pattern[depth]; ++current);
+					if(!(current < end && searcher.index.data[current].label == pattern[depth]))
+						break;
+				}
+				searcher.result.push_back(pattern[depth++]);
+				if(searcher.index.data[current].match)
+					return *this;
+			}
+		}
+		current = searcher.index.data.size() - 1;
 		return *this;
 	}
 };
