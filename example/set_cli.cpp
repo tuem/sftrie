@@ -18,13 +18,14 @@ limitations under the License.
 */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 
 //#define SFTRIE_SET_USE_NAIVE
 //#define SFTRIE_SET_USE_BASIC
 //#define SFTRIE_SET_USE_TAIL
-//#define SFTRIE_SET_USE_DECOMPACTION
+#define SFTRIE_SET_USE_DECOMPACTION
 #include <sftrie/set.hpp>
 
 using text = std::string;
@@ -66,14 +67,23 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		if(query.back() == '*'){
-			query.pop_back();
-			for(const auto& t: searcher.traverse(query))
-				std::cout << t << std::endl;
+		auto back = query.back();
+		integer count = 0;
+		if(back != '*' && back != '?'){
+			if((count = searcher.count(query)) > 0)
+				std::cout << query << ": found" << std::endl;
 		}
 		else{
-			std::cout << query << ": " << (index.exists(query) ? "found" : "not found") << std::endl;
+			query.pop_back();
+			if(back == '*')
+				for(const auto& t: searcher.traverse(query))
+					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
+			else
+				for(const auto& t: searcher.prefix(query))
+					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
 		}
+		if(count == 0)
+			std::cout << query << ": " << "not found" << std::endl;
 	}
 
 	return 0;
