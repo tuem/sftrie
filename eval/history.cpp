@@ -39,7 +39,7 @@ void History::refresh()
 void History::dump(std::ostream& os) const
 {
 	os <<
-		std::right << std::setw(26) << "task" <<
+		std::left << std::setw(30) << "task" <<
 		std::right << std::setw(12) << "time[us]" <<
 		std::right << std::setw(12) << "count" <<
 		std::right << std::setw(16) << "average[ns]" <<
@@ -50,7 +50,7 @@ void History::dump(std::ostream& os) const
 		auto t = std::chrono::duration_cast<std::chrono::microseconds>(
 				time_records[i].time - time_records[i - 1].time).count();
 		os <<
-			std::right << std::setw(26) << time_records[i].task <<
+			std::left << std::setw(30) << time_records[i].task <<
 			std::right << std::setw(12) << std::setprecision(8) << t;
 		if(time_records[i].count > 1)
 			os <<
