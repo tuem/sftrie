@@ -143,7 +143,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 
 	std::cerr << "loading texts...";
 	history.refresh();
-	std::size_t total_length = 0;
+	size_t total_length = 0;
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
 	if(!ifs.is_open())
@@ -182,7 +182,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 	history.record("generating queries", queries.size());
 	std::cerr << "done." << std::endl;
 
-	size_t space = 0;
+	size_t node_size = 0, trie_size =0, space = 0;
 	size_t found_ordered = 0, found_shuffled = 0, prefixes_ordered = 0, prefixes_shuffled = 0, enumerated_ordered = 0, enumerated_shuffled = 0;
 	if(index_type == "set" && sftrie_type == "naive"){
 		std::cerr << "constructing index...";
@@ -196,6 +196,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_set_exact_match(index, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = index.node_size();
+		trie_size = index.trie_size();
 		space = index.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -241,6 +244,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_set_exact_match(index, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = index.node_size();
+		trie_size = index.trie_size();
 		space = index.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -264,7 +270,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		std::cerr << "predictive search (ordered)...";
 		history.refresh();
 		enumerated_ordered = benchmark_set_predictive_search(index, queries, predictive_search_max_result);
-		history.record(" search (ordered)", queries.size());
+		history.record("predictive search (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "predictive search (shuffled)...";
@@ -286,6 +292,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_set_exact_match(index, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = index.node_size();
+		trie_size = index.trie_size();
 		space = index.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -331,6 +340,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_set_exact_match(index, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = index.node_size();
+		trie_size = index.trie_size();
 		space = index.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -376,6 +388,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_map_exact_match(dict, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = dict.node_size();
+		trie_size = dict.trie_size();
 		space = dict.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -422,6 +437,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_map_exact_match(dict, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = dict.node_size();
+		trie_size = dict.trie_size();
 		space = dict.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -468,6 +486,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_map_exact_match(dict, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = dict.node_size();
+		trie_size = dict.trie_size();
 		space = dict.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -514,6 +535,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		found_ordered = benchmark_map_exact_match(dict, queries);
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
+
+		node_size = dict.node_size();
+		trie_size = dict.trie_size();
 		space = dict.space();
 
 		std::cerr << "exact match (shuffled)...";
@@ -552,10 +576,13 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 
 	std::cout << std::endl;
 	std::cout << "[size]" << std::endl;
+	std::cout << std::left << std::setw(30) << "symbol size[bytes]" << std::right << std::setw(12) << sizeof(typename text::value_type) << std::endl;
 	std::cout << std::left << std::setw(30) << "# of texts" << std::right << std::setw(12) << texts.size() << std::endl;
 	std::cout << std::left << std::setw(30) << "total length[symbols]" << std::right << std::setw(12) << total_length << std::endl;
 	std::cout << std::left << std::setw(30) << "total length[bytes]" << std::right << std::setw(12) << (sizeof(typename text::value_type) * total_length) << std::endl;
-	std::cout << std::left << std::setw(30) << "index size" << std::right << std::setw(12) << space << std::endl;
+	std::cout << std::left << std::setw(30) << "node size[bytes]" << std::right << std::setw(12) << node_size << std::endl;
+	std::cout << std::left << std::setw(30) << "trie size[nodes]" << std::right << std::setw(12) << trie_size << std::endl;
+	std::cout << std::left << std::setw(30) << "index size[bytes]" << std::right << std::setw(12) << space << std::endl;
 	std::cout << std::endl;
 	std::cout << "[time]" << std::endl;
 	history.dump();
