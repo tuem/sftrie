@@ -42,6 +42,8 @@ public:
 	map_naive(random_access_iterator begin, random_access_iterator end);
 
 	std::size_t size() const;
+	std::size_t node_size() const;
+	std::size_t trie_size() const;
 	std::size_t space() const;
 	result find(const text& pattern) const;
 	common_searcher searcher() const;
@@ -82,6 +84,18 @@ template<typename text, typename object, typename integer>
 std::size_t map_naive<text, object, integer>::size() const
 {
 	return num_texts;
+}
+
+template<typename text, typename object, typename integer>
+std::size_t map_naive<text, object, integer>::node_size() const
+{
+	return sizeof(element);
+}
+
+template<typename text, typename object, typename integer>
+std::size_t map_naive<text, object, integer>::trie_size() const
+{
+	return data.size();
 }
 
 template<typename text, typename object, typename integer>

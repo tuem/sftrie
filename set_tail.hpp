@@ -42,6 +42,8 @@ public:
 			integer min_binary_search = 42, integer min_tail = 1);
 
 	std::size_t size() const;
+	std::size_t node_size() const;
+	std::size_t trie_size() const;
 	std::size_t space() const;
 	bool exists(const text& pattern) const;
 	common_searcher searcher() const;
@@ -95,6 +97,18 @@ template<typename text, typename integer>
 std::size_t set_tail<text, integer>::size() const
 {
 	return num_texts;
+}
+
+template<typename text, typename integer>
+std::size_t set_tail<text, integer>::node_size() const
+{
+	return sizeof(element);
+}
+
+template<typename text, typename integer>
+std::size_t set_tail<text, integer>::trie_size() const
+{
+	return data.size();
 }
 
 template<typename text, typename integer>
