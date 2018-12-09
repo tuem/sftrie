@@ -104,17 +104,6 @@ map_naive<text, object, integer>::searcher() const
 {
 	return common_searcher(*this);
 }
-/*
-template<typename text, typename object, typename integer>
-typename map_naive<text, object, integer>::traversal_iterator
-map_naive<text, object, integer>::prefix(const text& pattern) const
-{
-	integer current = search(pattern);
-	return current < data.size() - 1 ?
-		traversal_iterator(data, current, pattern) :
-		traversal_iterator(data);
-}
-*/
 
 template<typename text, typename object, typename integer>
 template<typename iterator>
