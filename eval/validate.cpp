@@ -64,11 +64,11 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 		std::vector<text> answers;
 		text answer = query;
 		while(!answer.empty()){
-			if(index.exists(answer) > 0)
+			if(index.exists(answer))
 				answers.push_back(answer);
 			answer.pop_back();
 		}
-		if(index.exists(answer) > 0)
+		if(index.exists(answer))
 			answers.push_back(answer);
 		std::reverse(std::begin(answers), std::end(answers));
 
@@ -76,7 +76,6 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 		auto a = std::begin(answers);
 		for(const auto& result: searcher.prefix(query)){
 			if(a == std::end(answers)){
-std::cerr<<"ERROR: " << "query=" << cast_string<std::string>(query) << ", result=" << cast_string<std::string>(result) << " not in answers" << std::endl;
 				++fn;
 				break;
 			}
@@ -183,7 +182,6 @@ std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
 		auto a = std::begin(answers);
 		for(const auto& result: searcher.prefix(query)){
 			if(a == std::end(answers)){
-std::cerr<<"ERROR: " << "query=" << cast_string<std::string>(query) << ", result=" << cast_string<std::string>(result.first) << " in line=" << result.second << " not in answers" << std::endl;
 				++fn;
 				break;
 			}
