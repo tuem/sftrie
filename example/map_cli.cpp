@@ -18,6 +18,7 @@ limitations under the License.
 */
 
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <string>
 
@@ -68,18 +69,26 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		if(query.back() == '*'){
-			query.pop_back();
-			for(const auto& result: searcher.traverse(query))
-				std::cout << result.first << ", line=" << result.second << std::endl;
+		auto back = query.back();
+		integer count = 0;
+		if(back != '*' && back != '?'){
+			auto result = dict.find(query);
+			if(result.first){
+				count++;
+				std::cout << query << ": found, line=" << result.second << std::endl;
+			}
 		}
 		else{
-			auto result = dict.find(query);
-			if(result.first)
-				std::cout << query << ": " << "found, line=" << result.second << std::endl;
+			query.pop_back();
+			if(back == '*')
+				for(const auto& result: searcher.traverse(query))
+					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
 			else
-				std::cout << query << ": " << "not found" << std::endl;
+				for(const auto& result: searcher.prefix(query))
+					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
 		}
+		if(count == 0)
+			std::cout << query << ": " << "not found" << std::endl;
 	}
 
 	return 0;
