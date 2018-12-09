@@ -659,14 +659,14 @@ int main(int argc, char* argv[])
 		int max_result = pm["max_result"];
 
 		std::cout << "[configuration]" << std::endl;
-		std::cout << std::setw(30) << std::left << "corpus_path" << corpus_path << std::endl;
-		std::cout << std::setw(30) << std::left << "symbol_type" << symbol_type << std::endl;
-		std::cout << std::setw(30) << std::left << "index_type" << index_type << std::endl;
-		std::cout << std::setw(30) << std::left << "mode" << sftrie_type << std::endl;
-		std::cout << std::setw(30) << std::left << "min_binary_search" << min_binary_search << std::endl;
-		std::cout << std::setw(30) << std::left << "min_tail" << min_tail << std::endl;
-		std::cout << std::setw(30) << std::left << "min_decompaction" << min_decompaction << std::endl;
-		std::cout << std::setw(30) << std::left << "max_result" << max_result << std::endl;
+		std::cout << std::setw(20) << std::left << "corpus_path" << corpus_path << std::endl;
+		std::cout << std::setw(20) << std::left << "symbol_type" << symbol_type << std::endl;
+		std::cout << std::setw(20) << std::left << "index_type" << index_type << std::endl;
+		std::cout << std::setw(20) << std::left << "mode" << sftrie_type << std::endl;
+		std::cout << std::setw(20) << std::left << "min_binary_search" << min_binary_search << std::endl;
+		std::cout << std::setw(20) << std::left << "min_tail" << min_tail << std::endl;
+		std::cout << std::setw(20) << std::left << "min_decompaction" << min_decompaction << std::endl;
+		std::cout << std::setw(20) << std::left << "max_result" << max_result << std::endl;
 		std::cout << std::endl;
 
 		if(symbol_type == "char")
