@@ -64,24 +64,29 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 		std::vector<text> answers;
 		text answer = query;
 		while(!answer.empty()){
-			if(searcher.count(answer) > 0)
+			if(index.exists(answer) > 0)
 				answers.push_back(answer);
 			answer.pop_back();
 		}
-		if(searcher.count(answer) > 0)
+		if(index.exists(answer) > 0)
 			answers.push_back(answer);
 		std::reverse(std::begin(answers), std::end(answers));
 
 		integer found = 0;
 		auto a = std::begin(answers);
 		for(const auto& result: searcher.prefix(query)){
-			if(a == std::end(answers))
+			if(a == std::end(answers)){
+std::cerr<<"ERROR: " << "query=" << cast_string<std::string>(query) << ", result=" << cast_string<std::string>(result) << " not in answers" << std::endl;
 				++fn;
-			else if(result != *a)
-				++fp;
-			else
-				++found;
-			++a;
+				break;
+			}
+			else{
+				if(result != *a)
+					++fp;
+				else
+					++found;
+				++a;
+			}
 		}
 		if(found == answers.size())
 			++tp;
@@ -154,6 +159,46 @@ std::map<std::string, size_t> validate_map_exact_match(const map& dict,
 			++fp;
 	}
 	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
+}
+
+template<typename text, typename map>
+std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
+	const std::vector<text>& queries)
+{
+	size_t tp = 0, fp = 0, fn = 0;
+	auto searcher = dict.searcher();
+	for(const auto& query: queries){
+		std::vector<text> answers;
+		text answer = query;
+		while(!answer.empty()){
+			if(dict.find(answer).first)
+				answers.push_back(answer);
+			answer.pop_back();
+		}
+		if(dict.find(answer).first)
+			answers.push_back(answer);
+		std::reverse(std::begin(answers), std::end(answers));
+
+		integer found = 0;
+		auto a = std::begin(answers);
+		for(const auto& result: searcher.prefix(query)){
+			if(a == std::end(answers)){
+std::cerr<<"ERROR: " << "query=" << cast_string<std::string>(query) << ", result=" << cast_string<std::string>(result.first) << " in line=" << result.second << " not in answers" << std::endl;
+				++fn;
+				break;
+			}
+			else{
+				if(result.first != *a)
+					++fp;
+				else
+					++found;
+				++a;
+			}
+		}
+		if(found == answers.size())
+			++tp;
+	}
+	return {{"tp", tp}, {"fp", fp}, {"fn", fn}};
 }
 
 template<typename text, typename object, typename map>
@@ -352,6 +397,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(dict, all_queries);
 		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
@@ -362,6 +408,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(dict, all_queries);
 		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
@@ -372,6 +419,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(dict, all_queries);
 		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
@@ -382,6 +430,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "done." << std::endl;
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(dict, all_queries);
 		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
