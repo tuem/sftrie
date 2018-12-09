@@ -33,8 +33,9 @@ class map_naive
 	using result = std::pair<bool, const object&>;
 
 	struct element;
-	struct traversal_searcher;
+	struct common_searcher;
 	struct traversal_iterator;
+	struct prefix_iterator;
 
 public:
 	template<typename random_access_iterator>
@@ -43,7 +44,7 @@ public:
 	std::size_t size() const;
 	std::size_t space() const;
 	result find(const text& pattern) const;
-	traversal_searcher searcher() const;
+	common_searcher searcher() const;
 
 private:
 	const std::size_t num_texts;
@@ -98,10 +99,10 @@ map_naive<text, object, integer>::find(const text& pattern) const
 }
 
 template<typename text, typename object, typename integer>
-typename map_naive<text, object, integer>::traversal_searcher
+typename map_naive<text, object, integer>::common_searcher
 map_naive<text, object, integer>::searcher() const
 {
-	return traversal_searcher(*this);
+	return common_searcher(*this);
 }
 /*
 template<typename text, typename object, typename integer>
@@ -171,7 +172,7 @@ integer map_naive<text, object, integer>::search(const text& pattern) const
 }
 
 template<typename text, typename object, typename integer>
-struct map_naive<text, object, integer>::traversal_searcher
+struct map_naive<text, object, integer>::common_searcher
 {
 	const map_naive<text, object, integer>& index;
 
@@ -180,7 +181,7 @@ struct map_naive<text, object, integer>::traversal_searcher
 	std::vector<integer> path_end;
 	text result_end;
 
-	traversal_searcher(const map_naive<text, object, integer>& index): index(index){}
+	common_searcher(const map_naive<text, object, integer>& index): index(index){}
 
 	traversal_iterator traverse(const text& pattern)
 	{
@@ -190,6 +191,12 @@ struct map_naive<text, object, integer>::traversal_searcher
 		return current < index.data.size() - 1 ?
 			traversal_iterator(index.data, path, result, path_end, result_end, current, pattern) :
 			traversal_iterator(index.data, path_end, result_end);
+	}
+
+	prefix_iterator prefix(const text& pattern)
+	{
+		result.clear();
+		return prefix_iterator(*this, pattern, 0, 0);
 	}
 };
 
@@ -260,6 +267,72 @@ struct map_naive<text, object, integer>::traversal_iterator
 					path.pop_back();
 			}
 		}while(!path.empty() && !data[path.back()].match);
+		return *this;
+	}
+};
+
+template<typename text, typename object, typename integer>
+struct map_naive<text, object, integer>::prefix_iterator
+{
+	common_searcher& searcher;
+	const text& pattern;
+	integer current;
+	integer depth;
+
+	prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
+		searcher(searcher), pattern(pattern), current(current), depth(depth)
+	{
+		if(current == 0 && !searcher.index.data[current].match){
+			if(pattern.empty())
+				this->current = searcher.index.data.size() - 1;
+			else
+				++*this;
+		}
+	}
+
+	prefix_iterator& begin()
+	{
+		return *this;
+	}
+
+	prefix_iterator end() const
+	{
+		return prefix_iterator(searcher, pattern, searcher.index.data.size() - 1, pattern.size());
+	}
+
+	bool operator!=(const prefix_iterator& i) const
+	{
+		return this->current != i.current;
+	}
+
+	const std::pair<const text&, const object&> operator*() const
+	{
+		return std::pair<const text&, const object&>(searcher.result, searcher.index.data[current].value);
+	}
+
+	prefix_iterator& operator++()
+	{
+		for(; !searcher.index.data[current].leaf && depth < pattern.size();){
+			for(integer l = searcher.index.data[current].next, r = searcher.index.data[l].next - 1; l <= r; ){
+				integer m = (l + r) / 2;
+				if(searcher.index.data[m].label < pattern[depth]){
+					l = m + 1;
+				}
+				else if(searcher.index.data[m].label > pattern[depth]){
+					r = m - 1;
+				}
+				else{
+					current = m;
+					goto NEXT;
+				}
+			}
+			break;
+		NEXT:
+			searcher.result.push_back(pattern[depth++]);
+			if(searcher.index.data[current].match)
+				return *this;
+		}
+		current = searcher.index.data.size() - 1;
 		return *this;
 	}
 };
