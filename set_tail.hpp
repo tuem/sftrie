@@ -197,6 +197,35 @@ struct set_tail<text, integer>::common_searcher
 
 	common_searcher(const set_tail<text, integer>& index): index(index){}
 
+	integer find(const text& pattern) const
+	{
+		integer current = 0;
+		for(integer i = 0; i < pattern.size(); ++i){
+			if(index.data[current].leaf)
+				return index.check_tail(pattern, i, current) ? index.data.size() + index.data[current].tail : end();
+			current = index.data[current].next;
+			integer end = index.data[current].next;
+			for(integer w = end - current, m; w > index.min_binary_search; w = m){
+				m = w >> 1;
+				current += index.data[current + m].label < pattern[i] ? w - m : 0;
+			}
+			for(; current < end && index.data[current].label < pattern[i]; ++current);
+			if(!(current < end && index.data[current].label == pattern[i]))
+				return this->end();
+		}
+		return index.data[current].match ? current : end();
+	}
+
+	integer end() const
+	{
+		return index.data.size() + index.tails.size();
+	}
+
+	integer count(const text& pattern) const
+	{
+		return find(pattern) != end() ? 1 : 0;
+	}
+
 	traversal_iterator traverse(const text& pattern)
 	{
 		path.clear();
