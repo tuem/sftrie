@@ -273,15 +273,26 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 	std::cerr << "analyzing texts...";
 	std::set<symbol> alphabet;
 	symbol min_char = texts.front().front(), max_char = min_char;
-	size_t total_length = 0;
+	bool first = true;
+	size_t min_length = 0, max_length = 0, total_length = 0;
 	for(const auto& t: texts){
 		for(auto c: t){
 			alphabet.insert(c);
 			min_char = std::min(min_char, c);
 			max_char = std::max(max_char, c);
 		}
+		if(first){
+			min_length = t.size();
+			max_length = t.size();
+			first = false;
+		}
+		else{
+			min_length = std::min(t.size(), min_length);
+			max_length = std::max(t.size(), max_length);
+		}
 		total_length += t.size();
 	}
+	double average_length = total_length / static_cast<double>(texts.size());
 	std::cerr << "done." << std::endl;
 
 	std::cerr << "generating queries...";
@@ -436,40 +447,46 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		throw std::runtime_error("unknown index type or trie type: " + index_type + " / " + sftrie_type);
 	}
 
-	std::cout << "input:" << std::endl;
-	std::cout << "  " << std::setw(20) << "alphabet size" << std::setw(12) << alphabet.size() << std::endl;
-	std::cout << "  " << std::setw(20) << "min symbol" << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
-	std::cout << "  " << std::setw(20) << "max symbol" << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
-	std::cout << "  " << std::setw(20) << "number of texts" << std::setw(12) << texts.size() << std::endl;
-	std::cout << "  " << std::setw(20) << "total length" << std::setw(12) << total_length << std::endl;
-	std::cout << "exact match:" << std::endl;
-	std::cout << "  " << std::setw(20) << "total queries" << std::setw(12) << (positive_queries_size + negative_queries_size) << std::endl;
-	std::cout << "  " << std::setw(20) << "true positive" << std::setw(12) << result_exact["tp"] << std::endl;
-	std::cout << "  " << std::setw(20) << "true negative" << std::setw(12) << result_exact["tn"] << std::endl;
-	std::cout << "  " << std::setw(20) << "false positive" << std::setw(12) << result_exact["fp"] << std::endl;
-	std::cout << "  " << std::setw(20) << "false negative" << std::setw(12) << result_exact["fn"] << std::endl;
-	std::cout << "prefix search:" << std::endl;
-	std::cout << "  " << std::setw(20) << "total queries" << std::setw(12) << all_queries.size() << std::endl;
-	std::cout << "  " << std::setw(20) << "true positive" << std::setw(12) << result_prefix["tp"] << std::endl;
-	std::cout << "  " << std::setw(20) << "false positive" << std::setw(12) << result_prefix["fp"] << std::endl;
-	std::cout << "  " << std::setw(20) << "false negative" << std::setw(12) << result_prefix["fn"] << std::endl;
-	std::cout << "predictive search:" << std::endl;
-	std::cout << "  " << std::setw(20) << "total queries" << std::setw(12) << (predictive_search_queries_size + negative_queries_size) << std::endl;
-	std::cout << "  " << std::setw(20) << "true positive" << std::setw(12) << result_traversal["tp"] << std::endl;
-	std::cout << "  " << std::setw(20) << "true negative" << std::setw(12) << result_traversal["tn"] << std::endl;
-	std::cout << "  " << std::setw(20) << "false positive" << std::setw(12) << result_traversal["fp"] << std::endl;
-	std::cout << "  " << std::setw(20) << "false negative" << std::setw(12) << result_traversal["fn"] << std::endl;
+	std::cout << std::endl;
+	std::cout << "[input]" << std::endl;
+	std::cout << std::setw(20) << "alphabet size" << std::setw(12) << alphabet.size() << std::endl;
+	std::cout << std::setw(20) << "min symbol" << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
+	std::cout << std::setw(20) << "max symbol" << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
+	std::cout << std::setw(20) << "number of texts" << std::setw(12) << texts.size() << std::endl;
+	std::cout << std::setw(20) << "max length" << std::setw(12) << max_length << std::endl;
+	std::cout << std::setw(20) << "min length" << std::setw(12) << min_length << std::endl;
+	std::cout << std::setw(20) << "average length" << std::setw(12) << average_length << std::endl;
+	std::cout << std::setw(20) << "average bytes" << std::setw(12) << sizeof(typename text::value_type) * average_length << std::endl;
+	std::cout << std::setw(20) << "total length" << std::setw(12) << total_length << std::endl;
+	std::cout << std::setw(20) << "total bytes" << std::setw(12) << sizeof(typename text::value_type) * total_length << std::endl;
+	std::cout << "[exact match]" << std::endl;
+	std::cout << std::setw(20) << "total queries" << std::setw(12) << (positive_queries_size + negative_queries_size) << std::endl;
+	std::cout << std::setw(20) << "true positive" << std::setw(12) << result_exact["tp"] << std::endl;
+	std::cout << std::setw(20) << "true negative" << std::setw(12) << result_exact["tn"] << std::endl;
+	std::cout << std::setw(20) << "false positive" << std::setw(12) << result_exact["fp"] << std::endl;
+	std::cout << std::setw(20) << "false negative" << std::setw(12) << result_exact["fn"] << std::endl;
+	std::cout << "[prefix search]" << std::endl;
+	std::cout << std::setw(20) << "total queries" << std::setw(12) << all_queries.size() << std::endl;
+	std::cout << std::setw(20) << "true positive" << std::setw(12) << result_prefix["tp"] << std::endl;
+	std::cout << std::setw(20) << "false positive" << std::setw(12) << result_prefix["fp"] << std::endl;
+	std::cout << std::setw(20) << "false negative" << std::setw(12) << result_prefix["fn"] << std::endl;
+	std::cout << "[predictive search]" << std::endl;
+	std::cout << std::setw(20) << "total queries" << std::setw(12) << (predictive_search_queries_size + negative_queries_size) << std::endl;
+	std::cout << std::setw(20) << "true positive" << std::setw(12) << result_traversal["tp"] << std::endl;
+	std::cout << std::setw(20) << "true negative" << std::setw(12) << result_traversal["tn"] << std::endl;
+	std::cout << std::setw(20) << "false positive" << std::setw(12) << result_traversal["fp"] << std::endl;
+	std::cout << std::setw(20) << "false negative" << std::setw(12) << result_traversal["fn"] << std::endl;
 }
 
 int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
-		{"symbol_type", "char", "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
-		{"index_type", "set", "index-type", 'i', "index type (set or map)"},
-		{"sftrie_type", "naive", "sftrie-type", 't', "sftrie type (naive, basic, tail or decompaction)"},
-		{"min_binary_search", 42, {"min_binary_search"}, "min-binary-search", 0, "minumum number of children for binary search"},
-		{"min_tail", 1, {"min_tail"}, "min-tail", 0, "minumum length to copress tail strings"},
-		{"min_decompaction", 0, {"min_decompaction"}, "min-decompaction", 0, "minumum number of children to enable decompaction"},
+		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
+		{"index_type", "set", {"common", "index_type"}, "container-type", 'i', "index type (set or map)"},
+		{"mode", "naive", {"sftrie", "mode"}, "mode", 'm', "sftrie optimization mode (naive, basic, tail or decompaction)"},
+		{"min_binary_search", 42, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value"},
+		{"min_tail", 1, {"sftrie", "min_tail"}, "min-tail", 't', "minumum length to compress tail strings"},
+		{"min_decompaction", 0, {"sftrie", "min_decompaction"}, "min-decompaction", 'd', "minumum number of children to enable decompaction"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
 	paramset::manager pm(defs);
@@ -483,20 +500,20 @@ int main(int argc, char* argv[])
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
 		std::string index_type = pm["index_type"];
-		std::string sftrie_type = pm["sftrie_type"];
+		std::string sftrie_type = pm["mode"];
 		int min_binary_search = pm["min_binary_search"];
 		int min_tail = pm["min_tail"];
 		int min_decompaction = pm["min_decompaction"];
 
-		std::cerr << "Configuration" << std::endl;
-		std::cerr << std::setw(12) << std::left << "  corpus_path: " << corpus_path << std::endl;
-		std::cerr << std::setw(12) << std::left << "  symbol_type: " << symbol_type << std::endl;
-		std::cerr << std::setw(12) << std::left << "  index_type: " << index_type << std::endl;
-		std::cerr << std::setw(12) << std::left << "  sftrie_type: " << sftrie_type << std::endl;
-		std::cerr << std::setw(12) << std::left << "  min_binary_search: " << min_binary_search << std::endl;
-		std::cerr << std::setw(12) << std::left << "  min_tail: " << min_tail << std::endl;
-		std::cerr << std::setw(12) << std::left << "  min_decompaction: " << min_decompaction << std::endl;
-		std::cerr << std::endl;
+		std::cout << "[configuration]" << std::endl;
+		std::cout << std::setw(20) << std::left << "corpus_path" << corpus_path << std::endl;
+		std::cout << std::setw(20) << std::left << "symbol_type" << symbol_type << std::endl;
+		std::cout << std::setw(20) << std::left << "index_type" << index_type << std::endl;
+		std::cout << std::setw(20) << std::left << "mode" << sftrie_type << std::endl;
+		std::cout << std::setw(20) << std::left << "min_binary_search" << min_binary_search << std::endl;
+		std::cout << std::setw(20) << std::left << "min_tail" << min_tail << std::endl;
+		std::cout << std::setw(20) << std::left << "min_decompaction" << min_decompaction << std::endl;
+		std::cout << std::endl;
 
 		if(symbol_type == "char")
 			exec<std::string, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
