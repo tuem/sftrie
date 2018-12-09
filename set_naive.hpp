@@ -163,6 +163,22 @@ struct set_naive<text, integer>::common_searcher
 
 	common_searcher(const set_naive<text, integer>& index): index(index){}
 
+	integer find(const text& pattern) const
+	{
+		auto i = index.search(pattern);
+		return index.data[i].match ? i : end();
+	}
+
+	integer end() const
+	{
+		return index.data.size() - 1;
+	}
+
+	integer count(const text& pattern) const
+	{
+		return find(pattern) != end() ? 1 : 0;
+	}
+
 	traversal_iterator traverse(const text& pattern)
 	{
 		integer root = index.search(pattern);
