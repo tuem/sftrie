@@ -98,6 +98,25 @@ size_t benchmark_map_exact_match(const map& dict,
 }
 
 template<typename text, typename map>
+size_t benchmark_map_prefix_search(const map& dict,
+	const std::vector<text>& queries, size_t max_result = 0)
+{
+	size_t found = 0;
+	auto searcher = dict.searcher();
+	for(const auto& query: queries){
+		size_t num_result = 0;
+		for(const auto& result: searcher.prefix(query)){
+			(void)result;
+			++num_result;
+			if(max_result != 0 && num_result == max_result)
+				break;
+		}
+		found += num_result;
+	}
+	return found;
+}
+
+template<typename text, typename map>
 size_t benchmark_map_predictive_search(const map& dict,
 	const std::vector<text>& queries, size_t max_result = 0)
 {
@@ -206,7 +225,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		std::cerr << "predictive search (shuffled)...";
 		history.refresh();
 		enumerated_shuffled = benchmark_set_predictive_search(index, shuffled_queries, predictive_search_max_result);
-		history.record("predict search (shuffled)", shuffled_queries.size());
+		history.record("predictive search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 	}
 	else if(index_type == "set" && sftrie_type == "basic"){
@@ -365,6 +384,18 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("exact match (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 
+		std::cerr << "prefix search (ordered)...";
+		history.refresh();
+		prefixes_ordered = benchmark_map_prefix_search(dict, queries);
+		history.record("prefix search (ordered)", queries.size());
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "prefix search (shuffled)...";
+		history.refresh();
+		prefixes_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		history.record("prefix search (shuffled)", shuffled_queries.size());
+		std::cerr << "done." << std::endl;
+
 		std::cerr << "predictive search (ordered)...";
 		history.refresh();
 		enumerated_ordered = benchmark_map_predictive_search(dict, queries, predictive_search_max_result);
@@ -397,6 +428,18 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.refresh();
 		found_shuffled = benchmark_map_exact_match(dict, shuffled_queries);
 		history.record("exact match (shuffled)", shuffled_queries.size());
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "prefix search (ordered)...";
+		history.refresh();
+		prefixes_ordered = benchmark_map_prefix_search(dict, queries);
+		history.record("prefix search (ordered)", queries.size());
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "prefix search (shuffled)...";
+		history.refresh();
+		prefixes_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "predictive search (ordered)...";
@@ -433,6 +476,18 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("exact match (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 
+		std::cerr << "prefix search (ordered)...";
+		history.refresh();
+		prefixes_ordered = benchmark_map_prefix_search(dict, queries);
+		history.record("prefix search (ordered)", queries.size());
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "prefix search (shuffled)...";
+		history.refresh();
+		prefixes_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		history.record("prefix search (shuffled)", shuffled_queries.size());
+		std::cerr << "done." << std::endl;
+
 		std::cerr << "predictive search (ordered)...";
 		history.refresh();
 		enumerated_ordered = benchmark_map_predictive_search(dict, queries, predictive_search_max_result);
@@ -460,10 +515,23 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int pre
 		history.record("exact match (ordered)", queries.size());
 		std::cerr << "done." << std::endl;
 		space = dict.space();
+
 		std::cerr << "exact match (shuffled)...";
 		history.refresh();
 		found_shuffled = benchmark_map_exact_match(dict, shuffled_queries);
 		history.record("exact match (shuffled)", shuffled_queries.size());
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "prefix search (ordered)...";
+		history.refresh();
+		prefixes_ordered = benchmark_map_prefix_search(dict, queries);
+		history.record("prefix search (ordered)", queries.size());
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "prefix search (shuffled)...";
+		history.refresh();
+		prefixes_shuffled = benchmark_map_prefix_search(dict, shuffled_queries);
+		history.record("prefix search (shuffled)", shuffled_queries.size());
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "predictive search (ordered)...";
