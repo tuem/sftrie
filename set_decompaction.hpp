@@ -451,17 +451,21 @@ struct set_decompaction<text, integer>::prefix_iterator
 			while(depth < pattern.size()){
 				if(searcher.index.data[current].leaf){
 					if(
+						searcher.index.data[current + 1].tail > searcher.index.data[current].tail &&
 						container_size<integer>(pattern) - depth >= searcher.index.data[current + 1].tail - searcher.index.data[current].tail &&
 						std::equal(
 							std::begin(pattern) + depth,
 							std::begin(pattern) + depth + (searcher.index.data[current + 1].tail - searcher.index.data[current].tail),
 							std::begin(searcher.index.tails) + searcher.index.data[current].tail
 						)
-					)
+					){
 						std::copy(std::begin(searcher.index.tails) + searcher.index.data[current].tail,
 							std::begin(searcher.index.tails) + searcher.index.data[current + 1].tail, std::back_inserter(searcher.result));
-					else
+						depth = pattern.size();
+					}
+					else{
 						current = searcher.index.data.size() - 1;
+					}
 					return *this;
 				}
 				current = searcher.index.data[current].next;
