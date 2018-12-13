@@ -172,22 +172,37 @@ template<typename text, typename object, typename integer>
 struct map_naive<text, object, integer>::common_searcher
 {
 	const map_naive<text, object, integer>& index;
-
 	std::vector<integer> path;
 	text result;
-	std::vector<integer> path_end;
-	text result_end;
 
 	common_searcher(const map_naive<text, object, integer>& index): index(index){}
 
+	integer find(const text& pattern) const
+	{
+		auto i = index.search(pattern);
+		return index.data[i].match ? i : end();
+	}
+
+	integer end() const
+	{
+		return index.data.size() - 1;
+	}
+
+	integer count(const text& pattern) const
+	{
+		return find(pattern) != end() ? 1 : 0;
+	}
+
 	traversal_iterator traverse(const text& pattern)
 	{
-		path.clear();
-		result.clear();
-		integer current = index.search(pattern);
-		return current < index.data.size() - 1 ?
-			traversal_iterator(index.data, path, result, path_end, result_end, current, pattern) :
-			traversal_iterator(index.data, path_end, result_end);
+		integer root = index.search(pattern);
+		if(root < index.data.size() - 1){
+			path.clear();
+			path.push_back(root);
+			result.clear();
+			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
+		}
+		return traversal_iterator(*this, pattern, root);
 	}
 
 	prefix_iterator prefix(const text& pattern)
@@ -200,25 +215,16 @@ struct map_naive<text, object, integer>::common_searcher
 template<typename text, typename object, typename integer>
 struct map_naive<text, object, integer>::traversal_iterator
 {
-	const std::vector<element>& data;
+	common_searcher& searcher;
+	const text& prefix;
+	integer current;
 
-	std::vector<integer>& path;
-	text& result;
-	std::vector<integer>& path_end;
-	text& result_end;
-
-	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result,
-			std::vector<integer>& path_end, text& result_end, integer root, const text& prefix):
-		data(data), path(path), result(result), path_end(path_end), result_end(result_end)
+	traversal_iterator(common_searcher& searcher, const text& prefix, integer root):
+		searcher(searcher), prefix(prefix), current(root)
 	{
-		path.push_back(root);
-		std::copy(std::begin(prefix), std::end(prefix), std::back_inserter(result));
-		if(!data[root].match)
+		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
 			++*this;
 	}
-
-	traversal_iterator(const std::vector<element>& data, std::vector<integer>& path, text& result):
-		data(data), path(path), result(result), path_end(path), result_end(result) {}
 
 	traversal_iterator& begin()
 	{
@@ -227,43 +233,40 @@ struct map_naive<text, object, integer>::traversal_iterator
 
 	traversal_iterator end() const
 	{
-		return traversal_iterator(data, path_end, result_end);
+		return traversal_iterator(searcher, prefix, searcher.index.data.size() - 1);
 	}
 
 	bool operator!=(const traversal_iterator& i) const
 	{
-		if(this->path.size() != i.path.size())
-			return true;
-		else if(this->path.empty() && i.path.empty())
-			return false;
-		else
-			return this->path.back() != i.path.back();
+		return this->current != i.current;
 	}
 
 	const std::pair<const text&, const object&> operator*() const
 	{
-		return std::pair<const text&, const object&>(result, data[path.back()].value);
+		return std::pair<const text&, const object&>(searcher.result, searcher.index.data[current].value);
 	}
 
 	traversal_iterator& operator++()
 	{
 		do{
-			if(!data[path.back()].leaf){
-				integer child = data[path.back()].next;
-				path.push_back(child);
-				result.push_back(data[child].label);
+			if(!searcher.index.data[searcher.path.back()].leaf){
+				integer child = searcher.index.data[searcher.path.back()].next;
+				searcher.path.push_back(child);
+				searcher.result.push_back(searcher.index.data[child].label);
 			}
 			else{
-				while(path.size() > 1 && path.back() + 1 == data[data[path[path.size() - 2]].next].next){
-					path.pop_back();
-					result.pop_back();
+				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
+						searcher.index.data[searcher.index.data[searcher.path[searcher.path.size() - 2]].next].next){
+					searcher.path.pop_back();
+					searcher.result.pop_back();
 				}
-				if(path.size() > 1)
-					result.back() = data[++path.back()].label;
+				if(searcher.path.size() > 1)
+					searcher.result.back() = searcher.index.data[++searcher.path.back()].label;
 				else
-					path.pop_back();
+					searcher.path.pop_back();
 			}
-		}while(!path.empty() && !data[path.back()].match);
+		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
+		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
 		return *this;
 	}
 };
