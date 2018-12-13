@@ -600,7 +600,6 @@ bool exec(const std::string& corpus_path, const std::string& index_type, int max
 		throw std::runtime_error("unknown index type or trie type: " + index_type + " / " + sftrie_type);
 	}
 
-	std::cout << std::endl;
 	std::cout << "[input]" << std::endl;
 	std::cout << std::left << std::setw(30) << "alphabet size" << std::right << std::setw(12) << alphabet.size() << std::endl;
 	std::cout << std::left << std::setw(30) << "min symbol" << std::right << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
