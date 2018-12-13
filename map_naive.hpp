@@ -151,27 +151,21 @@ void map_naive<text, object, integer>::construct(
 template<typename text, typename object, typename integer>
 integer map_naive<text, object, integer>::search(const text& pattern) const
 {
-	integer current = 0;
+	integer u = 0, v;
 	for(integer i = 0; i < pattern.size(); ++i){
-		if(data[current].leaf)
+		if(data[u].leaf)
 			return data.size() - 1;
-		for(integer l = data[current].next, r = data[l].next - 1; l <= r; ){
-			integer m = (l + r) / 2;
-			if(data[m].label < pattern[i]){
-				l = m + 1;
-			}
-			else if(data[m].label > pattern[i]){
-				r = m - 1;
-			}
-			else{
-				current = m;
-				goto NEXT;
-			}
+		for(u = data[u].next, v = data[u].next - 1; u < v;){
+			integer m = (u + v) / 2;
+			if(data[m].label < pattern[i])
+				u = m + 1;
+			else
+				v = m;
 		}
-		return data.size() - 1;
-		NEXT:;
+		if(!(u <= v && data[u].label == pattern[i]))
+			return data.size() - 1;
 	}
-	return current;
+	return u;
 }
 
 template<typename text, typename object, typename integer>
@@ -315,22 +309,17 @@ struct map_naive<text, object, integer>::prefix_iterator
 
 	prefix_iterator& operator++()
 	{
-		for(; !searcher.index.data[current].leaf && depth < pattern.size();){
-			for(integer l = searcher.index.data[current].next, r = searcher.index.data[l].next - 1; l <= r; ){
-				integer m = (l + r) / 2;
-				if(searcher.index.data[m].label < pattern[depth]){
-					l = m + 1;
-				}
-				else if(searcher.index.data[m].label > pattern[depth]){
-					r = m - 1;
-				}
-				else{
-					current = m;
-					goto NEXT;
-				}
+		while(!searcher.index.data[current].leaf && depth < pattern.size()){
+			integer end;
+			for(current = searcher.index.data[current].next, end = searcher.index.data[current].next - 1; current < end;){
+				integer m = (current + end) / 2;
+				if(searcher.index.data[m].label < pattern[depth])
+					current = m + 1;
+				else
+					end = m;
 			}
-			break;
-		NEXT:
+			if(!(current <= end && searcher.index.data[current].label == pattern[depth]))
+				break;
 			searcher.result.push_back(pattern[depth++]);
 			if(searcher.index.data[current].match)
 				return *this;
