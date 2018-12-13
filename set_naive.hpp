@@ -192,8 +192,8 @@ struct set_naive<text, integer>::common_searcher
 		integer root = index.search(pattern);
 		if(root < index.data.size() - 1){
 			path.clear();
-			result.clear();
 			path.push_back(root);
+			result.clear();
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
 		return traversal_iterator(*this, pattern, root);
