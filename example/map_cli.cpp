@@ -22,7 +22,7 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-//#define SFTRIE_MAP_USE_NAIVE
+#define SFTRIE_MAP_USE_NAIVE
 //#define SFTRIE_MAP_USE_BASIC
 //#define SFTRIE_MAP_USE_TAIL
 //#define SFTRIE_MAP_USE_DECOMPACTION
@@ -53,13 +53,16 @@ int main(int argc, char* argv[])
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(std::make_pair(line, value++));
+		//texts.push_back(std::make_pair(line, value++));
+		texts.push_back(std::make_pair(line, value));
 	}
 
 	sftrie::sort_text_object_pairs(std::begin(texts), std::end(texts));
 	sftrie::map<text, integer, object> dict(std::begin(texts), std::end(texts));
+	dict.apply(sftrie::aggregate<object>());
 	texts.clear();
 	std::cerr << "done." << std::endl;
+
 
 	auto searcher = dict.searcher();
 	while(true){

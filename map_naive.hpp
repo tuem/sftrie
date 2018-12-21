@@ -32,6 +32,7 @@ class map_naive
 	using symbol = typename text::value_type;
 	using result = std::pair<bool, const object&>;
 
+public:
 	struct element;
 	struct common_searcher;
 	struct traversal_iterator;
@@ -48,6 +49,11 @@ public:
 	result find(const text& pattern) const;
 	common_searcher searcher() const;
 
+	template<typename F>
+	void apply(F f, bool leaf_first = true);
+	template<typename F, typename G>
+	void apply(F f, G g, bool leaf_first = true);
+
 private:
 	const std::size_t num_texts;
 
@@ -58,6 +64,11 @@ private:
 	void construct(iterator begin, iterator end, integer depth, integer current);
 
 	integer search(const text& pattern) const;
+
+	template<typename F>
+	void apply(F f, bool leaf_first, integer parent, integer current);
+	template<typename F, typename G>
+	void apply(F f, G g, bool leaf_first, integer parent, integer current);
 };
 
 template<typename text, typename object, typename integer>
@@ -331,6 +342,48 @@ struct map_naive<text, object, integer>::prefix_iterator
 		return *this;
 	}
 };
+
+template<typename text, typename object, typename integer>
+template<typename F>
+void map_naive<text, object, integer>::apply(F f, bool leaf_first)
+{
+	apply(f, leaf_first, data.size() - 1, 0);
+}
+
+template<typename text, typename object, typename integer>
+template<typename F, typename G>
+void map_naive<text, object, integer>::apply(F f, G g, bool leaf_first)
+{
+	apply(f, g, leaf_first, data.size() - 1, 0);
+}
+
+template<typename text, typename object, typename integer>
+template<typename F>
+void map_naive<text, object, integer>::apply(F f, bool leaf_first, integer parent, integer current)
+{
+	if(!leaf_first)
+		f(data[parent].value, data[current].value);
+	if(!data[current].leaf)
+		for(integer u = data[current].next, v = data[u].next; u < v; ++u)
+			apply(f, leaf_first, current, u);
+	if(leaf_first)
+		f(data[parent].value, data[current].value);
+}
+
+template<typename text, typename object, typename integer>
+template<typename F, typename G>
+void map_naive<text, object, integer>::apply(F f, G g, bool leaf_first, integer parent, integer current)
+{
+	if(!leaf_first)
+		f(data[parent].value, data[current].value);
+	if(data[current].leaf)
+		g(data[current].value);
+	else
+		for(integer u = data[current].next, v = data[u].next; u < v; ++u)
+			apply(f, g, leaf_first, current, u);
+	if(leaf_first)
+		f(data[parent].value, data[current].value);
+}
 
 };
 

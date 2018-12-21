@@ -90,6 +90,37 @@ void sort_text_object_pairs(iterator begin, iterator end)
 	std::sort(begin, end, text_object_pair_comparator());
 }
 
+template<typename object>
+struct aggregate
+{
+	void operator()(object& parent_value, object& child_value)
+	{
+		parent_value += child_value;
+	}
+};
+
+template<typename object>
+struct propagate
+{
+	void operator()(object& parent_value, object& child_value)
+	{
+		child_value += parent_value;
+	}
+};
+
+template<typename object>
+struct reset
+{
+	const object value;
+
+	reset(const object value): value(value) {}
+
+	void operator()(object& parent_value, object& child_value)
+	{
+		child_value = value;
+	}
+};
+
 };
 
 #endif
