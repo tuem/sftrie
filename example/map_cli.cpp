@@ -81,10 +81,10 @@ int main(int argc, char* argv[])
 		else{
 			query.pop_back();
 			if(back == '*')
-				for(const auto& result: searcher.traverse(query))
+				for(const auto result: searcher.traverse(query))
 					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
 			else
-				for(const auto& result: searcher.prefix(query))
+				for(const auto result: searcher.prefix(query))
 					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
 		}
 		if(count == 0)

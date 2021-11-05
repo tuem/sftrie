@@ -105,7 +105,7 @@ size_t benchmark_map_prefix_search(const map& dict,
 	auto searcher = dict.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto& result: searcher.prefix(query)){
+		for(const auto result: searcher.prefix(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)
@@ -124,7 +124,7 @@ size_t benchmark_map_predictive_search(const map& dict,
 	auto searcher = dict.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto& result: searcher.traverse(query)){
+		for(const auto result: searcher.traverse(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)

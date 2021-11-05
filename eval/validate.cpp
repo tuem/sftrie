@@ -180,7 +180,7 @@ std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
 
 		integer found = 0;
 		auto a = std::begin(answers);
-		for(const auto& result: searcher.prefix(query)){
+		for(const auto result: searcher.prefix(query)){
 			if(a == std::end(answers)){
 				++fn;
 				break;
@@ -211,7 +211,7 @@ std::map<std::string, size_t> validate_map_predictive_search(const map& dict,
 		size_t answer_start = i, answer_end = traversal_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto& result: searcher.traverse(positive_queries[answer_start].first)){
+		for(const auto result: searcher.traverse(positive_queries[answer_start].first)){
 			if(result.first != positive_queries[j].first || result.second != positive_queries[j].second){
 				correct = false;
 				break;
@@ -229,7 +229,7 @@ std::map<std::string, size_t> validate_map_predictive_search(const map& dict,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto& result: searcher.traverse(query.first)){
+		for(const auto result: searcher.traverse(query.first)){
 			if(result.first == query.first){
 				correct = false;
 				break;
