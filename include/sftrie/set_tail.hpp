@@ -17,46 +17,80 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_SET_TAIL_HPP
-#define SFTRIE_SET_TAIL_HPP
+#ifndef SFTRIE_SET_TAIL
+#define SFTRIE_SET_TAIL
 
+#include <cstddef>
 #include <vector>
+#include <fstream>
 
 #include "util.hpp"
+
+#include "constants.hpp"
+#include "file_header.hpp"
 
 namespace sftrie{
 
 template<typename text, typename integer>
 class set_tail
 {
+public:
 	using symbol = typename text::value_type;
+	using size_type = std::size_t;
 
-	struct element;
+	struct node;
+	struct virtual_node;
+	struct child_iterator;
 	struct common_searcher;
-	struct traversal_iterator;
+	struct subtree_iterator;
 	struct prefix_iterator;
+
+	using node_type = virtual_node;
 
 public:
 	template<typename random_access_iterator>
 	set_tail(random_access_iterator begin, random_access_iterator end,
-			integer min_binary_search = 42, integer min_tail = 1);
+		integer min_binary_search = constants::default_min_binary_search<integer>,
+		integer min_tail = constants::default_min_tail<integer>);
+	template<typename random_access_container>
+	set_tail(const random_access_container& texts,
+		integer min_binary_search = constants::default_min_binary_search<integer>,
+		integer min_tail = constants::default_min_tail<integer>);
+	template<typename input_stream> set_tail(input_stream& is,
+		integer min_binary_search = constants::default_min_binary_search<integer>,
+		integer min_tail = constants::default_min_tail<integer>);
+	set_tail(std::string path,
+		integer min_binary_search = constants::default_min_binary_search<integer>,
+		integer min_tail = constants::default_min_tail<integer>);
 
-	std::size_t size() const;
-	std::size_t node_size() const;
-	std::size_t trie_size() const;
-	std::size_t space() const;
+	// information
+	size_type size() const;
+	size_type node_size() const;
+	size_type trie_size() const;
+	size_type space() const;
+
+	// search
 	bool exists(const text& pattern) const;
 	common_searcher searcher() const;
 
+	// tree operations
+	node_type root() const;
+	const std::vector<node>& raw_data() const;
+	const std::vector<symbol>& raw_tail() const;
+
+	// file I/O
+	template<typename output_stream> void save(output_stream& os) const;
+	void save(std::string os) const;
+	template<typename input_stream> integer load(input_stream& is);
+	integer load(std::string path);
+
 private:
-	const std::size_t num_texts;
-
-	std::vector<element> data;
-
 	const integer min_binary_search;
-
-	std::vector<symbol> tails;
 	const integer min_tail;
+
+	size_type num_texts;
+	std::vector<node> data;
+	std::vector<symbol> tails;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -65,9 +99,10 @@ private:
 	bool check_tail_prefix(const text& pattern, integer i, integer current) const;
 };
 
+
 #pragma pack(1)
 template<typename text, typename integer>
-struct set_tail<text, integer>::element
+struct set_tail<text, integer>::node
 {
 	bool match: 1;
 	bool leaf: 1;
@@ -77,12 +112,15 @@ struct set_tail<text, integer>::element
 };
 #pragma pack()
 
+
+// constructors
+
 template<typename text, typename integer>
 template<typename random_access_iterator>
 set_tail<text, integer>::set_tail(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search, integer min_tail):
-	num_texts(end - begin), data(1, {false, false, 1, 0, {}}),
-	min_binary_search(min_binary_search), tails(1, {}), min_tail(min_tail)
+	min_binary_search(min_binary_search), min_tail(min_tail),
+	num_texts(end - begin), data(1, {false, false, 1, 0, {}}), tails(1, {})
 {
 	construct(begin, end, 0, 0);
 	data.push_back({false, false, container_size<integer>(data), container_size<integer>(tails), {}});
@@ -94,27 +132,59 @@ set_tail<text, integer>::set_tail(random_access_iterator begin, random_access_it
 }
 
 template<typename text, typename integer>
-std::size_t set_tail<text, integer>::size() const
+template<typename random_access_container>
+set_tail<text, integer>::set_tail(const random_access_container& texts,
+		integer min_binary_search, integer min_tail):
+	min_binary_search(min_binary_search), min_tail(min_tail), num_texts(std::size(texts))
+{
+	construct(std::begin(texts), std::end(texts), 0, 0);
+	data.push_back({false, false, container_size<integer>(data), {}});
+	data.shrink_to_fit();
+}
+
+template<typename text, typename integer>
+template<typename input_stream>
+set_tail<text, integer>::set_tail(input_stream& is,
+		integer min_binary_search, integer min_tail):
+	min_binary_search(min_binary_search), min_tail(min_tail)
+{
+	num_texts = load(is);
+}
+
+template<typename text, typename integer>
+set_tail<text, integer>::set_tail(std::string path,
+		integer min_binary_search, integer min_tail):
+	min_binary_search(min_binary_search), min_tail(min_tail)
+{
+	std::ifstream ifs(path);
+	num_texts = load(ifs);
+}
+
+
+// public functions
+
+template<typename text, typename integer>
+typename set_tail<text, integer>::size_type set_tail<text, integer>::size() const
 {
 	return num_texts;
 }
 
 template<typename text, typename integer>
-std::size_t set_tail<text, integer>::node_size() const
+typename set_tail<text, integer>::size_type set_tail<text, integer>::node_size() const
 {
-	return sizeof(element);
+	return sizeof(node);
 }
 
 template<typename text, typename integer>
-std::size_t set_tail<text, integer>::trie_size() const
+typename set_tail<text, integer>::size_type set_tail<text, integer>::trie_size() const
 {
 	return data.size();
 }
 
 template<typename text, typename integer>
-std::size_t set_tail<text, integer>::space() const
+typename set_tail<text, integer>::size_type set_tail<text, integer>::space() const
 {
-	return sizeof(element) * data.size() + sizeof(symbol) * tails.size();
+	return sizeof(node) * data.size() + sizeof(symbol) * tails.size();
 }
 
 template<typename text, typename integer>
@@ -143,6 +213,88 @@ set_tail<text, integer>::searcher() const
 {
 	return common_searcher(*this);
 }
+
+template<typename text, typename integer>
+typename set_tail<text, integer>::node_type set_tail<text, integer>::root() const
+{
+	return {*this, static_cast<integer>(0)};
+}
+
+template<typename text, typename integer>
+const std::vector<typename set_tail<text, integer>::node>&
+set_tail<text, integer>::raw_data() const
+{
+	return data;
+}
+
+template<typename text, typename integer>
+const std::vector<typename set_tail<text, integer>::symbol>&
+set_tail<text, integer>::raw_tail() const
+{
+	return tails;
+}
+
+template<typename text, typename integer>
+template<typename output_stream>
+void set_tail<text, integer>::save(output_stream& os) const
+{
+	file_header header = {
+		{constants::signature[0], constants::signature[1], constants::signature[2], constants::signature[3]},
+		sizeof(file_header),
+		constants::current_major_version,
+		constants::current_minor_version,
+		constants::container_type_set,
+		constants::index_type_tail,
+		constants::text_charset<text>(),
+		constants::text_encoding<text>(),
+		constants::integer_type<integer>(),
+		sizeof(node),
+		0,
+		0,
+		data.size(),
+		tails.size(),
+	};
+	os.write(reinterpret_cast<const char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
+
+	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
+
+	os.write(reinterpret_cast<const char*>(tails.data()), static_cast<std::streamsize>(sizeof(symbol) * tails.size()));
+}
+
+template<typename text, typename integer>
+void set_tail<text, integer>::save(std::string path) const
+{
+	std::ofstream ofs(path);
+	save(ofs);
+}
+
+template<typename text, typename integer>
+template<typename input_stream>
+integer set_tail<text, integer>::load(input_stream& is)
+{
+	file_header header;
+	is.read(reinterpret_cast<char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
+
+	data.resize(header.node_count);
+	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
+
+	tails.resize(header.tail_length);
+	is.read(reinterpret_cast<char*>(tails.data()), static_cast<std::streamsize>(sizeof(symbol) * header.tail_length));
+
+	return std::count_if(data.begin(), data.end(), [](const auto& n){
+		return n.match;
+	});
+}
+
+template<typename text, typename integer>
+integer set_tail<text, integer>::load(std::string path)
+{
+	std::ifstream ifs(path);
+	return load(path);
+}
+
+
+// private functions
 
 template<typename text, typename integer>
 template<typename iterator>
@@ -199,6 +351,120 @@ bool set_tail<text, integer>::check_tail_prefix(const text& pattern, integer i, 
 		std::equal(std::begin(pattern) + i, std::end(pattern), std::begin(tails) + data[current].tail);
 }
 
+
+// subclasses
+
+template<typename text, typename integer>
+struct set_tail<text, integer>::virtual_node
+{
+	const set_tail<text, integer>& trie;
+	integer id;
+	integer tail_pos;
+
+	virtual_node(const set_tail<text, integer>& trie, integer id, integer tail_pos = 0):
+		trie(trie), id(id), tail_pos(tail_pos)
+	{}
+
+	integer node_id() const
+	{
+		return id;
+	}
+
+	integer tail() const
+	{
+		return trie.data[id].tail;
+	}
+
+	symbol label() const
+	{
+		if(tail_pos == 0)
+			return trie.data[id].label;
+		else
+			return trie.tails[trie.data[id].tail + tail_pos - 1];
+	}
+
+	bool match() const
+	{
+		if(tail_pos == 0)
+			return trie.data[id].match;
+		else
+			return trie.data[id].tail + tail_pos == trie.data[id + 1].tail;
+	}
+
+	bool leaf() const
+	{
+		return trie.data[id].leaf && trie.data[id].tail + tail_pos == trie.data[id + 1].tail;
+	}
+
+	child_iterator children() const
+	{
+		if(!trie.data[id].leaf)
+			return child_iterator(trie, id);
+		else
+			return child_iterator(trie, id, id + 1, tail_pos + 1);
+	}
+
+	const node& raw_node() const
+	{
+		return trie.data[id];
+	}
+};
+
+template<typename text, typename integer>
+struct set_tail<text, integer>::child_iterator
+{
+	virtual_node current;
+	const integer last;
+
+	child_iterator(const set_tail<text, integer>& trie):
+		current(trie, 0, 0), last(1)
+	{}
+
+	child_iterator(const set_tail<text, integer>& trie, const integer parent):
+		current(trie, trie.data[parent].next, 0),
+		last(trie.data[parent].next < trie.data.size() ? trie.data[trie.data[parent].next].next : trie.data.size())
+	{}
+
+	child_iterator(const set_tail<text, integer>& trie, integer id, integer last, integer tail_pos = 0):
+		current(trie, id, tail_pos), last(last)
+	{}
+
+	child_iterator& begin()
+	{
+		return *this;
+	}
+
+	child_iterator end() const
+	{
+		return child_iterator(current.trie, last, last, current.tail_pos);
+	}
+
+	bool incrementable() const
+	{
+		return current.id + 1 < last;
+	}
+
+	bool operator==(const child_iterator& i) const
+	{
+		return current.id == i.current.id && current.tail_pos == i.current.tail_pos;
+	}
+
+	bool operator!=(const child_iterator& i) const
+	{
+		return current.id != i.current.id || current.tail_pos != i.current.tail_pos;
+	}
+
+	void operator++()
+	{
+		++current.id;
+	}
+
+	virtual_node& operator*()
+	{
+		return current;
+	}
+};
+
 template<typename text, typename integer>
 struct set_tail<text, integer>::common_searcher
 {
@@ -240,7 +506,7 @@ struct set_tail<text, integer>::common_searcher
 		return find(pattern) != end() ? 1 : 0;
 	}
 
-	traversal_iterator traverse(const text& pattern)
+	subtree_iterator traverse(const text& pattern)
 	{
 		path.clear();
 		result.clear();
@@ -249,8 +515,8 @@ struct set_tail<text, integer>::common_searcher
 		for(integer i = 0; i < pattern.size(); ++i){
 			if(index.data[current].leaf)
 				return index.check_tail_prefix(pattern, i, current) ?
-					traversal_iterator(index, path, result, path_end, result_end, current, pattern, i) :
-					traversal_iterator(index, path_end, result_end);
+					subtree_iterator(index, path, result, path_end, result_end, current, pattern, i) :
+					subtree_iterator(index, path_end, result_end);
 			current = index.data[current].next;
 			integer end = index.data[current].next;
 			for(integer w = end - current, m; w > index.min_binary_search; w = m){
@@ -259,9 +525,9 @@ struct set_tail<text, integer>::common_searcher
 			}
 			for(; current < end && index.data[current].label < pattern[i]; ++current);
 			if(!(current < end && index.data[current].label == pattern[i]))
-				return traversal_iterator(index, path_end, result_end);
+				return subtree_iterator(index, path_end, result_end);
 		}
-		return traversal_iterator(index, path, result, path_end, result_end, current, pattern);
+		return subtree_iterator(index, path, result, path_end, result_end, current, pattern);
 	}
 
 	prefix_iterator prefix(const text& pattern)
@@ -272,7 +538,7 @@ struct set_tail<text, integer>::common_searcher
 };
 
 template<typename text, typename integer>
-struct set_tail<text, integer>::traversal_iterator
+struct set_tail<text, integer>::subtree_iterator
 {
 	const set_tail<text, integer>& index;
 
@@ -281,7 +547,7 @@ struct set_tail<text, integer>::traversal_iterator
 	std::vector<integer>& path_end;
 	text& result_end;
 
-	traversal_iterator(const set_tail<text, integer>& index,
+	subtree_iterator(const set_tail<text, integer>& index,
 			std::vector<integer>& path, text& result,
 			std::vector<integer>& path_end, text& result_end,
 			integer root, const text& prefix, integer length = 0):
@@ -294,21 +560,21 @@ struct set_tail<text, integer>::traversal_iterator
 			++*this;
 	}
 
-	traversal_iterator(const set_tail<text, integer>& index,
+	subtree_iterator(const set_tail<text, integer>& index,
 			std::vector<integer>& path, text& result):
 		index(index), path(path), result(result), path_end(path), result_end(result) {}
 
-	traversal_iterator& begin()
+	subtree_iterator& begin()
 	{
 		return *this;
 	}
 
-	traversal_iterator end() const
+	subtree_iterator end() const
 	{
-		return traversal_iterator(index, path_end, result_end);
+		return subtree_iterator(index, path_end, result_end);
 	}
 
-	bool operator!=(const traversal_iterator& i) const
+	bool operator!=(const subtree_iterator& i) const
 	{
 		if(this->path.size() != i.path.size())
 			return true;
@@ -323,7 +589,7 @@ struct set_tail<text, integer>::traversal_iterator
 		return result;
 	}
 
-	traversal_iterator& operator++()
+	subtree_iterator& operator++()
 	{
 		do{
 			if(!index.data[path.back()].leaf){

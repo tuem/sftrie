@@ -38,14 +38,14 @@ void cast_string(const std::wstring& src, std::string& dest)
 template<>
 void cast_string(const std::string& src, std::u16string& dest)
 {
-	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 	dest = converter.from_bytes(src);
 }
 
 template<>
 void cast_string(const std::u16string& src, std::string& dest)
 {
-	std::wstring_convert<std::codecvt_utf8<char16_t>, char16_t> converter;
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 	dest = converter.to_bytes(src);
 }
 
