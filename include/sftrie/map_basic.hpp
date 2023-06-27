@@ -31,7 +31,7 @@ limitations under the License.
 
 namespace sftrie{
 
-template<typename text, typename item, typename integer = std::int32_t>
+template<typename text, typename item, typename integer>
 class map_basic
 {
 public:
@@ -613,11 +613,6 @@ struct map_basic<text, item, integer>::prefix_iterator
 		return *this;
 	}
 };
-
-template<typename text = std::string,
-	typename item = std::int32_t,
-	typename integer = std::int32_t>
-using map = map_basic<text, item, integer>;
 
 };
 
