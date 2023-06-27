@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_CONSTANTS_HPP
-#define SFTRIE_CONSTANTS_HPP
+#ifndef SFTRIE_CONSTANTS
+#define SFTRIE_CONSTANTS
 
 #include <cstdint>
 
@@ -71,6 +71,7 @@ inline constexpr std::uint8_t value_type_uint32 = 4;
 inline constexpr std::uint8_t value_type_int32 = 5;
 inline constexpr std::uint8_t value_type_uint64 = 6;
 inline constexpr std::uint8_t value_type_int64 = 7;
+inline constexpr std::uint8_t value_type_any = 0xff;
 
 
 template<typename text> constexpr std::uint8_t text_charset();
@@ -99,7 +100,7 @@ template<> constexpr std::uint8_t integer_type<std::int64_t>(){ return integer_t
 template<> constexpr std::uint8_t integer_type<std::uint64_t>(){ return integer_type_uint64; }
 
 
-template<typename value> constexpr std::uint8_t value_type();
+template<typename value> constexpr std::uint8_t value_type(){ return value_type_any; }
 
 template<> constexpr std::uint8_t value_type<std::int8_t>(){ return value_type_int8; }
 template<> constexpr std::uint8_t value_type<std::uint8_t>(){ return value_type_uint8; }
