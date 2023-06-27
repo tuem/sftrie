@@ -388,7 +388,7 @@ struct set_basic<text, integer>::child_iterator
 		++current.id;
 	}
 
-	virtual_node& operator*()
+	virtual_node operator*() const
 	{
 		return current;
 	}
