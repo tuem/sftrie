@@ -184,7 +184,7 @@ typename set_compact<text, integer>::size_type set_compact<text, integer>::space
 template<typename text, typename integer>
 bool set_compact<text, integer>::exists(const text& pattern) const
 {
-	// TODO
+	// TODO: check compressed paths
 	return data[search(pattern)].match;
 }
 
@@ -231,6 +231,8 @@ void set_compact<text, integer>::save(output_stream& os) const
 	os.write(reinterpret_cast<const char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
 
 	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
+
+	os.write(reinterpret_cast<const char*>(labels.data()), static_cast<std::streamsize>(sizeof(symbol) * labels.size()));
 }
 
 template<typename text, typename integer>
@@ -275,11 +277,9 @@ void set_compact<text, integer>::construct(iterator begin, iterator end, integer
 		labels.push_back((*begin)[depth++]);
 
 	// set flags
-	if(depth == container_size<integer>(*begin)){
-		data[current].match = true;
+	if((data[current].match = (depth == container_size<integer>(*begin))))
 		if((data[current].leaf = (++begin == end)))
 			return;
-	}
 
 	// reserve children
 	std::vector<iterator> head{begin};
