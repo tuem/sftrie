@@ -380,20 +380,21 @@ struct set_compact<text, integer>::virtual_node
 
 	bool match() const
 	{
-		// TODO: check depth
-		return trie.data[id].match;
+		return trie.data[id].match && trie.data[i].ref + depth == trie.data[id + 1].ref;
 	}
 
 	bool leaf() const
 	{
-		// TODO: check ref
-		return trie.data[id].leaf;
+		return trie.data[id].leaf && trie.data[i].ref + depth == trie.data[id + 1].ref;
 	}
 
 	child_iterator children() const
 	{
 		// TODO: visit compressed nodes
-		return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+		if(trie.data[i].ref + depth == trie.data[id + 1].ref)
+			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+		else
+			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
 	}
 };
 
@@ -403,18 +404,19 @@ struct set_compact<text, integer>::child_iterator
 {
 	virtual_node current;
 	const integer last;
+	// TODO: last does not work if current.depth > 0
 
 	child_iterator(const set_compact<text, integer>& trie):
-		current(trie, 0), last(1)
+		current(trie, 0, 0), last(1)
 	{}
 
 	child_iterator(const set_compact<text, integer>& trie, const integer parent):
-		current(trie, trie.data[parent].next),
+		current(trie, trie.data[parent].next, 0),
 		last(trie.data[parent].next < trie.data.size() ? trie.data[trie.data[parent].next].next : trie.data.size())
 	{}
 
-	child_iterator(const set_compact<text, integer>& trie, integer id, integer last):
-		current(trie, id), last(last)
+	child_iterator(const set_compact<text, integer>& trie, integer id, integer depth, integer last):
+		current(trie, id, depth), last(last)
 	{}
 
 	child_iterator& begin()
@@ -424,26 +426,29 @@ struct set_compact<text, integer>::child_iterator
 
 	child_iterator end() const
 	{
-		return child_iterator(current.trie, last, last);
+		// TODO
+		return child_iterator(current.trie, last, 0, last);
 	}
 
 	bool incrementable() const
 	{
+		// TODO
 		return current.id < last - 1;
 	}
 
 	bool operator==(const child_iterator& i) const
 	{
-		return current.id == i.current.id;
+		return current.id == i.current.id && current.depth == i.current.depth;
 	}
 
 	bool operator!=(const child_iterator& i) const
 	{
-		return current.id != i.current.id;
+		return current.id != i.current.id || current.depth != i.current.depth;;
 	}
 
 	void operator++()
 	{
+		// TODO
 		++current.id;
 	}
 
@@ -558,6 +563,7 @@ struct set_compact<text, integer>::subtree_iterator
 	}
 };
 
+// TODO
 template<typename text, typename integer>
 struct set_compact<text, integer>::prefix_iterator
 {
