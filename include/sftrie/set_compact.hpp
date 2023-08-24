@@ -72,6 +72,7 @@ public:
 	// tree operations
 	node_type root() const;
 	const std::vector<node>& raw_data() const;
+	const std::vector<symbol>& raw_labels() const;
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -184,8 +185,31 @@ typename set_compact<text, integer>::size_type set_compact<text, integer>::space
 template<typename text, typename integer>
 bool set_compact<text, integer>::exists(const text& pattern) const
 {
-	// TODO: check compressed paths
-	return data[search(pattern)].match;
+	integer current = 0;
+	for(integer i = 0; i < pattern.size();){
+		if(data[current].leaf)
+			return false;
+
+		// find child
+		current = data[current].next;
+		integer end = data[current].next;
+		for(integer w = end - current, m; w > min_binary_search; w = m){
+			m = w >> 1;
+			current += data[current + m].label < pattern[i] ? w - m : 0;
+		}
+		for(; current < end && data[current].label < pattern[i]; ++current);
+		if(!(current < end && data[current].label == pattern[i++]))
+			return false;
+
+		// check compressed labels
+		integer j = data[current].ref;
+		for(; i < pattern.size() && j < data[current + 1].ref; ++i, ++j)
+			if(labels[j] != pattern[i])
+				return false;
+		if(j < data[current + 1].ref)
+			return false;
+	}
+	return data[current].match;
 }
 
 template<typename text, typename integer>
@@ -206,6 +230,13 @@ const std::vector<typename set_compact<text, integer>::node>&
 set_compact<text, integer>::raw_data() const
 {
 	return data;
+}
+
+template<typename text, typename integer>
+const std::vector<typename set_compact<text, integer>::symbol>&
+set_compact<text, integer>::raw_labels() const
+{
+	return labels;
 }
 
 template<typename text, typename integer>
@@ -271,11 +302,6 @@ template<typename text, typename integer>
 template<typename iterator>
 void set_compact<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
-	// compress single path
-	data[current].ref = container_size<integer>(labels);
-	while(depth < container_size<integer>(*begin) && (*begin)[depth] == (*(end - 1))[depth])
-		labels.push_back((*begin)[depth++]);
-
 	// set flags
 	if((data[current].match = (depth == container_size<integer>(*begin))))
 		if((data[current].leaf = (++begin == end)))
@@ -288,11 +314,20 @@ void set_compact<text, integer>::construct(iterator begin, iterator end, integer
 		for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
 	}
 
+	// compress single paths
+	std::vector<integer> depths;
+	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+		data[data[current].next + i].ref = container_size<integer>(labels);
+		integer d = depth + 1;
+		while(d < container_size<integer>(*head[i]) && (*head[i])[d] == (*(head[i + 1] - 1))[d])
+			labels.push_back((*head[i])[d++]);
+		depths.push_back(d);
+	}
+
 	// recursively construct subtries
 	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-		integer child = data[current].next + i;
-		data[child].next = container_size<integer>(data);
-		construct(head[i], head[i + 1], depth + 1, child);
+		data[data[current].next + i].next = container_size<integer>(data);
+		construct(head[i], head[i + 1], depths[i], data[current].next + i);
 	}
 }
 
