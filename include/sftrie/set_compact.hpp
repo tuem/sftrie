@@ -222,7 +222,7 @@ set_compact<text, integer>::searcher() const
 template<typename text, typename integer>
 typename set_compact<text, integer>::node_type set_compact<text, integer>::root() const
 {
-	return {*this, static_cast<integer>(0)};
+	return {*this, 0, 0};
 }
 
 template<typename text, typename integer>
@@ -390,21 +390,20 @@ struct set_compact<text, integer>::virtual_node
 
 	child_iterator children() const
 	{
-		// TODO: visit compressed nodes
-		if(trie.data[id].ref + depth == trie.data[id + 1].ref)
-			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+		if(trie.data[id].ref + depth < trie.data[id + 1].ref)
+			return child_iterator(trie, id, depth + 1, 0);
+		else if(!trie.data[id].leaf)
+			return child_iterator(trie, trie.data[id].next, 0, trie.data[trie.data[id].next].next);
 		else
-			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+			return child_iterator(trie, trie.data.size() - 1, 0, trie.data.size() - 1);
 	}
 };
 
-// TODO
 template<typename text, typename integer>
 struct set_compact<text, integer>::child_iterator
 {
 	virtual_node current;
 	const integer last;
-	// TODO: last does not work if current.depth > 0
 
 	child_iterator(const set_compact<text, integer>& trie):
 		current(trie, 0, 0), last(1)
@@ -426,30 +425,34 @@ struct set_compact<text, integer>::child_iterator
 
 	child_iterator end() const
 	{
-		// TODO
 		return child_iterator(current.trie, last, 0, last);
 	}
 
 	bool incrementable() const
 	{
-		// TODO
-		return current.id < last - 1;
+		return current.depth == 0 && last > 0 && current.id < last - 1;
 	}
 
 	bool operator==(const child_iterator& i) const
 	{
-		return current.id == i.current.id && current.depth == i.current.depth;
+		return
+			(current.id == i.current.id && current.depth == i.current.depth) ||
+			(current.id == last && i.current.id == i.last);
 	}
 
 	bool operator!=(const child_iterator& i) const
 	{
-		return current.id != i.current.id || current.depth != i.current.depth;;
+		return
+			(current.id != i.current.id || current.depth != i.current.depth) &&
+			(current.id != last || i.current.id != i.last);
 	}
 
 	void operator++()
 	{
-		// TODO
-		++current.id;
+		if(last > 0)
+			++current.id;
+		else
+			current.id = last;
 	}
 
 	virtual_node operator*() const
