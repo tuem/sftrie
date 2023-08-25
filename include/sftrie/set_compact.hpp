@@ -89,8 +89,6 @@ private:
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
-
-	integer search(const text& pattern) const;
 };
 
 
@@ -331,26 +329,6 @@ void set_compact<text, integer>::construct(iterator begin, iterator end, integer
 	}
 }
 
-template<typename text, typename integer>
-integer set_compact<text, integer>::search(const text& pattern) const
-{
-	integer current = 0;
-	for(integer i = 0; i < pattern.size(); ++i){
-		if(data[current].leaf)
-			return data.size() - 1;
-		current = data[current].next;
-		integer end = data[current].next;
-		for(integer w = end - current, m; w > min_binary_search; w = m){
-			m = w >> 1;
-			current += data[current + m].label < pattern[i] ? w - m : 0;
-		}
-		for(; current < end && data[current].label < pattern[i]; ++current);
-		if(!(current < end && data[current].label == pattern[i]))
-			return data.size() - 1;
-	}
-	return current;
-}
-
 
 // subclasses
 
@@ -461,25 +439,50 @@ struct set_compact<text, integer>::child_iterator
 	}
 };
 
-// TODO
 template<typename text, typename integer>
 struct set_compact<text, integer>::common_searcher
 {
-	const set_compact<text, integer>& index;
+	const set_compact<text, integer>& trie;
 	std::vector<integer> path;
 	text result;
 
-	common_searcher(const set_compact<text, integer>& index): index(index){}
+	common_searcher(const set_compact<text, integer>& trie): trie(trie){}
 
-	integer find(const text& pattern) const
+	typename set_compact<text, integer>::node_type find(const text& pattern) const
 	{
-		auto i = index.search(pattern);
-		return index.data[i].match ? i : end();
+		integer current = 0;
+		for(integer i = 0; i < pattern.size();){
+			if(trie.data[current].leaf)
+				return {trie, trie.data.size() - 1, 0};
+
+			// find child
+			current = trie.data[current].next;
+			integer end = trie.data[current].next;
+			for(integer w = end - current, m; w > trie.min_binary_search; w = m){
+				m = w >> 1;
+				current += trie.data[current + m].label < pattern[i] ? w - m : 0;
+			}
+			for(; current < end && trie.data[current].label < pattern[i]; ++current);
+			if(!(current < end && trie.data[current].label == pattern[i++]))
+				return {trie, trie.data.size() - 1, 0};
+
+			// check compressed labels
+			integer j = trie.data[current].ref;
+			for(; i < pattern.size() && j < trie.data[current + 1].ref; ++i, ++j)
+				if(trie.labels[j] != pattern[i])
+					return {trie, trie.data.size() - 1, 0};
+			if(j < trie.data[current + 1].ref)
+				return {trie, trie.data.size() - 1, 0};
+		}
+		if(!trie.data[current].match)
+			return {trie, trie.data.size() - 1, 0};
+
+		return {trie, current, trie.data[current + 1].ref - trie.data[current].ref};
 	}
 
-	integer end() const
+	typename set_compact<text, integer>::node_type end() const
 	{
-		return index.data.size() - 1;
+		return {trie, trie.data.size() - 1, 0};
 	}
 
 	integer count(const text& pattern) const
@@ -489,10 +492,10 @@ struct set_compact<text, integer>::common_searcher
 
 	subtree_iterator traverse(const text& pattern)
 	{
-		integer root = index.search(pattern);
-		if(root < index.data.size() - 1){
-			path.clear();
+		auto root = find(pattern);
+		if(root != end()){
 			result.clear();
+			path.clear();
 			path.push_back(root);
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
