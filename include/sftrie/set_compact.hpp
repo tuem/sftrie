@@ -380,18 +380,18 @@ struct set_compact<text, integer>::virtual_node
 
 	bool match() const
 	{
-		return trie.data[id].match && trie.data[i].ref + depth == trie.data[id + 1].ref;
+		return trie.data[id].match && trie.data[id].ref + depth == trie.data[id + 1].ref;
 	}
 
 	bool leaf() const
 	{
-		return trie.data[id].leaf && trie.data[i].ref + depth == trie.data[id + 1].ref;
+		return trie.data[id].leaf && trie.data[id].ref + depth == trie.data[id + 1].ref;
 	}
 
 	child_iterator children() const
 	{
 		// TODO: visit compressed nodes
-		if(trie.data[i].ref + depth == trie.data[id + 1].ref)
+		if(trie.data[id].ref + depth == trie.data[id + 1].ref)
 			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
 		else
 			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
@@ -563,7 +563,6 @@ struct set_compact<text, integer>::subtree_iterator
 	}
 };
 
-// TODO
 template<typename text, typename integer>
 struct set_compact<text, integer>::prefix_iterator
 {
@@ -606,6 +605,10 @@ struct set_compact<text, integer>::prefix_iterator
 	prefix_iterator& operator++()
 	{
 		for(; !searcher.index.data[current].leaf && depth < pattern.size(); ){
+			if(searcher.index.data[current].leaf)
+				break;
+
+			// find child
 			current = searcher.index.data[current].next;
 			integer end = searcher.index.data[current].next;
 			for(integer w = end - current, m; w > searcher.index.min_binary_search; w = m){
@@ -616,9 +619,21 @@ struct set_compact<text, integer>::prefix_iterator
 			if(!(current < end && searcher.index.data[current].label == pattern[depth]))
 				break;
 			searcher.result.push_back(pattern[depth++]);
+
+			// check compressed labels
+			integer j = searcher.index.data[current].ref;
+			for(; depth < pattern.size() && j < searcher.index.data[current + 1].ref; ++depth, ++j){
+				if(searcher.index.labels[j] != pattern[depth])
+					break;
+				searcher.result.push_back(pattern[depth]);
+			}
+			if(j < searcher.index.data[current + 1].ref)
+				break;
+
 			if(searcher.index.data[current].match)
 				return *this;
 		}
+
 		current = searcher.index.data.size() - 1;
 		return *this;
 	}
