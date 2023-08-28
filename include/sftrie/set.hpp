@@ -20,6 +20,7 @@ limitations under the License.
 #ifndef SFTRIE_SET
 #define SFTRIE_SET
 
+#include <stdint.h>
 #include <string>
 
 #include "set_naive.hpp"
@@ -44,7 +45,7 @@ limitations under the License.
 
 namespace sftrie{
 	template<typename text = std::string,
-		typename integer = typename text::size_type>
+		typename integer = std::uint32_t>
 	using set = SFTRIE_SET_TYPE<text, integer>;
 };
 
