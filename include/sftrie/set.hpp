@@ -39,7 +39,7 @@ limitations under the License.
 #elif defined SFTRIE_SET_USE_NAIVE
 	#define SFTRIE_SET_TYPE set_naive
 #else
-	#define SFTRIE_SET_TYPE set_basic
+	#define SFTRIE_SET_TYPE set_compact
 #endif
 
 namespace sftrie{
