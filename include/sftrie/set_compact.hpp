@@ -276,7 +276,7 @@ template<typename input_stream>
 integer set_compact<text, integer>::load(input_stream& is)
 {
 	file_header header;
-	is.read(reinterpret_cast<char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
+	is.read(reinterpret_cast<char*>(&header), static_cast<std::streamsize>(sizeof(:file_header)));
 
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
