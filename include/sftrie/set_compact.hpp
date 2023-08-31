@@ -200,12 +200,12 @@ bool set_compact<text, integer>::exists(const text& pattern) const
 			return false;
 
 		// check compressed labels
-		integer j = data[current].ref;
-		for(; i < pattern.size() && j < data[current + 1].ref; ++i, ++j)
-			if(labels[j] != pattern[i])
-				return false;
-		if(j < data[current + 1].ref)
+		integer j = data[current].ref, jend = data[current + 1].ref;
+		if(jend - j > pattern.size() - i)
 			return false;
+		while(j < jend)
+			if(labels[j++] != pattern[i++])
+				return false;
 	}
 	return data[current].match;
 }
@@ -257,7 +257,7 @@ void set_compact<text, integer>::save(output_stream& os) const
 		data.size(),
 		0,
 	};
-	os.write(reinterpret_cast<const char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
+	os.write(reinterpret_cast<const char*>(&header), static_cast<std::streamsize>(sizeof(file_header)));
 
 	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
 
@@ -276,7 +276,7 @@ template<typename input_stream>
 integer set_compact<text, integer>::load(input_stream& is)
 {
 	file_header header;
-	is.read(reinterpret_cast<char*>(&header), static_cast<std::streamsize>(sizeof(:file_header)));
+	is.read(reinterpret_cast<char*>(&header), static_cast<std::streamsize>(sizeof(file_header)));
 
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
