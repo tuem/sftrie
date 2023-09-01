@@ -255,7 +255,7 @@ void set_compact<text, integer>::save(output_stream& os) const
 		0,
 		0,
 		data.size(),
-		0,
+		labels.size(),
 	};
 	os.write(reinterpret_cast<const char*>(&header), static_cast<std::streamsize>(sizeof(file_header)));
 
