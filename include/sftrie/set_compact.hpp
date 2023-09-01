@@ -351,22 +351,27 @@ struct set_compact<text, integer>::virtual_node
 		return id;
 	}
 
+	bool is_root() const
+	{
+		return id == 0;
+	}
+
+	bool is_valid() const
+	{
+		return id < trie.data.size() - 1;
+	}
+
+	bool is_physical() const
+	{
+		return depth == 0;
+	}
+
 	symbol label() const
 	{
 		if(depth == 0)
 			return trie.data[id].label;
 		else
 			return trie.labels[trie.data[id].ref + depth - 1];
-	}
-
-	bool operator==(const virtual_node& n) const
-	{
-		return id == n.id && depth == n.depth;
-	}
-
-	bool operator!=(const virtual_node& n) const
-	{
-		return id != n.id || depth != n.depth;
 	}
 
 	bool match() const
@@ -377,6 +382,16 @@ struct set_compact<text, integer>::virtual_node
 	bool leaf() const
 	{
 		return trie.data[id].leaf && trie.data[id].ref + depth == trie.data[id + 1].ref;
+	}
+
+	bool operator==(const virtual_node& n) const
+	{
+		return id == n.id && depth == n.depth;
+	}
+
+	bool operator!=(const virtual_node& n) const
+	{
+		return id != n.id || depth != n.depth;
 	}
 
 	child_iterator children() const
