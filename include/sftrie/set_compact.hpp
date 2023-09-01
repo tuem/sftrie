@@ -663,14 +663,13 @@ struct set_compact<text, integer>::prefix_iterator
 			searcher.result.push_back(pattern[depth++]);
 
 			// check compressed labels
-			integer j = searcher.trie.data[current].ref;
-			for(; depth < pattern.size() && j < searcher.trie.data[current + 1].ref; ++depth, ++j){
-				if(searcher.trie.labels[j] != pattern[depth])
+			integer j = searcher.trie.data[current].ref, jend = searcher.trie.data[current + 1].ref;
+			if(jend > j){
+				if(jend - j > pattern.size() - depth || !std::equal(searcher.trie.labels.begin() + j, searcher.trie.labels.begin() + jend, pattern.begin() + depth))
 					break;
-				searcher.result.push_back(pattern[depth]);
+				std::copy(searcher.trie.labels.begin() + j, searcher.trie.labels.begin() + jend, std::back_inserter(searcher.result));
+				depth += jend - j;
 			}
-			if(j < searcher.trie.data[current + 1].ref)
-				break;
 
 			if(searcher.trie.data[current].match)
 				return *this;
