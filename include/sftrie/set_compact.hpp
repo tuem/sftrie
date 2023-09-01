@@ -578,34 +578,28 @@ struct set_compact<text, integer>::subtree_iterator
 	{
 		do{
 			if(!searcher.trie.data[searcher.path.back()].leaf){
-				integer child = searcher.trie.data[searcher.path.back()].next;
-				searcher.path.push_back(child);
-				searcher.result.push_back(searcher.trie.data[child].label);
-				for(integer d = 0; searcher.trie.data[child].ref + d < searcher.trie.data[child + 1].ref; ++d)
-					searcher.result.push_back(searcher.trie.labels[searcher.trie.data[child].ref + d]);
+				// first child
+				integer n = searcher.trie.data[searcher.path.back()].next;
+				searcher.path.push_back(n);
+				searcher.result.push_back(searcher.trie.data[n].label);
+				std::copy(searcher.trie.labels.begin() + searcher.trie.data[n].ref, searcher.trie.labels.begin() + searcher.trie.data[n + 1].ref, std::back_inserter(searcher.result));
 			}
 			else{
 				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
 						searcher.trie.data[searcher.trie.data[searcher.path[searcher.path.size() - 2]].next].next){
-					auto n = searcher.path.back();
+					// parent
+					searcher.result.resize(searcher.result.size() - (1 + searcher.trie.data[searcher.path.back() + 1].ref - searcher.trie.data[searcher.path.back()].ref));
 					searcher.path.pop_back();
-					searcher.result.pop_back();
-					for(integer d = 0; searcher.trie.data[n].ref + d < searcher.trie.data[n + 1].ref; ++d)
-						searcher.result.pop_back();
 				}
 				if(searcher.path.size() > 1){
-					auto n = searcher.path.back();
-					searcher.result.pop_back();
-					for(integer d = 0; searcher.trie.data[n].ref + d < searcher.trie.data[n + 1].ref; ++d)
-						searcher.result.pop_back();
-
-					n = ++searcher.path.back();
+					// next sibling
+					searcher.result.resize(searcher.result.size() - (1 + searcher.trie.data[searcher.path.back() + 1].ref - searcher.trie.data[searcher.path.back()].ref));
+					integer n = ++searcher.path.back();
 					searcher.result.push_back(searcher.trie.data[n].label);
-					for(integer d = 0; searcher.trie.data[n].ref + d < searcher.trie.data[n + 1].ref; ++d)
-						searcher.result.push_back(searcher.trie.labels[searcher.trie.data[n].ref + d]);
+					std::copy(searcher.trie.labels.begin() + searcher.trie.data[n].ref, searcher.trie.labels.begin() + searcher.trie.data[n + 1].ref, std::back_inserter(searcher.result));
 				}
 				else{
-					searcher.path.pop_back();
+					searcher.path.clear();
 				}
 			}
 		}while(!searcher.path.empty() && !searcher.trie.data[searcher.path.back()].match);
