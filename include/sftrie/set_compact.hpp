@@ -201,11 +201,11 @@ bool set_compact<text, integer>::exists(const text& pattern) const
 
 		// check compressed labels
 		integer j = data[current].ref, jend = data[current + 1].ref;
-		if(jend > j){
-			if(jend - j > pattern.size() - i || !std::equal(labels.begin() + j, labels.begin() + jend, pattern.begin() + i))
+		if(jend - j > pattern.size() - i)
+			return false;
+		for(; j < jend; ++i, ++j)
+			if(labels[j] != pattern[i])
 				return false;
-			i += jend - j;
-		}
 	}
 	return data[current].match;
 }
