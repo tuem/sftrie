@@ -281,6 +281,9 @@ integer set_compact<text, integer>::load(input_stream& is)
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
 
+	labels.resize(header.tail_length);
+	is.read(reinterpret_cast<char*>(labels.data()), static_cast<std::streamsize>(sizeof(symbol) * header.label_count));
+
 	return std::count_if(data.begin(), data.end(), [](const auto& n){
 		return n.match;
 	});
