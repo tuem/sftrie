@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_MAP_BASIC
-#define SFTRIE_MAP_BASIC
+#ifndef SFTRIE_MAP_ORIGINAL
+#define SFTRIE_MAP_ORIGINAL
 
 #include <cstddef>
 #include <vector>
@@ -231,7 +231,7 @@ void map_original<text, item, integer>::save(output_stream& os) const
 		constants::current_major_version,
 		constants::current_minor_version,
 		constants::container_type_map,
-		constants::index_type_basic,
+		constants::index_type_original,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
 		constants::integer_type<integer>(),

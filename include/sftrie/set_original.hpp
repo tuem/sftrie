@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_SET_BASIC
-#define SFTRIE_SET_BASIC
+#ifndef SFTRIE_SET_ORIGINAL
+#define SFTRIE_SET_ORIGINAL
 
 #include <cstddef>
 #include <vector>
@@ -206,7 +206,7 @@ void set_original<text, integer>::save(output_stream& os) const
 		constants::current_major_version,
 		constants::current_minor_version,
 		constants::container_type_set,
-		constants::index_type_basic,
+		constants::index_type_original,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
 		constants::integer_type<integer>(),

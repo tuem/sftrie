@@ -247,7 +247,7 @@ void set_compact<text, integer>::save(output_stream& os) const
 		constants::current_major_version,
 		constants::current_minor_version,
 		constants::container_type_set,
-		constants::index_type_basic,
+		constants::index_type_compact,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
 		constants::integer_type<integer>(),

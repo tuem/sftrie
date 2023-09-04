@@ -36,15 +36,14 @@ template<typename integer> inline constexpr integer default_min_tail = static_ca
 
 inline constexpr char signature[4] = {'S', 'F', 'T', 'I'};
 
-inline constexpr std::uint8_t current_major_version = 0;
+inline constexpr std::uint8_t current_major_version = 1;
 inline constexpr std::uint8_t current_minor_version = 0;
 
 inline constexpr std::uint8_t container_type_set = 0;
 inline constexpr std::uint8_t container_type_map = 1;
 
-inline constexpr std::uint8_t index_type_basic = 0;
-inline constexpr std::uint8_t index_type_tail = 1;
-inline constexpr std::uint8_t index_type_decomp = 2;
+inline constexpr std::uint8_t index_type_original = 0;
+inline constexpr std::uint8_t index_type_compact = 1;
 
 inline constexpr std::uint8_t text_charset_system_default = 0;
 inline constexpr std::uint8_t text_charset_unicode = 1;
