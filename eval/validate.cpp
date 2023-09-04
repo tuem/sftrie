@@ -382,21 +382,8 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	}
 	else if(container_type == "map" && sftrie_type == "original"){
 		std::cerr << "constructing index...";
-		sftrie::map_original<text, object, integer> dict(std::begin(text_object_pairs), std::end(text_object_pairs),
+		sftrie::map_original<text, object, integer> index(std::begin(text_object_pairs), std::end(text_object_pairs),
 			min_binary_search);
-		std::cerr << "done." << std::endl;
-
-		std::cerr << "validating...";
-		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_prefix = validate_map_prefix_search(dict, all_queries);
-		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
-		std::cerr << "done." << std::endl;
-	}
-	/* TODO
-	else if(container_type == "map" && sftrie_type == "compact"){
-		std::cerr << "constructing index...";
-		sftrie::map_compact<text, object, integer> dict(std::begin(text_object_pairs), std::end(text_object_pairs),
-			min_binary_search, min_tail);
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "validating...";
@@ -405,7 +392,17 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		result_traversal = validate_map_predictive_search(index, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
-	*/
+	else if(container_type == "map" && sftrie_type == "compact"){
+		std::cerr << "constructing index...";
+		sftrie::map_compact<text, object, integer> index(std::begin(text_object_pairs), std::end(text_object_pairs), min_binary_search);
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "validating...";
+		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(index, all_queries);
+		result_traversal = validate_map_predictive_search(index, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
+		std::cerr << "done." << std::endl;
+	}
 	else{
 		throw std::runtime_error("unknown container type or trie type: " + container_type + " / " + sftrie_type);
 	}
