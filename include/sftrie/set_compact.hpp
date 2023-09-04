@@ -196,12 +196,12 @@ bool set_compact<text, integer>::exists(const text& pattern) const
 			current += data[current + m].label < pattern[i] ? w - m : 0;
 		}
 		for(; current < end && data[current].label < pattern[i]; ++current);
-		if(!(current < end && data[current].label == pattern[i++]))
+		if(!(current < end && data[current].label == pattern[i]))
 			return false;
 
 		// check compressed labels
 		integer j = data[current].ref, jend = data[current + 1].ref;
-		if(jend - j > pattern.size() - i)
+		if(jend - j > pattern.size() - ++i)
 			return false;
 		for(; j < jend; ++i, ++j)
 			if(labels[j] != pattern[i])
@@ -491,17 +491,17 @@ struct set_compact<text, integer>::common_searcher
 				current += trie.data[current + m].label < pattern[i] ? w - m : 0;
 			}
 			for(; current < end && trie.data[current].label < pattern[i]; ++current);
-			if(!(current < end && trie.data[current].label == pattern[i++]))
+			if(!(current < end && trie.data[current].label == pattern[i]))
 				return {trie, container_size<integer>(trie.data) - 1, 0};
+
 
 			// check compressed labels
-			integer j = trie.data[current].ref;
-			for(; i < pattern.size() && j < trie.data[current + 1].ref; ++i, ++j)
+			integer j = trie.data[current].ref, jend = trie.data[current + 1].ref;
+			if(jend - j > pattern.size() - ++i)
+				return {trie, container_size<integer>(trie.data) - 1, 0};
+			for(; j < jend; ++i, ++j)
 				if(trie.labels[j] != pattern[i])
 					return {trie, container_size<integer>(trie.data) - 1, 0};
-
-			if(j < trie.data[current + 1].ref)
-				return {trie, container_size<integer>(trie.data) - 1, 0};
 		}
 		if(!trie.data[current].match)
 			return {trie, container_size<integer>(trie.data) - 1, 0};
