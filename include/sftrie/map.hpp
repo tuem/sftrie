@@ -23,14 +23,14 @@ limitations under the License.
 #include <string>
 
 #include "map_original.hpp"
-//TODO: #include "map_compact.hpp"
+#include "map_compact.hpp"
 
 #if defined SFTRIE_MAP_USE_ORIGINAL
 	#define SFTRIE_MAP_TYPE map_original
 #elif defined SFTRIE_MAP_USE_COMPACT
-	#define SFTRIE_MAP_TYPE map_original
+	#define SFTRIE_MAP_TYPE map_compact
 #else
-	#define SFTRIE_MAP_TYPE map_original
+	#define SFTRIE_MAP_TYPE map_compact
 #endif
 
 namespace sftrie{
