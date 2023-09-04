@@ -177,7 +177,7 @@ typename map_compact<text, item, integer>::size_type map_compact<text, item, int
 template<typename text, typename item, typename integer>
 typename map_compact<text, item, integer>::size_type map_compact<text, item, integer>::space() const
 {
-	return sizeof(node) * data.size();
+	return sizeof(node) * data.size() + sizeof(symbol) * labels.size();
 }
 
 template<typename text, typename item, typename integer>
