@@ -34,7 +34,7 @@ namespace sftrie{
 template<typename text, typename item, typename integer>
 class map_compact
 {
-private
+private:
 	using symbol = typename text::value_type;
 
 public:
@@ -388,7 +388,7 @@ struct map_compact<text, item, integer>::virtual_node
 	integer id;
 	integer depth;
 
-	virtual_node(const map_compact<text, integer>& trie, integer id, integer depth):
+	virtual_node(const map_compact<text, item, integer>& trie, integer id, integer depth):
 		trie(trie), id(id), depth(depth)
 	{}
 
@@ -518,42 +518,67 @@ struct map_compact<text, item, integer>::child_iterator
 	}
 };
 
-// TODO
 template<typename text, typename item, typename integer>
 struct map_compact<text, item, integer>::common_searcher
 {
-	map_compact<text, item, integer>& index;
+	const map_compact<text, item, integer>& trie;
 	std::vector<integer> path;
 	text result;
 
-	common_searcher(map_compact<text, item, integer>& index): index(index){}
+	common_searcher(const map_compact<text, item, integer>& trie): trie(trie){}
 
 	typename map_compact<text, item, integer>::node_type find(const text& pattern) const
 	{
-		auto n = index.search(pattern);
-		return index.data[i].match ? map_compact<text, item, integer>::virtual_node(index, i) : end();
+		integer current = 0;
+		for(integer i = 0; i < pattern.size();){
+			if(trie.data[current].leaf)
+				return {trie, container_size<integer>(trie.data) - 1, 0};
+
+			// find child
+			current = trie.data[current].next;
+			integer end = trie.data[current].next;
+			for(integer w = end - current, m; w > trie.min_binary_search; w = m){
+				m = w >> 1;
+				current += trie.data[current + m].label < pattern[i] ? w - m : 0;
+			}
+			for(; current < end && trie.data[current].label < pattern[i]; ++current);
+			if(!(current < end && trie.data[current].label == pattern[i]))
+				return {trie, container_size<integer>(trie.data) - 1, 0};
+
+			// check compressed labels
+			integer j = trie.data[current].ref, jend = trie.data[current + 1].ref;
+			if(jend - j > pattern.size() - ++i)
+				return {trie, container_size<integer>(trie.data) - 1, 0};
+			for(; j < jend; ++i, ++j)
+				if(trie.labels[j] != pattern[i])
+					return {trie, container_size<integer>(trie.data) - 1, 0};
+		}
+		if(!trie.data[current].match)
+			return {trie, container_size<integer>(trie.data) - 1, 0};
+
+		return {trie, current, trie.data[current + 1].ref - trie.data[current].ref};
 	}
 
-	map_compact<text, item, integer>::virtual_node end() const
+	typename map_compact<text, item, integer>::node_type end() const
 	{
-		return map_compact<text, item, integer>::virtual_node(index, index.data.size() - 1);
+		return {trie, container_size<integer>(trie.data) - 1, 0};
 	}
 
 	integer count(const text& pattern) const
 	{
-		return index.search(pattern) != index.data.size() - 1;
+		return find(pattern) != end() ? 1 : 0;
 	}
 
 	subtree_iterator traverse(const text& pattern)
 	{
-		integer root = index.search(pattern);
-		if(root < index.data.size() - 1){
-			path.clear();
+		auto root = find(pattern);
+		if(root != end()){
 			result.clear();
-			path.push_back(root);
+			path.clear();
+			path.push_back(root.id);
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
-		return subtree_iterator(*this, pattern, root);
+		return subtree_iterator(*this, root);
 	}
 
 	prefix_iterator prefix(const text& pattern)
@@ -563,19 +588,20 @@ struct map_compact<text, item, integer>::common_searcher
 	}
 };
 
-// TODO
 template<typename text, typename item, typename integer>
 struct map_compact<text, item, integer>::subtree_iterator
 {
 	common_searcher& searcher;
-	const text& prefix;
 	integer current;
 
-	subtree_iterator(common_searcher& searcher, const text& prefix, integer root):
-		searcher(searcher), prefix(prefix), current(root)
+	subtree_iterator(common_searcher& searcher, const virtual_node& root):
+		searcher(searcher), current(root.id)
 	{
-		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
+		if(root.id < searcher.trie.data.size() - 1 && !searcher.trie.data[root.id].match){
+			for(integer d = root.depth; searcher.trie.data[root.id].ref + d < searcher.trie.data[root.id + 1].ref; ++d)
+				searcher.result.push_back(searcher.trie.labels[searcher.trie.data[root.id].ref + d]);
 			++*this;
+		}
 	}
 
 	const text& key() const
@@ -600,7 +626,7 @@ struct map_compact<text, item, integer>::subtree_iterator
 
 	subtree_iterator end() const
 	{
-		return subtree_iterator(searcher, prefix, searcher.index.data.size() - 1);
+		return subtree_iterator(searcher, {searcher.trie, container_size<integer>(searcher.trie.data) - 1, 0});
 	}
 
 	bool operator!=(const subtree_iterator& i) const
@@ -608,37 +634,45 @@ struct map_compact<text, item, integer>::subtree_iterator
 		return this->current != i.current;
 	}
 
-	subtree_iterator& operator*()
+	const text& operator*() const
 	{
-		return *this;
+		return searcher.result;
 	}
 
 	subtree_iterator& operator++()
 	{
 		do{
-			if(!searcher.index.data[searcher.path.back()].leaf){
-				integer child = searcher.index.data[searcher.path.back()].next;
-				searcher.path.push_back(child);
-				searcher.result.push_back(searcher.index.data[child].label);
+			if(!searcher.trie.data[searcher.path.back()].leaf){
+				// first child
+				integer n = searcher.trie.data[searcher.path.back()].next;
+				searcher.path.push_back(n);
+				searcher.result.push_back(searcher.trie.data[n].label);
+				std::copy(searcher.trie.labels.begin() + searcher.trie.data[n].ref, searcher.trie.labels.begin() + searcher.trie.data[n + 1].ref, std::back_inserter(searcher.result));
 			}
 			else{
 				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
-						searcher.index.data[searcher.index.data[searcher.path[searcher.path.size() - 2]].next].next){
+						searcher.trie.data[searcher.trie.data[searcher.path[searcher.path.size() - 2]].next].next){
+					// parent
+					searcher.result.resize(searcher.result.size() - (1 + searcher.trie.data[searcher.path.back() + 1].ref - searcher.trie.data[searcher.path.back()].ref));
 					searcher.path.pop_back();
-					searcher.result.pop_back();
 				}
-				if(searcher.path.size() > 1)
-					searcher.result.back() = searcher.index.data[++searcher.path.back()].label;
-				else
-					searcher.path.pop_back();
+				if(searcher.path.size() > 1){
+					// next sibling
+					searcher.result.resize(searcher.result.size() - (1 + searcher.trie.data[searcher.path.back() + 1].ref - searcher.trie.data[searcher.path.back()].ref));
+					integer n = ++searcher.path.back();
+					searcher.result.push_back(searcher.trie.data[n].label);
+					std::copy(searcher.trie.labels.begin() + searcher.trie.data[n].ref, searcher.trie.labels.begin() + searcher.trie.data[n + 1].ref, std::back_inserter(searcher.result));
+				}
+				else{
+					searcher.path.clear();
+				}
 			}
-		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
-		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
+		}while(!searcher.path.empty() && !searcher.trie.data[searcher.path.back()].match);
+		current = !searcher.path.empty() ? searcher.path.back() : searcher.trie.data.size() - 1;
 		return *this;
 	}
 };
 
-// TODO
 template<typename text, typename item, typename integer>
 struct map_compact<text, item, integer>::prefix_iterator
 {
@@ -650,9 +684,9 @@ struct map_compact<text, item, integer>::prefix_iterator
 	prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
 		searcher(searcher), pattern(pattern), current(current), depth(depth)
 	{
-		if(current == 0 && !searcher.index.data[current].match){
+		if(current == 0 && !searcher.trie.data[current].match){
 			if(pattern.empty())
-				this->current = searcher.index.data.size() - 1;
+				this->current = searcher.trie.data.size() - 1;
 			else
 				++*this;
 		}
@@ -675,7 +709,7 @@ struct map_compact<text, item, integer>::prefix_iterator
 
 	prefix_iterator end() const
 	{
-		return prefix_iterator(searcher, pattern, searcher.index.data.size() - 1, pattern.size());
+		return prefix_iterator(searcher, pattern, searcher.trie.data.size() - 1, pattern.size());
 	}
 
 	bool operator!=(const prefix_iterator& i) const
@@ -683,28 +717,40 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return this->current != i.current;
 	}
 
-	prefix_iterator& operator*()
+	const text& operator*() const
 	{
-		return *this;
+		return searcher.result;
 	}
 
 	prefix_iterator& operator++()
 	{
-		for(; !searcher.index.data[current].leaf && depth < pattern.size(); ){
-			current = searcher.index.data[current].next;
-			integer end = searcher.index.data[current].next;
-			for(integer w = end - current, m; w > searcher.index.min_binary_search; w = m){
+		while(!searcher.trie.data[current].leaf && depth < pattern.size()){
+			// find child
+			current = searcher.trie.data[current].next;
+			integer end = searcher.trie.data[current].next;
+			for(integer w = end - current, m; w > searcher.trie.min_binary_search; w = m){
 				m = w >> 1;
-				current += searcher.index.data[current + m].label < pattern[depth] ? w - m : 0;
+				current += searcher.trie.data[current + m].label < pattern[depth] ? w - m : 0;
 			}
-			for(; current < end && searcher.index.data[current].label < pattern[depth]; ++current);
-			if(!(current < end && searcher.index.data[current].label == pattern[depth]))
+			for(; current < end && searcher.trie.data[current].label < pattern[depth]; ++current);
+			if(!(current < end && searcher.trie.data[current].label == pattern[depth]))
 				break;
 			searcher.result.push_back(pattern[depth++]);
-			if(searcher.index.data[current].match)
+
+			// check compressed labels
+			integer j = searcher.trie.data[current].ref, jend = searcher.trie.data[current + 1].ref;
+			if(jend > j){
+				if(jend - j > pattern.size() - depth || !std::equal(searcher.trie.labels.begin() + j, searcher.trie.labels.begin() + jend, pattern.begin() + depth))
+					break;
+				std::copy(searcher.trie.labels.begin() + j, searcher.trie.labels.begin() + jend, std::back_inserter(searcher.result));
+				depth += jend - j;
+			}
+
+			if(searcher.trie.data[current].match)
 				return *this;
 		}
-		current = searcher.index.data.size() - 1;
+
+		current = searcher.trie.data.size() - 1;
 		return *this;
 	}
 };
