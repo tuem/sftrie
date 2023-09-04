@@ -22,21 +22,15 @@ limitations under the License.
 
 #include <string>
 
-#include "map_naive.hpp"
-#include "map_basic.hpp"
-#include "map_tail.hpp"
-#include "map_decompaction.hpp"
+#include "map_original.hpp"
+//TODO: #include "map_compact.hpp"
 
-#if defined SFTRIE_MAP_USE_DECOMPACTION
-	#define SFTRIE_MAP_TYPE map_decompaction
-#elif defined SFTRIE_MAP_USE_TAIL
-	#define SFTRIE_MAP_TYPE map_tail
-#elif defined SFTRIE_MAP_USE_BASIC
-	#define SFTRIE_MAP_TYPE map_basic
-#elif defined SFTRIE_MAP_USE_NAIVE
-	#define SFTRIE_MAP_TYPE map_naive
+#if defined SFTRIE_MAP_USE_ORIGINAL
+	#define SFTRIE_MAP_TYPE map_original
+#elif defined SFTRIE_MAP_USE_COMPACT
+	#define SFTRIE_MAP_TYPE map_original
 #else
-	#define SFTRIE_MAP_TYPE map_tail
+	#define SFTRIE_MAP_TYPE map_original
 #endif
 
 namespace sftrie{

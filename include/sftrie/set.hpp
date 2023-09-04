@@ -23,22 +23,13 @@ limitations under the License.
 #include <stdint.h>
 #include <string>
 
-#include "set_naive.hpp"
-#include "set_basic.hpp"
-#include "set_tail.hpp"
+#include "set_original.hpp"
 #include "set_compact.hpp"
-#include "set_decompaction.hpp"
 
-#if defined SFTRIE_SET_USE_DECOMPACTION
-	#define SFTRIE_SET_TYPE set_decompaction
+#if defined SFTRIE_SET_USE_ORIGINAL
+	#define SFTRIE_SET_TYPE set_original
 #elif defined SFTRIE_SET_USE_COMACT
 	#define SFTRIE_SET_TYPE set_compact
-#elif defined SFTRIE_SET_USE_TAIL
-	#define SFTRIE_SET_TYPE set_tail
-#elif defined SFTRIE_SET_USE_BASIC
-	#define SFTRIE_SET_TYPE set_basic
-#elif defined SFTRIE_SET_USE_NAIVE
-	#define SFTRIE_SET_TYPE set_naive
 #else
 	#define SFTRIE_SET_TYPE set_compact
 #endif
