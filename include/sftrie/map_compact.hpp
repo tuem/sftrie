@@ -38,6 +38,10 @@ private:
 	using symbol = typename text::value_type;
 
 public:
+	using symbol_type = symbol;
+	using size_type = std::size_t;
+	using result_type = std::pair<bool, const item&>;
+
 	struct node;
 	struct virtual_node;
 	struct child_iterator;
@@ -45,10 +49,7 @@ public:
 	struct subtree_iterator;
 	struct prefix_iterator;
 
-	using symbol_type = symbol;
-	using size_type = std::size_t;
 	using node_type = virtual_node;
-	using result_type = std::pair<bool, item&>;
 
 public:
 	template<typename random_access_iterator>
@@ -76,6 +77,7 @@ public:
 	// tree operations
 	node_type root();
 	const std::vector<node>& raw_data() const;
+	const std::vector<symbol>& raw_labels() const;
 	bool update(integer id, const item& value);
 	bool update(const text& key, const item& value);
 
@@ -90,6 +92,7 @@ private:
 
 	size_type num_texts;
 	std::vector<node> data;
+	std::vector<symbol> labels;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -103,7 +106,7 @@ struct map_compact<text, item, integer>::node
 	bool match: 1;
 	bool leaf: 1;
 	integer next: bit_width<integer>() - 2;
-	integer ref: integer;
+	integer ref;
 	symbol label;
 	item value;
 };
@@ -117,7 +120,7 @@ template<typename random_access_iterator>
 map_compact<text, item, integer>::map_compact(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search):
 	min_binary_search(min_binary_search),
-	num_texts(end - begin), data(1, {false, false, 1, {}, {}})
+	num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}})
 {
 	construct(begin, end, 0, 0);
 	data.push_back({false, false, container_size<integer>(data), container_size<integer>(labels), {}, {}});
@@ -289,6 +292,13 @@ map_compact<text, item, integer>::raw_data() const
 }
 
 template<typename text, typename item, typename integer>
+const std::vector<typename map_compact<text, item, integer>::symbol>&
+map_compact<text, item, integer>::raw_labels() const
+{
+	return labels;
+}
+
+template<typename text, typename item, typename integer>
 template<typename output_stream>
 void map_compact<text, item, integer>::save(output_stream& os) const
 {
@@ -350,7 +360,7 @@ template<typename iterator>
 void map_compact<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
 	// set flags
-	if((data[current].match = (depth == container_size<integer>(*begin))))
+	if((data[current].match = (depth == container_size<integer>((*begin).first))))
 		if((data[current].leaf = (++begin == end)))
 			return;
 
@@ -358,7 +368,7 @@ void map_compact<text, item, integer>::construct(iterator begin, iterator end, i
 	std::vector<iterator> head{begin};
 	for(iterator i = begin; i < end; head.push_back(i)){
 		data.push_back({false, false, 0, 0, (*i).first[depth], (*i).second});
-		for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
+		for(symbol c = (*i).first[depth]; i < end && (*i).first[depth] == c; ++i);
 	}
 
 	// compress single paths
@@ -366,8 +376,9 @@ void map_compact<text, item, integer>::construct(iterator begin, iterator end, i
 	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 		data[data[current].next + i].ref = container_size<integer>(labels);
 		integer d = depth + 1;
-		while(d < container_size<integer>(*head[i]) && (*head[i])[d] == (*(head[i + 1] - 1))[d])
-			labels.push_back((*head[i])[d++]);
+		//set: while(d < container_size<integer>(*head[i]) && (*head[i])[d] == (*(head[i + 1] - 1))[d])
+		while(d < container_size<integer>((*head[i]).first) && (*head[i]).first[d] == (*(head[i + 1] - 1)).first[d])
+			labels.push_back((*head[i]).first[d++]);
 		depths.push_back(d);
 	}
 
@@ -388,7 +399,7 @@ struct map_compact<text, item, integer>::virtual_node
 	integer id;
 	integer depth;
 
-	virtual_node(const map_compact<text, item, integer>& trie, integer id, integer depth):
+	virtual_node(map_compact<text, item, integer>& trie, integer id, integer depth):
 		trie(trie), id(id), depth(depth)
 	{}
 
@@ -521,13 +532,13 @@ struct map_compact<text, item, integer>::child_iterator
 template<typename text, typename item, typename integer>
 struct map_compact<text, item, integer>::common_searcher
 {
-	const map_compact<text, item, integer>& trie;
+	map_compact<text, item, integer>& trie;
 	std::vector<integer> path;
 	text result;
 
-	common_searcher(const map_compact<text, item, integer>& trie): trie(trie){}
+	common_searcher(map_compact<text, item, integer>& trie): trie(trie){}
 
-	typename map_compact<text, item, integer>::node_type find(const text& pattern) const
+	typename map_compact<text, item, integer>::node_type find(const text& pattern)
 	{
 		integer current = 0;
 		for(integer i = 0; i < pattern.size();){
@@ -611,12 +622,12 @@ struct map_compact<text, item, integer>::subtree_iterator
 
 	item& value()
 	{
-		return searcher.index.data[current].value;
+		return searcher.trie.data[current].value;
 	}
 
 	map_compact<text, item, integer>::virtual_node node()
 	{
-		return map_compact<text, item, integer>::virtual_node(searcher.index, current);
+		return map_compact<text, item, integer>::virtual_node(searcher.trie, current);
 	}
 
 	subtree_iterator& begin()
@@ -634,9 +645,9 @@ struct map_compact<text, item, integer>::subtree_iterator
 		return this->current != i.current;
 	}
 
-	const text& operator*() const
+	subtree_iterator& operator*()
 	{
-		return searcher.result;
+		return *this;
 	}
 
 	subtree_iterator& operator++()
@@ -699,7 +710,7 @@ struct map_compact<text, item, integer>::prefix_iterator
 
 	item& value()
 	{
-		return searcher.index.data[current].value;
+		return searcher.trie.data[current].value;
 	}
 
 	prefix_iterator& begin()
@@ -717,9 +728,9 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return this->current != i.current;
 	}
 
-	const text& operator*() const
+	prefix_iterator& operator*()
 	{
-		return searcher.result;
+		return *this;
 	}
 
 	prefix_iterator& operator++()

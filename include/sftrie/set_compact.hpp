@@ -494,7 +494,6 @@ struct set_compact<text, integer>::common_searcher
 			if(!(current < end && trie.data[current].label == pattern[i]))
 				return {trie, container_size<integer>(trie.data) - 1, 0};
 
-
 			// check compressed labels
 			integer j = trie.data[current].ref, jend = trie.data[current + 1].ref;
 			if(jend - j > pattern.size() - ++i)

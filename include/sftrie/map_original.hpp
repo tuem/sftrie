@@ -37,7 +37,7 @@ class map_original
 public:
 	using symbol = typename text::value_type;
 	using size_type = std::size_t;
-	using result = std::pair<bool, const item&>;
+	using result_type = std::pair<bool, const item&>;
 
 	struct node;
 	struct virtual_node;
@@ -66,7 +66,7 @@ public:
 	size_type space() const;
 
 	// search
-	result find(const text& pattern) const;
+	result_type find(const text& pattern) const;
 	item& operator[](const text& pattern);
 	common_searcher searcher();
 
@@ -175,7 +175,7 @@ typename map_original<text, item, integer>::size_type map_original<text, item, i
 }
 
 template<typename text, typename item, typename integer>
-typename map_original<text, item, integer>::result
+typename map_original<text, item, integer>::result_type
 map_original<text, item, integer>::find(const text& pattern) const
 {
 	auto n = search(pattern);
