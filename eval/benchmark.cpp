@@ -345,7 +345,6 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 
 		results = benchmark_map(history, index, queries, shuffled_queries, max_result);
 	}
-	/* TODO
 	else if(container_type == "map" && sftrie_type == "compact"){
 		std::cerr << "constructing index...";
 		history.refresh();
@@ -361,7 +360,6 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 
 		results = benchmark_map(history, index, queries, shuffled_queries, max_result);
 	}
-	*/
 	else{
 		throw std::runtime_error("unknown index type or trie type: " + container_type + " / " + sftrie_type);
 	}
