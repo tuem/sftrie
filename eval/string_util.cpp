@@ -21,6 +21,8 @@ limitations under the License.
 
 #include <codecvt>
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 template<>
 void cast_string(const std::string& src, std::wstring& dest)
 {
@@ -62,3 +64,4 @@ void cast_string(const std::u32string& src, std::string& dest)
 	std::wstring_convert<std::codecvt_utf8<char32_t>, char32_t> converter;
 	dest = converter.to_bytes(src);
 }
+#pragma GCC diagnostic pop
