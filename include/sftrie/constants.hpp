@@ -46,11 +46,13 @@ inline constexpr std::uint8_t index_type_compact = 1;
 
 inline constexpr std::uint8_t text_charset_system_default = 0;
 inline constexpr std::uint8_t text_charset_unicode = 1;
+inline constexpr std::uint8_t text_charset_user_defined = 0xff;
 
 inline constexpr std::uint8_t text_encoding_system_default = 0;
 inline constexpr std::uint8_t text_encoding_utf8 = 1;
 inline constexpr std::uint8_t text_encoding_utf16 = 2;
 inline constexpr std::uint8_t text_encoding_utf32 = 3;
+inline constexpr std::uint8_t text_encoding_user_defined = 0xff;
 
 inline constexpr std::uint8_t integer_type_uint8 = 0;
 inline constexpr std::uint8_t integer_type_int8 = 1;
