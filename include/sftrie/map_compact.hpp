@@ -289,7 +289,7 @@ void map_compact<text, item, integer>::save(output_stream& os) const
 		constants::value_type<item>(),
 		sizeof(item),
 		data.size(),
-		0,
+		labels.size(),
 	};
 	os.write(reinterpret_cast<const char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
 
