@@ -75,7 +75,7 @@ size_t benchmark_set_predictive_search(const set& index,
 	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto& result: searcher.traverse(query)){
+		for(const auto& result: searcher.predict(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)
@@ -124,7 +124,7 @@ size_t benchmark_map_predictive_search(map& index,
 	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		size_t num_result = 0;
-		for(const auto result: searcher.traverse(query)){
+		for(const auto result: searcher.predict(query)){
 			(void)result;
 			++num_result;
 			if(max_result != 0 && num_result == max_result)
@@ -302,7 +302,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 	history.record("generating queries", queries.size());
 	std::cerr << "done." << std::endl;
 
-	size_t node_size = 0, trie_size =0, space = 0;
+	size_t node_size = 0, trie_size =0, total_space = 0;
 	std::tuple<size_t, size_t, size_t, size_t, size_t, size_t> results;
 	if(container_type == "set" && sftrie_type == "original"){
 		std::cerr << "constructing index...";
@@ -313,7 +313,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 
 		node_size = index.node_size();
 		trie_size = index.trie_size();
-		space = index.space();
+		total_space = index.total_space();
 
 		results = benchmark_set(history, index, queries, shuffled_queries, max_result);
 	}
@@ -326,7 +326,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 
 		node_size = index.node_size();
 		trie_size = index.trie_size();
-		space = index.space();
+		total_space = index.total_space();
 
 		results = benchmark_set(history, index, queries, shuffled_queries, max_result);
 	}
@@ -341,7 +341,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 
 		node_size = index.node_size();
 		trie_size = index.trie_size();
-		space = index.space();
+		total_space = index.total_space();
 
 		results = benchmark_map(history, index, queries, shuffled_queries, max_result);
 	}
@@ -356,7 +356,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 
 		node_size = index.node_size();
 		trie_size = index.trie_size();
-		space = index.space();
+		total_space = index.total_space();
 
 		results = benchmark_map(history, index, queries, shuffled_queries, max_result);
 	}
@@ -385,7 +385,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 	std::cout << std::left << std::setw(30) << "total bytes" << std::right << std::setw(12) << (sizeof(symbol) * total_length) << std::endl;
 	std::cout << std::left << std::setw(30) << "node size" << std::right << std::setw(12) << node_size << std::endl;
 	std::cout << std::left << std::setw(30) << "trie size" << std::right << std::setw(12) << trie_size << std::endl;
-	std::cout << std::left << std::setw(30) << "index size" << std::right << std::setw(12) << space << std::endl;
+	std::cout << std::left << std::setw(30) << "index size" << std::right << std::setw(12) << total_space << std::endl;
 	std::cout << std::endl;
 	std::cout << "[time]" << std::endl;
 	history.dump();

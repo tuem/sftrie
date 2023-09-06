@@ -51,6 +51,7 @@ public:
 	using node_type = virtual_node;
 
 public:
+	// constructors
 	template<typename random_access_iterator>
 	set_compact(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search = constants::default_min_binary_search<integer>);
@@ -66,9 +67,9 @@ public:
 	size_type node_size() const;
 	size_type trie_size() const;
 	size_type label_size() const;
-	size_type space() const;
+	size_type total_space() const;
 
-	// search
+	// search operations
 	bool exists(const text& pattern) const;
 	common_searcher searcher() const;
 
@@ -178,7 +179,7 @@ typename set_compact<text, integer>::size_type set_compact<text, integer>::label
 }
 
 template<typename text, typename integer>
-typename set_compact<text, integer>::size_type set_compact<text, integer>::space() const
+typename set_compact<text, integer>::size_type set_compact<text, integer>::total_space() const
 {
 	return sizeof(node) * data.size() + sizeof(symbol) * labels.size();
 }
@@ -521,7 +522,7 @@ struct set_compact<text, integer>::common_searcher
 		return find(pattern) != end() ? 1 : 0;
 	}
 
-	subtree_iterator traverse(const text& pattern)
+	subtree_iterator predict(const text& pattern)
 	{
 		auto root = find(pattern);
 		if(root != end()){

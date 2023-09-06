@@ -25,7 +25,6 @@ limitations under the License.
 #include <sftrie/set.hpp>
 
 using text = std::string;
-using integer = unsigned long;
 
 int main(int argc, char* argv[])
 {
@@ -51,7 +50,7 @@ int main(int argc, char* argv[])
 	}
 
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
-	sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
+	sftrie::set<text> index(std::begin(texts), std::end(texts));
 	texts.clear();
 	std::cerr << "done." << std::endl;
 
@@ -64,19 +63,24 @@ int main(int argc, char* argv[])
 			break;
 
 		auto back = query.back();
-		integer count = 0;
-		if(back != '*' && back != '?'){
+		size_t count = 0;
+		if(back != '*' && back != '<'){
+			// exact match
 			if((count = searcher.count(query)) > 0)
 				std::cout << query << ": found" << std::endl;
 		}
 		else{
 			query.pop_back();
-			if(back == '*')
-				for(const auto& t: searcher.traverse(query))
+			if(back == '*'){
+				// predictive search
+				for(const auto& t: searcher.predict(query))
 					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
-			else
+			}
+			else{
+				// common-prefix search
 				for(const auto& t: searcher.prefix(query))
 					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
+			}
 		}
 		if(count == 0)
 			std::cout << query << ": " << "not found" << std::endl;

@@ -64,10 +64,11 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		integer count = 0;
+		size_t count = 0;
 
 		auto back = query.back();
-		if(back != '*' && back != '?'){
+		if(back != '*' && back != '<'){
+			// exact match
 			auto result = index.find(query);
 			if(result.first){
 				count++;
@@ -77,10 +78,12 @@ int main(int argc, char* argv[])
 		else{
 			query.pop_back();
 			if(back == '*'){
-				for(auto result: searcher.traverse(query))
+				// predictive search
+				for(auto result: searcher.predict(query))
 					std::cout << std::setw(4) << ++count << ": " << result.key() << ", id=" << result.value() << std::endl;
 			}
 			else{
+				// common-prefix search
 				for(auto result: searcher.prefix(query))
 					std::cout << std::setw(4) << ++count << ": " << result.key() << ", id=" << result.value() << std::endl;
 			}

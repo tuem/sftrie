@@ -52,6 +52,7 @@ public:
 	using node_type = virtual_node;
 
 public:
+	// constructors
 	template<typename random_access_iterator>
 	map_original(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search = constants::default_min_binary_search<integer>);
@@ -66,9 +67,9 @@ public:
 	size_type size() const;
 	size_type node_size() const;
 	size_type trie_size() const;
-	size_type space() const;
+	size_type total_space() const;
 
-	// search
+	// search operations
 	result_type find(const text& pattern) const;
 	item& operator[](const text& pattern);
 	common_searcher searcher();
@@ -172,7 +173,7 @@ typename map_original<text, item, integer>::size_type map_original<text, item, i
 }
 
 template<typename text, typename item, typename integer>
-typename map_original<text, item, integer>::size_type map_original<text, item, integer>::space() const
+typename map_original<text, item, integer>::size_type map_original<text, item, integer>::total_space() const
 {
 	return sizeof(node) * data.size();
 }
@@ -290,7 +291,7 @@ void map_original<text, item, integer>::construct(iterator begin, iterator end, 
 		if((data[current].leaf = (++begin == end)))
 			return;
 
-	// reserve siblings first
+	// reserve children
 	std::vector<iterator> head{begin};
 	for(iterator i = begin; i < end; head.push_back(i)){
 		data.push_back({false, false, 0, (*i).first[depth], (*i).second});
@@ -454,9 +455,9 @@ struct map_original<text, item, integer>::common_searcher
 		return index.search(pattern) != index.data.size() - 1;
 	}
 
-	subtree_iterator traverse(const text& pattern)
+	subtree_iterator predict(const text& pattern)
 	{
-		integer root = index.search(pattern);
+		auto root = index.search(pattern);
 		if(root < index.data.size() - 1){
 			path.clear();
 			result.clear();

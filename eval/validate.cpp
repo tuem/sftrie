@@ -100,16 +100,16 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 template<typename text, typename set>
 std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	const std::vector<text>& positive_queries,
-	const std::vector<integer>& traversal_borders,
+	const std::vector<integer>& predictive_search_borders,
 	const std::vector<text>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
-	for(size_t i = 0; i < traversal_borders.size(); ++i){
-		size_t answer_start = i, answer_end = traversal_borders[i];
+	for(size_t i = 0; i < predictive_search_borders.size(); ++i){
+		size_t answer_start = i, answer_end = predictive_search_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto& result: searcher.traverse(positive_queries[answer_start])){
+		for(const auto& result: searcher.predict(positive_queries[answer_start])){
 			if(result != positive_queries[j]){
 				correct = false;
 				break;
@@ -127,7 +127,7 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto& result: searcher.traverse(query)){
+		for(const auto& result: searcher.predict(query)){
 			if(result == query){
 				correct = false;
 				break;
@@ -210,16 +210,16 @@ std::map<std::string, size_t> validate_map_prefix_search(map& index,
 template<typename text, typename item, typename map>
 std::map<std::string, size_t> validate_map_predictive_search(map& index,
 	const std::vector<std::pair<text, item>>& positive_queries,
-	const std::vector<integer>& traversal_borders,
+	const std::vector<integer>& predictive_search_borders,
 	const std::vector<std::pair<text, item>>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
-	for(size_t i = 0; i < traversal_borders.size(); ++i){
-		size_t answer_start = i, answer_end = traversal_borders[i];
+	for(size_t i = 0; i < predictive_search_borders.size(); ++i){
+		size_t answer_start = i, answer_end = predictive_search_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(auto result: searcher.traverse(positive_queries[answer_start].first)){
+		for(auto result: searcher.predict(positive_queries[answer_start].first)){
 			if(result.key() != positive_queries[j].first || result.value() != positive_queries[j].second){
 				correct = false;
 				break;
@@ -237,7 +237,7 @@ std::map<std::string, size_t> validate_map_predictive_search(map& index,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto result: searcher.traverse(query.first)){
+		for(const auto result: searcher.predict(query.first)){
 			if(result.key() == query.first){
 				correct = false;
 				break;
@@ -308,11 +308,11 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	std::vector<text> all_queries = texts;
 	std::vector<text> set_positive_queries, set_negative_queries;
 	std::vector<text> set_predictive_search_queries;
-	std::vector<integer> set_traversal_borders;
+	std::vector<integer> set_predictive_search_borders;
 
 	std::vector<std::pair<text, item>> map_positive_queries, map_negative_queries;
 	std::vector<std::pair<text, item>> map_predictive_search_queries;
-	std::vector<integer> map_traversal_borders;
+	std::vector<integer> map_predictive_search_borders;
 
 	size_t positive_queries_size, negative_queries_size, predictive_search_queries_size;
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -329,7 +329,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 			while(end < set_predictive_search_queries.size() &&
 					std::equal(std::begin(set_predictive_search_queries[i]), std::end(set_predictive_search_queries[i]), std::begin(set_predictive_search_queries[end])))
 				++end;
-			set_traversal_borders.push_back(end);
+			set_predictive_search_borders.push_back(end);
 		}
 
 		sftrie::sort_texts(std::begin(texts), std::end(texts));
@@ -351,7 +351,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 			while(end < map_predictive_search_queries.size() &&
 					std::equal(std::begin(map_predictive_search_queries[i].first), std::end(map_predictive_search_queries[i].first), std::begin(map_predictive_search_queries[end].first)))
 				++end;
-			map_traversal_borders.push_back(end);
+			map_predictive_search_borders.push_back(end);
 		}
 
 		sftrie::sort_text_item_pairs(std::begin(text_item_pairs), std::end(text_item_pairs));
@@ -364,7 +364,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 
 	std::map<std::string, size_t> result_exact;
 	std::map<std::string, size_t> result_prefix;
-	std::map<std::string, size_t> result_traversal;
+	std::map<std::string, size_t> result_predictive_search;
 	if(container_type == "set" && sftrie_type == "original"){
 		std::cerr << "constructing index...";
 		sftrie::set_original<text, integer> index(std::begin(texts), std::end(texts),
@@ -374,7 +374,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
 		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_traversal = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
+		result_predictive_search = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(container_type == "set" && sftrie_type == "compact"){
@@ -385,7 +385,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
 		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_traversal = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
+		result_predictive_search = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(container_type == "map" && sftrie_type == "original"){
@@ -397,7 +397,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
 		result_prefix = validate_map_prefix_search(index, all_queries);
-		result_traversal = validate_map_predictive_search(index, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
+		result_predictive_search = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(container_type == "map" && sftrie_type == "compact"){
@@ -408,7 +408,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
 		result_prefix = validate_map_prefix_search(index, all_queries);
-		result_traversal = validate_map_predictive_search(index, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
+		result_predictive_search = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else{
@@ -443,10 +443,10 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	std::cout << std::endl;
 	std::cout << "[predictive search]" << std::endl;
 	std::cout << std::left << std::setw(20) << "total queries" << std::right << std::setw(12) << (predictive_search_queries_size + negative_queries_size) << std::endl;
-	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_traversal["tp"] << std::endl;
-	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_traversal["tn"] << std::endl;
-	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_traversal["fp"] << std::endl;
-	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_traversal["fn"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_predictive_search["tp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_predictive_search["tn"] << std::endl;
+	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_predictive_search["fp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_predictive_search["fn"] << std::endl;
 }
 
 int main(int argc, char* argv[])
