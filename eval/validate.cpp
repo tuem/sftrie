@@ -26,6 +26,7 @@ limitations under the License.
 
 #include <random>
 #include <chrono>
+#include <stdexcept>
 
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
@@ -149,14 +150,14 @@ std::map<std::string, size_t> validate_map_exact_match(map& index,
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	for(const auto& query: positive_queries){
 		auto result = index.find(query.first);
-		if(result.first && result.second == query.second)
+		if(result.match() && result.value() == query.second)
 			++tp;
 		else
 			++fn;
 	}
 	for(const auto& query: negative_queries){
 		auto result = index.find(query.first);
-		if(!result.first)
+		if(!result.match())
 			++tn;
 		else
 			++fp;
@@ -174,11 +175,11 @@ std::map<std::string, size_t> validate_map_prefix_search(map& index,
 		std::vector<text> answers;
 		text answer = query;
 		while(!answer.empty()){
-			if(index.find(answer).first)
+			if(index.find(answer).match())
 				answers.push_back(answer);
 			answer.pop_back();
 		}
-		if(index.find(answer).first)
+		if(index.find(answer).match())
 			answers.push_back(answer);
 		std::reverse(std::begin(answers), std::end(answers));
 
@@ -253,7 +254,7 @@ std::map<std::string, size_t> validate_map_predictive_search(map& index,
 }
 
 template<typename text, typename item, typename integer>
-void exec(const std::string& corpus_path, const std::string& container_type,
+bool exec(const std::string& corpus_path, const std::string& container_type,
 	const std::string& sftrie_type, int min_binary_search)
 {
 	using symbol = typename text::value_type;
@@ -364,7 +365,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 
 	std::map<std::string, size_t> result_exact;
 	std::map<std::string, size_t> result_prefix;
-	std::map<std::string, size_t> result_predictive_search;
+	std::map<std::string, size_t> result_predict;
 	if(container_type == "set" && sftrie_type == "original"){
 		std::cerr << "constructing index...";
 		sftrie::set_original<text, integer> index(std::begin(texts), std::end(texts),
@@ -374,7 +375,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
 		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_predictive_search = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
+		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(container_type == "set" && sftrie_type == "compact"){
@@ -385,7 +386,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
 		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_predictive_search = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
+		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(container_type == "map" && sftrie_type == "original"){
@@ -397,7 +398,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
 		result_prefix = validate_map_prefix_search(index, all_queries);
-		result_predictive_search = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
+		result_predict = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else if(container_type == "map" && sftrie_type == "compact"){
@@ -408,7 +409,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "validating...";
 		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
 		result_prefix = validate_map_prefix_search(index, all_queries);
-		result_predictive_search = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
+		result_predict = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else{
@@ -443,10 +444,18 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	std::cout << std::endl;
 	std::cout << "[predictive search]" << std::endl;
 	std::cout << std::left << std::setw(20) << "total queries" << std::right << std::setw(12) << (predictive_search_queries_size + negative_queries_size) << std::endl;
-	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_predictive_search["tp"] << std::endl;
-	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_predictive_search["tn"] << std::endl;
-	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_predictive_search["fp"] << std::endl;
-	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_predictive_search["fn"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_predict["tp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_predict["tn"] << std::endl;
+	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_predict["fp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_predict["fn"] << std::endl;
+
+	return
+		result_exact["fp"] == 0 &&
+		result_exact["fp"] == 0 &&
+		result_prefix["fp"] == 0 &&
+		result_prefix["fn"] == 0 &&
+		result_predict["fp"] == 0 &&
+		result_predict["fn"] == 0;
 }
 
 int main(int argc, char* argv[])
@@ -480,18 +489,22 @@ int main(int argc, char* argv[])
 		std::cout << std::setw(20) << std::left << "min_binary_search" << min_binary_search << std::endl;
 		std::cout << std::endl;
 
+		bool passed;
 		if(symbol_type == "char")
-			exec<std::string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else if(symbol_type == "wchar_t")
-			exec<std::wstring, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::wstring, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else if(symbol_type == "char16_t")
-			exec<std::u16string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::u16string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else if(symbol_type == "char32_t")
-			exec<std::u32string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::u32string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 
-		return 0;
+		if(passed)
+			std::cout << std::endl << "all tests paeeed"<< std::endl;
+
+		return passed ? 0 : 1;
 	}
 	catch(const std::exception& e){
 		std::cerr << "error: " << e.what() << std::endl;
