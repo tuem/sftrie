@@ -355,6 +355,11 @@ struct map_original<text, item, integer>::virtual_node
 		return id;
 	}
 
+	bool is_root() const
+	{
+		return id == 0;
+	}
+
 	symbol label() const
 	{
 		return trie.data[id].label;
@@ -442,14 +447,14 @@ struct map_original<text, item, integer>::common_searcher
 
 	subtree_iterator predict(const text& pattern)
 	{
-		auto root = trie.search(pattern);
-		if(root < trie.data.size() - 1){
+		auto n = trie.search(pattern);
+		if(n < trie.data.size() - 1){
 			path.clear();
 			result.clear();
-			path.push_back(root);
+			path.push_back(n);
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
-		return subtree_iterator(*this, pattern, root);
+		return subtree_iterator(*this, n);
 	}
 
 	prefix_iterator prefix(const text& pattern)
@@ -463,13 +468,12 @@ template<typename text, typename item, typename integer>
 struct map_original<text, item, integer>::subtree_iterator
 {
 	common_searcher& searcher;
-	const text& prefix;
 	integer current;
 
-	subtree_iterator(common_searcher& searcher, const text& prefix, integer root):
-		searcher(searcher), prefix(prefix), current(root)
+	subtree_iterator(common_searcher& searcher, integer n):
+		searcher(searcher), current(n)
 	{
-		if(root < searcher.trie.data.size() - 1 && !searcher.trie.data[root].match)
+		if(n < searcher.trie.data.size() - 1 && !searcher.trie.data[n].match)
 			++*this;
 	}
 
@@ -495,7 +499,7 @@ struct map_original<text, item, integer>::subtree_iterator
 
 	subtree_iterator end() const
 	{
-		return subtree_iterator(searcher, prefix, searcher.trie.data.size() - 1);
+		return subtree_iterator(searcher, searcher.trie.data.size() - 1);
 	}
 
 	bool operator!=(const subtree_iterator& i) const
