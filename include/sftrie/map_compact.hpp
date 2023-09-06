@@ -81,7 +81,7 @@ public:
 	const std::vector<symbol>& raw_labels() const;
 
 	// value operations
-	bool update(integer id, const item& value);
+	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
 	item& operator[](const text& pattern);
 
@@ -222,7 +222,7 @@ map_compact<text, item, integer>::find(const text& pattern) const
 template<typename text, typename item, typename integer>
 item& map_compact<text, item, integer>::operator[](const text& pattern)
 {
-	auto n = search(pattern);
+	auto n = find(pattern);
 	return data[n.id].value;
 }
 
@@ -234,9 +234,9 @@ map_compact<text, item, integer>::searcher()
 }
 
 template<typename text, typename item, typename integer>
-bool map_compact<text, item, integer>::update(integer id, const item& value)
+bool map_compact<text, item, integer>::update(const node_type& n, const item& value)
 {
-	data.at(id).value = value;
+	data[n.id].value = value;
 	return true;
 }
 
