@@ -93,6 +93,8 @@ private:
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
+
+	node_type search(const text& pattern) const;
 };
 
 
@@ -336,6 +338,36 @@ void set_compact<text, integer>::construct(iterator begin, iterator end, integer
 	}
 }
 
+template<typename text, typename integer>
+typename set_compact<text, integer>::node_type
+set_compact<text, integer>::search(const text& pattern) const
+{
+	integer current = 0, depth = 0;
+	for(integer i = 0; i < pattern.size();){
+		if(data[current].leaf)
+			return {*this, container_size<integer>(data) - 1, 0};
+
+		// find child
+		current = data[current].next;
+		integer end = data[current].next;
+		for(integer w = end - current, m; w > min_binary_search; w = m){
+			m = w >> 1;
+			current += data[current + m].label < pattern[i] ? w - m : 0;
+		}
+		for(; current < end && data[current].label < pattern[i]; ++current);
+		if(!(current < end && data[current].label == pattern[i++]))
+			return {*this, container_size<integer>(data) - 1, 0};
+
+		// check compressed labels
+		integer jstart = data[current].ref, jend = data[current + 1].ref;
+		for(depth = 0; jstart + depth < jend && i < pattern.size(); ++depth, ++i)
+			if(labels[jstart + depth] != pattern[i])
+				return {*this, container_size<integer>(data) - 1, 0};
+	}
+
+	return {*this, current, depth};
+}
+
 
 // subclasses
 
@@ -367,7 +399,7 @@ struct set_compact<text, integer>::virtual_node
 
 	bool is_physical() const
 	{
-		return depth == 0;
+		return is_valid() && depth == trie.data[id + 1].ref - trie.data[id].ref;
 	}
 
 	symbol label() const
@@ -480,58 +512,22 @@ struct set_compact<text, integer>::common_searcher
 
 	common_searcher(const set_compact<text, integer>& trie): trie(trie){}
 
-	typename set_compact<text, integer>::node_type find(const text& pattern) const
-	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size();){
-			if(trie.data[current].leaf)
-				return {trie, container_size<integer>(trie.data) - 1, 0};
-
-			// find child
-			current = trie.data[current].next;
-			integer end = trie.data[current].next;
-			for(integer w = end - current, m; w > trie.min_binary_search; w = m){
-				m = w >> 1;
-				current += trie.data[current + m].label < pattern[i] ? w - m : 0;
-			}
-			for(; current < end && trie.data[current].label < pattern[i]; ++current);
-			if(!(current < end && trie.data[current].label == pattern[i]))
-				return {trie, container_size<integer>(trie.data) - 1, 0};
-
-			// check compressed labels
-			integer j = trie.data[current].ref, jend = trie.data[current + 1].ref;
-			if(jend - j > pattern.size() - ++i)
-				return {trie, container_size<integer>(trie.data) - 1, 0};
-			for(; j < jend; ++i, ++j)
-				if(trie.labels[j] != pattern[i])
-					return {trie, container_size<integer>(trie.data) - 1, 0};
-		}
-		if(!trie.data[current].match)
-			return {trie, container_size<integer>(trie.data) - 1, 0};
-
-		return {trie, current, trie.data[current + 1].ref - trie.data[current].ref};
-	}
-
-	typename set_compact<text, integer>::node_type end() const
-	{
-		return {trie, container_size<integer>(trie.data) - 1, 0};
-	}
-
 	integer count(const text& pattern) const
 	{
-		return find(pattern) != end() ? 1 : 0;
+		auto n = trie.search(pattern);
+		return trie.data[n.id].match ? 1 : 0;
 	}
 
 	subtree_iterator predict(const text& pattern)
 	{
-		auto root = find(pattern);
-		if(root != end()){
+		auto n = trie.search(pattern);
+		if(n.id < trie.data.size() - 1){
 			result.clear();
 			path.clear();
-			path.push_back(root.id);
+			path.push_back(n.id);
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
-		return subtree_iterator(*this, root);
+		return subtree_iterator(*this, n);
 	}
 
 	prefix_iterator prefix(const text& pattern)
@@ -547,13 +543,16 @@ struct set_compact<text, integer>::subtree_iterator
 	common_searcher& searcher;
 	integer current;
 
-	subtree_iterator(common_searcher& searcher, const virtual_node& root):
-		searcher(searcher), current(root.id)
+	subtree_iterator(common_searcher& searcher, const virtual_node& n):
+		searcher(searcher), current(n.id)
 	{
-		if(root.id < searcher.trie.data.size() - 1 && !searcher.trie.data[root.id].match){
-			for(integer d = root.depth; searcher.trie.data[root.id].ref + d < searcher.trie.data[root.id + 1].ref; ++d)
-				searcher.result.push_back(searcher.trie.labels[searcher.trie.data[root.id].ref + d]);
-			++*this;
+		if(n.id < searcher.trie.data.size() - 1){
+			if(searcher.trie.data[n.id + 1].ref - searcher.trie.data[n.id].ref > n.depth)
+				std::copy(searcher.trie.labels.begin() + searcher.trie.data[n.id].ref + n.depth,
+					searcher.trie.labels.begin() + searcher.trie.data[n.id + 1].ref,
+					std::back_inserter(searcher.result));
+			if(!searcher.trie.data[n.id].match)
+				++*this;
 		}
 	}
 
