@@ -97,7 +97,6 @@ private:
 	node_type search(const text& pattern) const;
 };
 
-
 #pragma pack(1)
 template<typename text, typename integer>
 struct set_compact<text, integer>::node

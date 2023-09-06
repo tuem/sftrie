@@ -40,7 +40,7 @@ private:
 public:
 	using symbol_type = symbol;
 	using size_type = std::size_t;
-	using result_type = std::pair<bool, const item&>;
+	using value_type = item;
 
 	struct node;
 	struct virtual_node;
@@ -70,14 +70,17 @@ public:
 	size_type total_space() const;
 
 	// search operations
-	result_type find(const text& pattern) const;
-	item& operator[](const text& pattern);
-	common_searcher searcher();
+	node_type find(const text& pattern) const;
+	common_searcher searcher() const;
 
 	// tree operations
-	node_type root();
+	node_type root() const;
 	const std::vector<node>& raw_data() const;
+
+	// value operations
+	bool update(node_type& n, const item& value);
 	bool update(const text& key, const item& value);
+	value_type& operator[](const text& pattern);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -96,7 +99,6 @@ private:
 
 	integer search(const text& pattern) const;
 };
-
 
 #pragma pack(1)
 template<typename text, typename item, typename integer>
@@ -179,41 +181,21 @@ typename map_original<text, item, integer>::size_type map_original<text, item, i
 }
 
 template<typename text, typename item, typename integer>
-typename map_original<text, item, integer>::result_type
+typename map_original<text, item, integer>::node_type
 map_original<text, item, integer>::find(const text& pattern) const
 {
-	auto n = search(pattern);
-	return {data[n].match, data[n].value};
-}
-
-template<typename text, typename item, typename integer>
-item& map_original<text, item, integer>::operator[](const text& pattern)
-{
-	return data[search(pattern)].value;
+	return {*this, search(pattern)};
 }
 
 template<typename text, typename item, typename integer>
 typename map_original<text, item, integer>::common_searcher
-map_original<text, item, integer>::searcher()
+map_original<text, item, integer>::searcher() const
 {
 	return common_searcher(*this);
 }
 
 template<typename text, typename item, typename integer>
-bool map_original<text, item, integer>::update(const text& key, const item& value)
-{
-	auto i = search(key);
-	if(data[i].match){
-		data[i].value = value;
-		return true;
-	}
-	else{
-		return false;
-	}
-}
-
-template<typename text, typename item, typename integer>
-typename map_original<text, item, integer>::node_type map_original<text, item, integer>::root()
+typename map_original<text, item, integer>::node_type map_original<text, item, integer>::root() const
 {
 	return {*this, static_cast<integer>(0)};
 }
@@ -223,6 +205,25 @@ const std::vector<typename map_original<text, item, integer>::node>&
 map_original<text, item, integer>::raw_data() const
 {
 	return data;
+}
+
+template<typename text, typename item, typename integer>
+bool map_original<text, item, integer>::update(node_type& n, const item& value)
+{
+	data[n.id].value = value;
+}
+
+template<typename text, typename item, typename integer>
+bool map_original<text, item, integer>::update(const text& key, const item& value)
+{
+	return update(search(key), value);
+}
+
+template<typename text, typename item, typename integer>
+typename map_original<text, item, integer>::value_type&
+map_original<text, item, integer>::operator[](const text& pattern)
+{
+	return data[search(pattern).id].value;
 }
 
 template<typename text, typename item, typename integer>
@@ -332,16 +333,21 @@ integer map_original<text, item, integer>::search(const text& pattern) const
 template<typename text, typename item, typename integer>
 struct map_original<text, item, integer>::virtual_node
 {
-	map_original<text, item, integer>& trie;
+	const map_original<text, item, integer>& trie;
 	integer id;
 
-	virtual_node(map_original<text, item, integer>& trie, integer id):
+	virtual_node(const map_original<text, item, integer>& trie, integer id):
 		trie(trie), id(id)
 	{}
 
 	bool operator!=(const map_original<text, item, integer>::virtual_node& n) const
 	{
 		return &trie != &n.trie || id != n.id;
+	}
+
+	bool valid() const
+	{
+		return id < trie.data.size() - 1;
 	}
 
 	integer node_id() const
@@ -364,7 +370,7 @@ struct map_original<text, item, integer>::virtual_node
 		return trie.data[id].leaf;
 	}
 
-	item& value()
+	const item& value() const
 	{
 		return trie.data[id].value;
 	}
@@ -385,7 +391,7 @@ struct map_original<text, item, integer>::child_iterator
 		current(trie, 0), last(1)
 	{}
 
-	child_iterator(map_original<text, item, integer>& trie, const integer parent):
+	child_iterator(map_original<text, item, integer>& trie, integer parent):
 		current(trie, trie.data[parent].next),
 		last(trie.data[parent].next < trie.data.size() ? trie.data[trie.data[parent].next].next : trie.data.size())
 	{}
@@ -394,7 +400,7 @@ struct map_original<text, item, integer>::child_iterator
 		current(trie, id), last(last)
 	{}
 
-	child_iterator& begin()
+	child_iterator& begin() const
 	{
 		return *this;
 	}
@@ -402,16 +408,6 @@ struct map_original<text, item, integer>::child_iterator
 	child_iterator end() const
 	{
 		return child_iterator(current.trie, last, last);
-	}
-
-	bool incrementable() const
-	{
-		return current.id < last - 1;
-	}
-
-	bool operator==(const child_iterator& i) const
-	{
-		return current.id == i.current.id;
 	}
 
 	bool operator!=(const child_iterator& i) const
@@ -433,32 +429,21 @@ struct map_original<text, item, integer>::child_iterator
 template<typename text, typename item, typename integer>
 struct map_original<text, item, integer>::common_searcher
 {
-	map_original<text, item, integer>& index;
+	const map_original<text, item, integer>& trie;
 	std::vector<integer> path;
 	text result;
 
-	common_searcher(map_original<text, item, integer>& index): index(index){}
+	common_searcher(const map_original<text, item, integer>& trie): trie(trie){}
 
 	map_original<text, item, integer>::virtual_node find(const text& pattern) const
 	{
-		auto i = index.search(pattern);
-		return index.data[i].match ? map_original<text, item, integer>::virtual_node(index, i) : end();
-	}
-
-	map_original<text, item, integer>::virtual_node end() const
-	{
-		return map_original<text, item, integer>::virtual_node(index, index.data.size() - 1);
-	}
-
-	integer count(const text& pattern) const
-	{
-		return index.search(pattern) != index.data.size() - 1;
+		return trie.search(pattern);
 	}
 
 	subtree_iterator predict(const text& pattern)
 	{
-		auto root = index.search(pattern);
-		if(root < index.data.size() - 1){
+		auto root = trie.search(pattern);
+		if(root < trie.data.size() - 1){
 			path.clear();
 			result.clear();
 			path.push_back(root);
@@ -484,7 +469,7 @@ struct map_original<text, item, integer>::subtree_iterator
 	subtree_iterator(common_searcher& searcher, const text& prefix, integer root):
 		searcher(searcher), prefix(prefix), current(root)
 	{
-		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
+		if(root < searcher.trie.data.size() - 1 && !searcher.trie.data[root].match)
 			++*this;
 	}
 
@@ -493,14 +478,14 @@ struct map_original<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	item& value()
+	const item& value() const
 	{
-		return searcher.index.data[current].value;
+		return searcher.trie.data[current].value;
 	}
 
-	map_original<text, item, integer>::virtual_node node()
+	map_original<text, item, integer>::virtual_node node() const
 	{
-		return map_original<text, item, integer>::virtual_node(searcher.index, current);
+		return {searcher.trie, current};
 	}
 
 	subtree_iterator& begin()
@@ -510,7 +495,7 @@ struct map_original<text, item, integer>::subtree_iterator
 
 	subtree_iterator end() const
 	{
-		return subtree_iterator(searcher, prefix, searcher.index.data.size() - 1);
+		return subtree_iterator(searcher, prefix, searcher.trie.data.size() - 1);
 	}
 
 	bool operator!=(const subtree_iterator& i) const
@@ -518,7 +503,7 @@ struct map_original<text, item, integer>::subtree_iterator
 		return this->current != i.current;
 	}
 
-	subtree_iterator& operator*()
+	const subtree_iterator& operator*() const
 	{
 		return *this;
 	}
@@ -526,24 +511,24 @@ struct map_original<text, item, integer>::subtree_iterator
 	subtree_iterator& operator++()
 	{
 		do{
-			if(!searcher.index.data[searcher.path.back()].leaf){
-				integer child = searcher.index.data[searcher.path.back()].next;
+			if(!searcher.trie.data[searcher.path.back()].leaf){
+				integer child = searcher.trie.data[searcher.path.back()].next;
 				searcher.path.push_back(child);
-				searcher.result.push_back(searcher.index.data[child].label);
+				searcher.result.push_back(searcher.trie.data[child].label);
 			}
 			else{
 				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
-						searcher.index.data[searcher.index.data[searcher.path[searcher.path.size() - 2]].next].next){
+						searcher.trie.data[searcher.trie.data[searcher.path[searcher.path.size() - 2]].next].next){
 					searcher.path.pop_back();
 					searcher.result.pop_back();
 				}
 				if(searcher.path.size() > 1)
-					searcher.result.back() = searcher.index.data[++searcher.path.back()].label;
+					searcher.result.back() = searcher.trie.data[++searcher.path.back()].label;
 				else
 					searcher.path.pop_back();
 			}
-		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
-		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
+		}while(!searcher.path.empty() && !searcher.trie.data[searcher.path.back()].match);
+		current = !searcher.path.empty() ? searcher.path.back() : searcher.trie.data.size() - 1;
 		return *this;
 	}
 };
@@ -559,9 +544,9 @@ struct map_original<text, item, integer>::prefix_iterator
 	prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
 		searcher(searcher), pattern(pattern), current(current), depth(depth)
 	{
-		if(current == 0 && !searcher.index.data[current].match){
+		if(current == 0 && !searcher.trie.data[current].match){
 			if(pattern.empty())
-				this->current = searcher.index.data.size() - 1;
+				this->current = searcher.trie.data.size() - 1;
 			else
 				++*this;
 		}
@@ -572,9 +557,14 @@ struct map_original<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	item& value()
+	const item& value() const
 	{
-		return searcher.index.data[current].value;
+		return searcher.trie.data[current].value;
+	}
+
+	map_original<text, item, integer>::virtual_node node() const
+	{
+		return {searcher.trie, current};
 	}
 
 	prefix_iterator& begin()
@@ -584,7 +574,7 @@ struct map_original<text, item, integer>::prefix_iterator
 
 	prefix_iterator end() const
 	{
-		return prefix_iterator(searcher, pattern, searcher.index.data.size() - 1, pattern.size());
+		return prefix_iterator(searcher, pattern, searcher.trie.data.size() - 1, pattern.size());
 	}
 
 	bool operator!=(const prefix_iterator& i) const
@@ -592,28 +582,28 @@ struct map_original<text, item, integer>::prefix_iterator
 		return this->current != i.current;
 	}
 
-	prefix_iterator& operator*()
+	const prefix_iterator& operator*() const
 	{
 		return *this;
 	}
 
 	prefix_iterator& operator++()
 	{
-		for(; !searcher.index.data[current].leaf && depth < pattern.size(); ){
-			current = searcher.index.data[current].next;
-			integer end = searcher.index.data[current].next;
-			for(integer w = end - current, m; w > searcher.index.min_binary_search; w = m){
+		for(; !searcher.trie.data[current].leaf && depth < pattern.size(); ){
+			current = searcher.trie.data[current].next;
+			integer end = searcher.trie.data[current].next;
+			for(integer w = end - current, m; w > searcher.trie.min_binary_search; w = m){
 				m = w >> 1;
-				current += searcher.index.data[current + m].label < pattern[depth] ? w - m : 0;
+				current += searcher.trie.data[current + m].label < pattern[depth] ? w - m : 0;
 			}
-			for(; current < end && searcher.index.data[current].label < pattern[depth]; ++current);
-			if(!(current < end && searcher.index.data[current].label == pattern[depth]))
+			for(; current < end && searcher.trie.data[current].label < pattern[depth]; ++current);
+			if(!(current < end && searcher.trie.data[current].label == pattern[depth]))
 				break;
 			searcher.result.push_back(pattern[depth++]);
-			if(searcher.index.data[current].match)
+			if(searcher.trie.data[current].match)
 				return *this;
 		}
-		current = searcher.index.data.size() - 1;
+		current = searcher.trie.data.size() - 1;
 		return *this;
 	}
 };
