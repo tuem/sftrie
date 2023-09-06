@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 			else{
 				// common-prefix search
 				for(auto result: searcher.prefix(query)){
-					index.update(result.key(), result.value() + 1);
+					index.update(result.node(), result.value() + 1);
 					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
 				}
 			}
