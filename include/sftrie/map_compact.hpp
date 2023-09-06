@@ -83,7 +83,7 @@ public:
 	// value operations
 	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
-	item& operator[](const text& pattern);
+	item& operator[](const text& key);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -220,10 +220,9 @@ map_compact<text, item, integer>::find(const text& pattern) const
 }
 
 template<typename text, typename item, typename integer>
-item& map_compact<text, item, integer>::operator[](const text& pattern)
+item& map_compact<text, item, integer>::operator[](const text& key)
 {
-	auto n = find(pattern);
-	return data[n.id].value;
+	return data[find(key).id].value;
 }
 
 template<typename text, typename item, typename integer>
@@ -246,7 +245,7 @@ bool map_compact<text, item, integer>::update(const node_type& n, const item& va
 template<typename text, typename item, typename integer>
 bool map_compact<text, item, integer>::update(const text& key, const item& value)
 {
-	return update(search(key), value);
+	return update(find(key), value);
 }
 
 template<typename text, typename item, typename integer>

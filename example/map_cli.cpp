@@ -67,24 +67,26 @@ int main(int argc, char* argv[])
 		auto back = query.back();
 		if(back != '*' && back != '<'){
 			// exact match
-			auto result = index.find(query);
-			if(result.match()){
+			if(index.exists(query)){
 				count++;
-				index.update(result, result.value() + 1);
-				std::cout << query << ": found, count=" << result.value() << std::endl;
+				std::cout << query << ": found, count=" << ++index[query] << std::endl;
 			}
 		}
 		else{
 			query.pop_back();
 			if(back == '*'){
 				// predictive search
-				for(auto result: searcher.predict(query))
-					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << ++index[result.key()] << std::endl;
+				for(auto result: searcher.predict(query)){
+					index.update(result.key(), result.value() + 1);
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
+				}
 			}
 			else{
 				// common-prefix search
-				for(auto result: searcher.prefix(query))
-					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << ++index[result.key()] << std::endl;
+				for(auto result: searcher.prefix(query)){
+					index.update(result.key(), result.value() + 1);
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
+				}
 			}
 		}
 

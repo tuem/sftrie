@@ -82,7 +82,7 @@ public:
 	// value operations
 	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
-	item& operator[](const text& pattern);
+	item& operator[](const text& key);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -185,7 +185,7 @@ typename map_original<text, item, integer>::size_type map_original<text, item, i
 template<typename text, typename item, typename integer>
 bool map_original<text, item, integer>::exists(const text& pattern) const
 {
-	return search(pattern).match();
+	return data[search(pattern)].match;
 }
 
 template<typename text, typename item, typename integer>
@@ -225,13 +225,13 @@ bool map_original<text, item, integer>::update(const node_type& n, const item& v
 template<typename text, typename item, typename integer>
 bool map_original<text, item, integer>::update(const text& key, const item& value)
 {
-	return update(search(key), value);
+	return update(find(key), value);
 }
 
 template<typename text, typename item, typename integer>
-item& map_original<text, item, integer>::operator[](const text& pattern)
+item& map_original<text, item, integer>::operator[](const text& key)
 {
-	return data[search(pattern)].value;
+	return data[search(key)].value;
 }
 
 template<typename text, typename item, typename integer>
