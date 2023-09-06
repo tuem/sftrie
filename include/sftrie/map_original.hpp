@@ -448,7 +448,12 @@ struct map_original<text, item, integer>::common_searcher
 
 	common_searcher(const map_original<text, item, integer>& trie): trie(trie){}
 
-	map_original<text, item, integer>::virtual_node find(const text& pattern) const
+	bool exists(const text& pattern) const
+	{
+		return trie.exists(pattern);
+	}
+
+	map_original<text, item, integer>::node_type find(const text& pattern) const
 	{
 		return trie.search(pattern);
 	}

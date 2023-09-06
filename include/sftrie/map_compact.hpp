@@ -490,6 +490,11 @@ struct map_compact<text, item, integer>::common_searcher
 
 	common_searcher(const map_compact<text, item, integer>& trie): trie(trie){}
 
+	bool exists(const text& pattern) const
+	{
+		return trie.exists(pattern);
+	}
+
 	typename map_compact<text, item, integer>::node_type find(const text& pattern) const
 	{
 		return trie.find(pattern);

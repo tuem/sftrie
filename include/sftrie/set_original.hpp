@@ -398,32 +398,21 @@ struct set_original<text, integer>::child_iterator
 template<typename text, typename integer>
 struct set_original<text, integer>::common_searcher
 {
-	const set_original<text, integer>& index;
+	const set_original<text, integer>& trie;
 	std::vector<integer> path;
 	text result;
 
-	common_searcher(const set_original<text, integer>& index): index(index){}
+	common_searcher(const set_original<text, integer>& trie): trie(trie){}
 
-	integer find(const text& pattern) const
+	bool exists(const text& pattern) const
 	{
-		auto i = index.search(pattern);
-		return index.data[i].match ? i : end();
-	}
-
-	integer end() const
-	{
-		return index.data.size() - 1;
-	}
-
-	integer count(const text& pattern) const
-	{
-		return find(pattern) != end() ? 1 : 0;
+		return trie.exists(pattern);
 	}
 
 	subtree_iterator predict(const text& pattern)
 	{
-		auto root = index.search(pattern);
-		if(root < index.data.size() - 1){
+		auto root = trie.search(pattern);
+		if(root < trie.data.size() - 1){
 			path.clear();
 			result.clear();
 			path.push_back(root);
@@ -449,7 +438,7 @@ struct set_original<text, integer>::subtree_iterator
 	subtree_iterator(common_searcher& searcher, const text& prefix, integer root):
 		searcher(searcher), prefix(prefix), current(root)
 	{
-		if(root < searcher.index.data.size() - 1 && !searcher.index.data[root].match)
+		if(root < searcher.trie.data.size() - 1 && !searcher.trie.data[root].match)
 			++*this;
 	}
 
@@ -460,7 +449,7 @@ struct set_original<text, integer>::subtree_iterator
 
 	subtree_iterator end() const
 	{
-		return subtree_iterator(searcher, prefix, searcher.index.data.size() - 1);
+		return subtree_iterator(searcher, prefix, searcher.trie.data.size() - 1);
 	}
 
 	bool operator!=(const subtree_iterator& i) const
@@ -476,24 +465,24 @@ struct set_original<text, integer>::subtree_iterator
 	subtree_iterator& operator++()
 	{
 		do{
-			if(!searcher.index.data[searcher.path.back()].leaf){
-				integer child = searcher.index.data[searcher.path.back()].next;
+			if(!searcher.trie.data[searcher.path.back()].leaf){
+				integer child = searcher.trie.data[searcher.path.back()].next;
 				searcher.path.push_back(child);
-				searcher.result.push_back(searcher.index.data[child].label);
+				searcher.result.push_back(searcher.trie.data[child].label);
 			}
 			else{
 				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
-						searcher.index.data[searcher.index.data[searcher.path[searcher.path.size() - 2]].next].next){
+						searcher.trie.data[searcher.trie.data[searcher.path[searcher.path.size() - 2]].next].next){
 					searcher.path.pop_back();
 					searcher.result.pop_back();
 				}
 				if(searcher.path.size() > 1)
-					searcher.result.back() = searcher.index.data[++searcher.path.back()].label;
+					searcher.result.back() = searcher.trie.data[++searcher.path.back()].label;
 				else
 					searcher.path.pop_back();
 			}
-		}while(!searcher.path.empty() && !searcher.index.data[searcher.path.back()].match);
-		current = !searcher.path.empty() ? searcher.path.back() : searcher.index.data.size() - 1;
+		}while(!searcher.path.empty() && !searcher.trie.data[searcher.path.back()].match);
+		current = !searcher.path.empty() ? searcher.path.back() : searcher.trie.data.size() - 1;
 		return *this;
 	}
 };
@@ -509,9 +498,9 @@ struct set_original<text, integer>::prefix_iterator
 	prefix_iterator(common_searcher& searcher, const text& pattern, integer current, integer depth):
 		searcher(searcher), pattern(pattern), current(current), depth(depth)
 	{
-		if(current == 0 && !searcher.index.data[current].match){
+		if(current == 0 && !searcher.trie.data[current].match){
 			if(pattern.empty())
-				this->current = searcher.index.data.size() - 1;
+				this->current = searcher.trie.data.size() - 1;
 			else
 				++*this;
 		}
@@ -524,7 +513,7 @@ struct set_original<text, integer>::prefix_iterator
 
 	prefix_iterator end() const
 	{
-		return prefix_iterator(searcher, pattern, searcher.index.data.size() - 1, pattern.size());
+		return prefix_iterator(searcher, pattern, searcher.trie.data.size() - 1, pattern.size());
 	}
 
 	bool operator!=(const prefix_iterator& i) const
@@ -539,21 +528,21 @@ struct set_original<text, integer>::prefix_iterator
 
 	prefix_iterator& operator++()
 	{
-		for(; !searcher.index.data[current].leaf && depth < pattern.size(); ){
-			current = searcher.index.data[current].next;
-			integer end = searcher.index.data[current].next;
-			for(integer w = end - current, m; w > searcher.index.min_binary_search; w = m){
+		for(; !searcher.trie.data[current].leaf && depth < pattern.size(); ){
+			current = searcher.trie.data[current].next;
+			integer end = searcher.trie.data[current].next;
+			for(integer w = end - current, m; w > searcher.trie.min_binary_search; w = m){
 				m = w >> 1;
-				current += searcher.index.data[current + m].label < pattern[depth] ? w - m : 0;
+				current += searcher.trie.data[current + m].label < pattern[depth] ? w - m : 0;
 			}
-			for(; current < end && searcher.index.data[current].label < pattern[depth]; ++current);
-			if(!(current < end && searcher.index.data[current].label == pattern[depth]))
+			for(; current < end && searcher.trie.data[current].label < pattern[depth]; ++current);
+			if(!(current < end && searcher.trie.data[current].label == pattern[depth]))
 				break;
 			searcher.result.push_back(pattern[depth++]);
-			if(searcher.index.data[current].match)
+			if(searcher.trie.data[current].match)
 				return *this;
 		}
-		current = searcher.index.data.size() - 1;
+		current = searcher.trie.data.size() - 1;
 		return *this;
 	}
 };

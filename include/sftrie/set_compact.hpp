@@ -512,10 +512,9 @@ struct set_compact<text, integer>::common_searcher
 
 	common_searcher(const set_compact<text, integer>& trie): trie(trie){}
 
-	integer count(const text& pattern) const
+	bool exists(const text& pattern) const
 	{
-		auto n = trie.search(pattern);
-		return trie.data[n.id].match ? 1 : 0;
+		return trie.exists(pattern);
 	}
 
 	subtree_iterator predict(const text& pattern)
