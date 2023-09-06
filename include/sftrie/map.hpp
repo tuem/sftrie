@@ -20,6 +20,7 @@ limitations under the License.
 #ifndef SFTRIE_MAP
 #define SFTRIE_MAP
 
+#include <cstdint>
 #include <string>
 
 #include "map_original.hpp"
@@ -34,9 +35,9 @@ limitations under the License.
 #endif
 
 namespace sftrie{
-	template<typename text = std::string, typename object = text,
-		typename integer = typename text::size_type>
-	using map = SFTRIE_MAP_TYPE<text, object, integer>;
+	template<typename text = std::string, typename item = std::uint32_t,
+		typename integer = std::uint32_t>
+	using map = SFTRIE_MAP_TYPE<text, item, integer>;
 };
 
 #undef SFTRIE_MAP_TYPE
