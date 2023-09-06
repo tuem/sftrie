@@ -80,7 +80,6 @@ public:
 	const std::vector<node>& raw_data() const;
 
 	// value operations
-	bool update(integer i, const item& value);
 	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
 	item& operator[](const text& pattern);
@@ -217,16 +216,10 @@ map_original<text, item, integer>::raw_data() const
 }
 
 template<typename text, typename item, typename integer>
-bool map_original<text, item, integer>::update(integer i, const item& value)
-{
-	data[i].value = value;
-	return true;
-}
-
-template<typename text, typename item, typename integer>
 bool map_original<text, item, integer>::update(const node_type& n, const item& value)
 {
-	return update(n.id, value);
+	data[n.id].value = value;
+	return true;
 }
 
 template<typename text, typename item, typename integer>
