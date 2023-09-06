@@ -22,15 +22,10 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-//#define SFTRIE_MAP_USE_NAIVE
-//#define SFTRIE_MAP_USE_BASIC
-//#define SFTRIE_MAP_USE_TAIL
-//#define SFTRIE_MAP_USE_DECOMPACTION
 #include <sftrie/map.hpp>
 
 using text = std::string;
-using object = unsigned long;
-using integer = unsigned long;
+using item = std::uint32_t;
 
 int main(int argc, char* argv[])
 {
@@ -46,8 +41,8 @@ int main(int argc, char* argv[])
 		std::cerr << "input file is not available: " << corpus_path << std::endl;
 		return 1;
 	}
-	object value = 1;
-	std::vector<std::pair<text, object>> texts;
+	item value = 1;
+	std::vector<std::pair<text, item>> texts;
 	while(ifs.good()){
 		std::string line;
 		std::getline(ifs, line);
@@ -56,12 +51,12 @@ int main(int argc, char* argv[])
 		texts.push_back(std::make_pair(line, value++));
 	}
 
-	sftrie::sort_text_object_pairs(std::begin(texts), std::end(texts));
-	sftrie::map<text, integer, object> dict(std::begin(texts), std::end(texts));
+	sftrie::sort_text_item_pairs(std::begin(texts), std::end(texts));
+	sftrie::map<text, item> index(std::begin(texts), std::end(texts));
 	texts.clear();
 	std::cerr << "done." << std::endl;
 
-	auto searcher = dict.searcher();
+	auto searcher = index.searcher();
 	while(true){
 		std::cerr << "> ";
 		std::string query;
@@ -69,10 +64,11 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		auto back = query.back();
 		integer count = 0;
+
+		auto back = query.back();
 		if(back != '*' && back != '?'){
-			auto result = dict.find(query);
+			auto result = index.find(query);
 			if(result.first){
 				count++;
 				std::cout << query << ": found, line=" << result.second << std::endl;
@@ -80,13 +76,16 @@ int main(int argc, char* argv[])
 		}
 		else{
 			query.pop_back();
-			if(back == '*')
-				for(const auto result: searcher.traverse(query))
-					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
-			else
-				for(const auto result: searcher.prefix(query))
-					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
+			if(back == '*'){
+				for(auto result: searcher.traverse(query))
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", id=" << result.value() << std::endl;
+			}
+			else{
+				for(auto result: searcher.prefix(query))
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", id=" << result.value() << std::endl;
+			}
 		}
+
 		if(count == 0)
 			std::cout << query << ": " << "not found" << std::endl;
 	}

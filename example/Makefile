@@ -33,10 +33,10 @@ DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
 set_cli: set_cli.o
-	$(CXX) -o $@ set_cli.o
+	$(CXX) -o $@ $^
 
 map_cli: map_cli.o
-	$(CXX) -o $@ map_cli.o
+	$(CXX) -o $@ $^
 
 
 clean:

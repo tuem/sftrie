@@ -22,10 +22,6 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-//#define SFTRIE_SET_USE_NAIVE
-//#define SFTRIE_SET_USE_BASIC
-//#define SFTRIE_SET_USE_TAIL
-#define SFTRIE_SET_USE_DECOMPACTION
 #include <sftrie/set.hpp>
 
 using text = std::string;
