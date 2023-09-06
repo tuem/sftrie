@@ -332,6 +332,8 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 			set_traversal_borders.push_back(end);
 		}
 
+		sftrie::sort_texts(std::begin(texts), std::end(texts));
+
 		positive_queries_size = set_positive_queries.size();
 		negative_queries_size = set_negative_queries.size();
 		predictive_search_queries_size = set_predictive_search_queries.size();
