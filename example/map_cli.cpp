@@ -63,7 +63,6 @@ int main(int argc, char* argv[])
 			break;
 
 		size_t count = 0;
-
 		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match
 			if(index.exists(query)){
@@ -76,20 +75,19 @@ int main(int argc, char* argv[])
 			query.pop_back();
 			if(back == '*'){
 				// predictive search
-				for(auto result: searcher.predict(query)){
+				for(const auto& result: searcher.predict(query)){
 					index.update(result.key(), result.value() + 1);
 					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
 				}
 			}
 			else{
 				// common-prefix search
-				for(auto result: searcher.prefix(query)){
+				for(const auto& result: searcher.prefix(query)){
 					index.update(result.node(), result.value() + 1);
 					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
 				}
 			}
 		}
-
 		if(count == 0)
 			std::cout << query << ": " << "not found" << std::endl;
 	}
