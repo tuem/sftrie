@@ -58,7 +58,7 @@ template<typename text, typename set>
 std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 	const std::vector<text>& queries)
 {
-	size_t tp = 0, fp = 0, fn = 0;
+	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		std::vector<text> answers;
@@ -87,10 +87,14 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 				++a;
 			}
 		}
-		if(found == answers.size())
-			++tp;
+		if(found == answers.size()){
+			if(found > 0)
+				++tp;
+			else
+				++tn;
+		}
 	}
-	return {{"tp", tp}, {"fp", fp}, {"fn", fn}};
+	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
 template<typename text, typename set>
@@ -164,7 +168,7 @@ template<typename text, typename map>
 std::map<std::string, size_t> validate_map_prefix_search(map& index,
 	const std::vector<text>& queries)
 {
-	size_t tp = 0, fp = 0, fn = 0;
+	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		std::vector<text> answers;
@@ -193,10 +197,14 @@ std::map<std::string, size_t> validate_map_prefix_search(map& index,
 				++a;
 			}
 		}
-		if(found == answers.size())
-			++tp;
+		if(found == answers.size()){
+			if(found > 0)
+				++tp;
+			else
+				++tn;
+		}
 	}
-	return {{"tp", tp}, {"fp", fp}, {"fn", fn}};
+	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
 template<typename text, typename object, typename map>
@@ -324,8 +332,6 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 			set_traversal_borders.push_back(end);
 		}
 
-		sftrie::sort_texts(std::begin(texts), std::end(texts));
-
 		positive_queries_size = set_positive_queries.size();
 		negative_queries_size = set_negative_queries.size();
 		predictive_search_queries_size = set_predictive_search_queries.size();
@@ -429,6 +435,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	std::cout << "[prefix search]" << std::endl;
 	std::cout << std::left << std::setw(20) << "total queries" << std::right << std::setw(12) << all_queries.size() << std::endl;
 	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_prefix["tp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_prefix["tn"] << std::endl;
 	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_prefix["fp"] << std::endl;
 	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_prefix["fn"] << std::endl;
 	std::cout << std::endl;
