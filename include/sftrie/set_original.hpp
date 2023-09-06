@@ -34,8 +34,11 @@ namespace sftrie{
 template<typename text, typename integer>
 class set_original
 {
-public:
+private:
 	using symbol = typename text::value_type;
+
+public:
+	using symbol_type = symbol;
 	using size_type = std::size_t;
 
 	struct node;
@@ -257,13 +260,10 @@ template<typename text, typename integer>
 template<typename iterator>
 void set_original<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
-	if(depth == container_size<integer>(*begin)){
-		data[current].match = true;
-		if(++begin == end){
-			data[current].leaf = true;
+	// set flags
+	if((data[current].match = (depth == container_size<integer>(*begin))))
+		if((data[current].leaf = (++begin == end)))
 			return;
-		}
-	}
 
 	// reserve siblings first
 	std::vector<iterator> head{begin};

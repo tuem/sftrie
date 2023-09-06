@@ -34,8 +34,11 @@ namespace sftrie{
 template<typename text, typename integer>
 class set_compact
 {
-public:
+private:
 	using symbol = typename text::value_type;
+
+public:
+	using symbol_type = symbol;
 	using size_type = std::size_t;
 
 	struct node;

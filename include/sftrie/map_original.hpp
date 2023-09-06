@@ -34,8 +34,11 @@ namespace sftrie{
 template<typename text, typename item, typename integer>
 class map_original
 {
-public:
+private:
 	using symbol = typename text::value_type;
+
+public:
+	using symbol_type = symbol;
 	using size_type = std::size_t;
 	using result_type = std::pair<bool, const item&>;
 
@@ -127,7 +130,7 @@ map_original<text, item, integer>::map_original(const random_access_container& t
 	min_binary_search(min_binary_search), num_texts(std::size(texts))
 {
 	construct(std::begin(texts), std::end(texts), 0, 0);
-	data.push_back({false, false, container_size<integer>(data), {}});
+	data.push_back({false, false, container_size<integer>(data), {}, {}});
 	data.shrink_to_fit();
 }
 
@@ -282,13 +285,10 @@ template<typename text, typename item, typename integer>
 template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
-	if(depth == container_size<integer>((*begin).first)){
-		data[current].match = true;
-		if(++begin == end){
-			data[current].leaf = true;
+	// set flags
+	if((data[current].match = (depth == container_size<integer>((*begin).first))))
+		if((data[current].leaf = (++begin == end)))
 			return;
-		}
-	}
 
 	// reserve siblings first
 	std::vector<iterator> head{begin};
