@@ -51,8 +51,7 @@ int main(int argc, char* argv[])
 
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
 	sftrie::set<text> index(std::begin(texts), std::end(texts));
-	texts.clear();
-	std::cerr << "done." << std::endl;
+	std::cerr << "done, " << texts.size() << " texts" << std::endl;
 
 	auto searcher = index.searcher();
 	while(true){

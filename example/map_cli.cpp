@@ -53,8 +53,7 @@ int main(int argc, char* argv[])
 
 	sftrie::sort_text_item_pairs(std::begin(texts), std::end(texts));
 	sftrie::map<text, item> index(std::begin(texts), std::end(texts));
-	texts.clear();
-	std::cerr << "done." << std::endl;
+	std::cerr << "done, " << texts.size() << " texts" << std::endl;
 
 	auto searcher = index.searcher();
 	while(true){
@@ -72,7 +71,7 @@ int main(int argc, char* argv[])
 			auto result = index.find(query);
 			if(result.first){
 				count++;
-				std::cout << query << ": found, line=" << result.second << std::endl;
+				std::cout << query << ": found, id=" << result.second << std::endl;
 			}
 		}
 		else{
