@@ -236,6 +236,9 @@ map_compact<text, item, integer>::searcher()
 template<typename text, typename item, typename integer>
 bool map_compact<text, item, integer>::update(const node_type& n, const item& value)
 {
+	if(n.depth < data[n.id + 1].ref - data[n.id].ref)
+		return false;
+
 	data[n.id].value = value;
 	return true;
 }
@@ -243,14 +246,7 @@ bool map_compact<text, item, integer>::update(const node_type& n, const item& va
 template<typename text, typename item, typename integer>
 bool map_compact<text, item, integer>::update(const text& key, const item& value)
 {
-	if(key.empty())
-		return update(0, value);
-
-	auto n = search(key);
-	if(n.depth > 0 || !data[n.id].match)
-		return false;
-
-	return update(n.id, value);
+	return update(search(key), value);
 }
 
 template<typename text, typename item, typename integer>

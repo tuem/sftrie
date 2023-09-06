@@ -41,14 +41,13 @@ int main(int argc, char* argv[])
 		std::cerr << "input file is not available: " << corpus_path << std::endl;
 		return 1;
 	}
-	item value = 1;
 	std::vector<std::pair<text, item>> texts;
 	while(ifs.good()){
 		std::string line;
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(std::make_pair(line, value++));
+		texts.push_back(std::make_pair(line, 0));
 	}
 
 	sftrie::sort_text_item_pairs(std::begin(texts), std::end(texts));
@@ -69,9 +68,10 @@ int main(int argc, char* argv[])
 		if(back != '*' && back != '<'){
 			// exact match
 			auto result = index.find(query);
-			if(result.first){
+			if(result.match()){
 				count++;
-				std::cout << query << ": found, id=" << result.second << std::endl;
+				index.update(result, result.value() + 1);
+				std::cout << query << ": found, count=" << result.value() << std::endl;
 			}
 		}
 		else{
@@ -79,12 +79,12 @@ int main(int argc, char* argv[])
 			if(back == '*'){
 				// predictive search
 				for(auto result: searcher.predict(query))
-					std::cout << std::setw(4) << ++count << ": " << result.key() << ", id=" << result.value() << std::endl;
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << ++index[result.key()] << std::endl;
 			}
 			else{
 				// common-prefix search
 				for(auto result: searcher.prefix(query))
-					std::cout << std::setw(4) << ++count << ": " << result.key() << ", id=" << result.value() << std::endl;
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << ++index[result.key()] << std::endl;
 			}
 		}
 
