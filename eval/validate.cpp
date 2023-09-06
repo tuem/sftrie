@@ -33,7 +33,7 @@ limitations under the License.
 
 #include "string_util.hpp"
 
-using object = unsigned int;
+using item = unsigned int;
 using integer = unsigned int;
 
 template<typename text, typename set>
@@ -142,9 +142,9 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
-template<typename text_object_pair, typename map>
+template<typename text_item_pair, typename map>
 std::map<std::string, size_t> validate_map_exact_match(map& index,
-	const std::vector<text_object_pair>& positive_queries, const std::vector<text_object_pair>& negative_queries)
+	const std::vector<text_item_pair>& positive_queries, const std::vector<text_item_pair>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	for(const auto& query: positive_queries){
@@ -207,11 +207,11 @@ std::map<std::string, size_t> validate_map_prefix_search(map& index,
 	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
-template<typename text, typename object, typename map>
+template<typename text, typename item, typename map>
 std::map<std::string, size_t> validate_map_predictive_search(map& index,
-	const std::vector<std::pair<text, object>>& positive_queries,
+	const std::vector<std::pair<text, item>>& positive_queries,
 	const std::vector<integer>& traversal_borders,
-	const std::vector<std::pair<text, object>>& negative_queries)
+	const std::vector<std::pair<text, item>>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
@@ -252,7 +252,7 @@ std::map<std::string, size_t> validate_map_predictive_search(map& index,
 	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
-template<typename text, typename object, typename integer>
+template<typename text, typename item, typename integer>
 void exec(const std::string& corpus_path, const std::string& container_type,
 	const std::string& sftrie_type, int min_binary_search)
 {
@@ -270,11 +270,11 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 			break;
 		texts.push_back(cast_string<text>(line));
 	}
-	std::vector<std::pair<text, object>> text_object_pairs;
+	std::vector<std::pair<text, item>> text_item_pairs;
 	if(container_type == "map"){
-		object value = 0;
+		item value = 0;
 		for(const auto& t: texts)
-			text_object_pairs.push_back(std::make_pair(t, value++));
+			text_item_pairs.push_back(std::make_pair(t, value++));
 	}
 	std::cerr << "done." << std::endl;
 
@@ -310,8 +310,8 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	std::vector<text> set_predictive_search_queries;
 	std::vector<integer> set_traversal_borders;
 
-	std::vector<std::pair<text, object>> map_positive_queries, map_negative_queries;
-	std::vector<std::pair<text, object>> map_predictive_search_queries;
+	std::vector<std::pair<text, item>> map_positive_queries, map_negative_queries;
+	std::vector<std::pair<text, item>> map_predictive_search_queries;
 	std::vector<integer> map_traversal_borders;
 
 	size_t positive_queries_size, negative_queries_size, predictive_search_queries_size;
@@ -339,13 +339,13 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 		predictive_search_queries_size = set_predictive_search_queries.size();
 	}
 	else{
-		std::shuffle(std::begin(text_object_pairs), std::end(text_object_pairs), std::default_random_engine(seed));
-		std::copy(std::begin(text_object_pairs), std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::back_inserter(map_positive_queries));
-		std::copy(std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::end(text_object_pairs), std::back_inserter(map_negative_queries));
-		text_object_pairs.erase(std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::end(text_object_pairs));
+		std::shuffle(std::begin(text_item_pairs), std::end(text_item_pairs), std::default_random_engine(seed));
+		std::copy(std::begin(text_item_pairs), std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::back_inserter(map_positive_queries));
+		std::copy(std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::end(text_item_pairs), std::back_inserter(map_negative_queries));
+		text_item_pairs.erase(std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::end(text_item_pairs));
 
 		map_predictive_search_queries = map_positive_queries;
-		sftrie::sort_text_object_pairs(std::begin(map_predictive_search_queries), std::end(map_predictive_search_queries));
+		sftrie::sort_text_item_pairs(std::begin(map_predictive_search_queries), std::end(map_predictive_search_queries));
 		for(size_t i = 0; i < map_predictive_search_queries.size(); ++i){
 			size_t end = i + 1;
 			while(end < map_predictive_search_queries.size() &&
@@ -354,7 +354,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 			map_traversal_borders.push_back(end);
 		}
 
-		sftrie::sort_text_object_pairs(std::begin(text_object_pairs), std::end(text_object_pairs));
+		sftrie::sort_text_item_pairs(std::begin(text_item_pairs), std::end(text_item_pairs));
 
 		positive_queries_size = map_positive_queries.size();
 		negative_queries_size = map_negative_queries.size();
@@ -390,7 +390,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	}
 	else if(container_type == "map" && sftrie_type == "original"){
 		std::cerr << "constructing index...";
-		sftrie::map_original<text, object, integer> index(std::begin(text_object_pairs), std::end(text_object_pairs),
+		sftrie::map_original<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs),
 			min_binary_search);
 		std::cerr << "done." << std::endl;
 
@@ -402,7 +402,7 @@ void exec(const std::string& corpus_path, const std::string& container_type,
 	}
 	else if(container_type == "map" && sftrie_type == "compact"){
 		std::cerr << "constructing index...";
-		sftrie::map_compact<text, object, integer> index(std::begin(text_object_pairs), std::end(text_object_pairs), min_binary_search);
+		sftrie::map_compact<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs), min_binary_search);
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "validating...";
@@ -481,13 +481,13 @@ int main(int argc, char* argv[])
 		std::cout << std::endl;
 
 		if(symbol_type == "char")
-			exec<std::string, object, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			exec<std::string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else if(symbol_type == "wchar_t")
-			exec<std::wstring, object, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			exec<std::wstring, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else if(symbol_type == "char16_t")
-			exec<std::u16string, object, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			exec<std::u16string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else if(symbol_type == "char32_t")
-			exec<std::u32string, object, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			exec<std::u32string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 

@@ -73,21 +73,21 @@ void sort_texts(iterator begin, iterator end)
 	std::sort(begin, end, text_comparator());
 }
 
-struct text_object_pair_comparator
+struct text_item_pair_comparator
 {
 	text_comparator compare_text;
 
-	template<typename text, typename object>
-	bool operator()(const std::pair<text, object>& a, const std::pair<text, object>& b) const
+	template<typename text, typename item>
+	bool operator()(const std::pair<text, item>& a, const std::pair<text, item>& b) const
 	{
 		return compare_text(a.first, b.first);
 	}
 };
 
 template<typename iterator>
-void sort_text_object_pairs(iterator begin, iterator end)
+void sort_text_item_pairs(iterator begin, iterator end)
 {
-	std::sort(begin, end, text_object_pair_comparator());
+	std::sort(begin, end, text_item_pair_comparator());
 }
 
 };

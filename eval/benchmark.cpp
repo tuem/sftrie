@@ -34,7 +34,7 @@ limitations under the License.
 #include "string_util.hpp"
 #include "history.hpp"
 
-using object = unsigned int;
+using item = unsigned int;
 using integer = unsigned int;
 
 template<typename text, typename set>
@@ -229,7 +229,7 @@ benchmark_map(History& history, map& index,
 	return {found_ordered, found_shuffled, prefixes_ordered, prefixes_shuffled, predicted_ordered, predicted_shuffled};
 }
 
-template<typename text, typename object, typename integer>
+template<typename text, typename item, typename integer>
 bool exec(const std::string& corpus_path, const std::string& container_type, int max_result,
 	const std::string& sftrie_type, int min_binary_search)
 {
@@ -251,11 +251,11 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 		auto t = cast_string<text>(line);
 		texts.push_back(t);
 	}
-	std::vector<std::pair<text, object>> text_object_pairs;
+	std::vector<std::pair<text, item>> text_item_pairs;
 	if(container_type == "map"){
-		object value = 0;
+		item value = 0;
 		for(const auto& t: texts)
-			text_object_pairs.push_back(std::make_pair(t, value++));
+			text_item_pairs.push_back(std::make_pair(t, value++));
 	}
 	history.record("loading texts", texts.size());
 	std::cerr << "done." << std::endl;
@@ -289,7 +289,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 	std::cerr << "sorting texts...";
 	history.refresh();
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
-	sftrie::sort_text_object_pairs(std::begin(text_object_pairs), std::end(text_object_pairs));
+	sftrie::sort_text_item_pairs(std::begin(text_item_pairs), std::end(text_item_pairs));
 	history.record("sorting texts", texts.size());
 	std::cerr << "done." << std::endl;
 
@@ -333,8 +333,8 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 	else if(container_type == "map" && sftrie_type == "original"){
 		std::cerr << "constructing index...";
 		history.refresh();
-		sftrie::map_original<text, object, integer> index(
-			std::begin(text_object_pairs), std::end(text_object_pairs),
+		sftrie::map_original<text, item, integer> index(
+			std::begin(text_item_pairs), std::end(text_item_pairs),
 			min_binary_search);
 		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
@@ -348,8 +348,8 @@ bool exec(const std::string& corpus_path, const std::string& container_type, int
 	else if(container_type == "map" && sftrie_type == "compact"){
 		std::cerr << "constructing index...";
 		history.refresh();
-		sftrie::map_compact<text, object, integer> index(
-			std::begin(text_object_pairs), std::end(text_object_pairs),
+		sftrie::map_compact<text, item, integer> index(
+			std::begin(text_item_pairs), std::end(text_item_pairs),
 			min_binary_search);
 		history.record("construction", texts.size());
 		std::cerr << "done." << std::endl;
@@ -430,16 +430,16 @@ int main(int argc, char* argv[])
 		std::cout << std::endl;
 
 		if(symbol_type == "char")
-			exec<std::string, object, integer>(corpus_path, container_type, max_result,
+			exec<std::string, item, integer>(corpus_path, container_type, max_result,
 				sftrie_type, min_binary_search);
 		else if(symbol_type == "wchar_t")
-			exec<std::wstring, object, integer>(corpus_path, container_type, max_result,
+			exec<std::wstring, item, integer>(corpus_path, container_type, max_result,
 				sftrie_type, min_binary_search);
 		else if(symbol_type == "char16_t")
-			exec<std::u16string, object, integer>(corpus_path, container_type, max_result,
+			exec<std::u16string, item, integer>(corpus_path, container_type, max_result,
 				sftrie_type, min_binary_search);
 		else if(symbol_type == "char32_t")
-			exec<std::u32string, object, integer>(corpus_path, container_type, max_result,
+			exec<std::u32string, item, integer>(corpus_path, container_type, max_result,
 				sftrie_type, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
