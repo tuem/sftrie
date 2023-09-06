@@ -58,8 +58,7 @@ size_t benchmark_set_prefix_search(const set& index,
 		size_t num_result = 0;
 		for(const auto& result: searcher.prefix(query)){
 			(void)result;
-			++num_result;
-			if(max_result != 0 && num_result == max_result)
+			if(max_result != 0 && ++num_result == max_result)
 				break;
 		}
 		found += num_result;
@@ -77,8 +76,7 @@ size_t benchmark_set_predictive_search(const set& index,
 		size_t num_result = 0;
 		for(const auto& result: searcher.predict(query)){
 			(void)result;
-			++num_result;
-			if(max_result != 0 && num_result == max_result)
+			if(max_result != 0 && ++num_result == max_result)
 				break;
 		}
 		found += num_result;
@@ -107,8 +105,7 @@ size_t benchmark_map_prefix_search(map& index,
 		size_t num_result = 0;
 		for(const auto result: searcher.prefix(query)){
 			(void)result;
-			++num_result;
-			if(max_result != 0 && num_result == max_result)
+			if(max_result != 0 && ++num_result == max_result)
 				break;
 		}
 		found += num_result;
@@ -126,8 +123,7 @@ size_t benchmark_map_predictive_search(map& index,
 		size_t num_result = 0;
 		for(const auto result: searcher.predict(query)){
 			(void)result;
-			++num_result;
-			if(max_result != 0 && num_result == max_result)
+			if(max_result != 0 && ++num_result == max_result)
 				break;
 		}
 		found += num_result;
@@ -138,7 +134,7 @@ size_t benchmark_map_predictive_search(map& index,
 template<typename set, typename text>
 void benchmark_set(History& history, const set& index,
 	const std::vector<text>& queries, const std::vector<text>& shuffled_queries,
-	size_t max_result = 0)
+	size_t max_result)
 {
 	std::cerr << "exact match (ordered)...";
 	history.refresh();
@@ -180,7 +176,7 @@ void benchmark_set(History& history, const set& index,
 template<typename map, typename text>
 void benchmark_map(History& history, map& index,
 	const std::vector<text>& queries, const std::vector<text>& shuffled_queries,
-	size_t max_result = 0)
+	size_t max_result)
 {
 	std::cerr << "exact match (ordered)...";
 	history.refresh();
@@ -220,8 +216,8 @@ void benchmark_map(History& history, map& index,
 }
 
 template<typename text, typename item, typename integer>
-void exec(const std::string& corpus_path, const std::string& container_type, int max_result,
-	const std::string& sftrie_type, int min_binary_search)
+void exec(const std::string& corpus_path, const std::string& index_type, int max_result,
+	const std::string& optimization_mode, int min_binary_search)
 {
 	using symbol = typename text::value_type;
 
@@ -242,7 +238,7 @@ void exec(const std::string& corpus_path, const std::string& container_type, int
 		texts.push_back(t);
 	}
 	std::vector<std::pair<text, item>> text_item_pairs;
-	if(container_type == "map"){
+	if(index_type == "map"){
 		item value = 0;
 		for(const auto& t: texts)
 			text_item_pairs.push_back(std::make_pair(t, value++));
@@ -292,8 +288,8 @@ void exec(const std::string& corpus_path, const std::string& container_type, int
 	history.record("generating queries", queries.size());
 	std::cerr << "done." << std::endl;
 
-	size_t node_size = 0, trie_size =0, total_space = 0;
-	if(container_type == "set" && sftrie_type == "original"){
+	size_t node_size = 0, trie_size = 0, total_space = 0;
+	if(index_type == "set" && optimization_mode == "original"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::set_original<text, integer> index(
@@ -307,7 +303,7 @@ void exec(const std::string& corpus_path, const std::string& container_type, int
 
 		benchmark_set(history, index, queries, shuffled_queries, max_result);
 	}
-	else if(container_type == "set" && sftrie_type == "compact"){
+	else if(index_type == "set" && optimization_mode == "compact"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::set_compact<text, integer> index(
@@ -321,7 +317,7 @@ void exec(const std::string& corpus_path, const std::string& container_type, int
 
 		benchmark_set(history, index, queries, shuffled_queries, max_result);
 	}
-	else if(container_type == "map" && sftrie_type == "original"){
+	else if(index_type == "map" && optimization_mode == "original"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::map_original<text, item, integer> index(
@@ -336,7 +332,7 @@ void exec(const std::string& corpus_path, const std::string& container_type, int
 
 		benchmark_map(history, index, queries, shuffled_queries, max_result);
 	}
-	else if(container_type == "map" && sftrie_type == "compact"){
+	else if(index_type == "map" && optimization_mode == "compact"){
 		std::cerr << "constructing index...";
 		history.refresh();
 		sftrie::map_compact<text, item, integer> index(
@@ -352,7 +348,7 @@ void exec(const std::string& corpus_path, const std::string& container_type, int
 		benchmark_map(history, index, queries, shuffled_queries, max_result);
 	}
 	else{
-		throw std::runtime_error("unknown index type or trie type: " + container_type + " / " + sftrie_type);
+		throw std::runtime_error("unknown index type or trie type: " + index_type + " / " + optimization_mode);
 	}
 
 	std::cout << std::endl;
@@ -383,9 +379,9 @@ void exec(const std::string& corpus_path, const std::string& container_type, int
 int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
-		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
-		{"container_type", "set", {"common", "container_type"}, "container-type", 't', "container type (set or map)"},
-		{"mode", "original", {"sftrie", "mode"}, "mode", 'm', "sftrie optimization mode (original or compact)"},
+		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar_t, char16_t or char32_t)"},
+		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
+		{"optimization_mode", "original", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
 		{"min_binary_search", 42, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value"},
 		{"max_result", 0, {"sftrie", "max_result"}, "max-result", 'n', "max number of results in common-prefix search and predictive search"},
 		{"conf_path", "", "config", 'c', "config file path"}
@@ -400,32 +396,32 @@ int main(int argc, char* argv[])
 
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
-		std::string container_type = pm["container_type"];
-		std::string sftrie_type = pm["mode"];
+		std::string index_type = pm["index_type"];
+		std::string optimization_mode = pm["optimization_mode"];
 		int min_binary_search = pm["min_binary_search"];
 		int max_result = pm["max_result"];
 
 		std::cout << "[configuration]" << std::endl;
 		std::cout << std::setw(20) << std::left << "corpus_path" << corpus_path << std::endl;
 		std::cout << std::setw(20) << std::left << "symbol_type" << symbol_type << std::endl;
-		std::cout << std::setw(20) << std::left << "container_type" << container_type << std::endl;
-		std::cout << std::setw(20) << std::left << "mode" << sftrie_type << std::endl;
+		std::cout << std::setw(20) << std::left << "index_type" << index_type << std::endl;
+		std::cout << std::setw(20) << std::left << "mode" << optimization_mode << std::endl;
 		std::cout << std::setw(20) << std::left << "min_binary_search" << min_binary_search << std::endl;
 		std::cout << std::setw(20) << std::left << "max_result" << max_result << std::endl;
 		std::cout << std::endl;
 
 		if(symbol_type == "char")
-			exec<std::string, item, integer>(corpus_path, container_type, max_result,
-				sftrie_type, min_binary_search);
+			exec<std::string, item, integer>(corpus_path, index_type, max_result,
+				optimization_mode, min_binary_search);
 		else if(symbol_type == "wchar_t")
-			exec<std::wstring, item, integer>(corpus_path, container_type, max_result,
-				sftrie_type, min_binary_search);
+			exec<std::wstring, item, integer>(corpus_path, index_type, max_result,
+				optimization_mode, min_binary_search);
 		else if(symbol_type == "char16_t")
-			exec<std::u16string, item, integer>(corpus_path, container_type, max_result,
-				sftrie_type, min_binary_search);
+			exec<std::u16string, item, integer>(corpus_path, index_type, max_result,
+				optimization_mode, min_binary_search);
 		else if(symbol_type == "char32_t")
-			exec<std::u32string, item, integer>(corpus_path, container_type, max_result,
-				sftrie_type, min_binary_search);
+			exec<std::u32string, item, integer>(corpus_path, index_type, max_result,
+				optimization_mode, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 

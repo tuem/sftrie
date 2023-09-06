@@ -254,8 +254,8 @@ std::map<std::string, size_t> validate_map_predictive_search(map& index,
 }
 
 template<typename text, typename item, typename integer>
-bool exec(const std::string& corpus_path, const std::string& container_type,
-	const std::string& sftrie_type, int min_binary_search)
+bool exec(const std::string& corpus_path, const std::string& index_type,
+	const std::string& optimization_mode, int min_binary_search)
 {
 	using symbol = typename text::value_type;
 
@@ -272,7 +272,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type,
 		texts.push_back(cast_string<text>(line));
 	}
 	std::vector<std::pair<text, item>> text_item_pairs;
-	if(container_type == "map"){
+	if(index_type == "map"){
 		item value = 0;
 		for(const auto& t: texts)
 			text_item_pairs.push_back(std::make_pair(t, value++));
@@ -317,7 +317,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type,
 
 	size_t positive_queries_size, negative_queries_size, predictive_search_queries_size;
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
-	if(container_type == "set"){
+	if(index_type == "set"){
 		std::shuffle(std::begin(texts), std::end(texts), std::default_random_engine(seed));
 		std::copy(std::begin(texts), std::begin(texts) + texts.size() / 2, std::back_inserter(set_positive_queries));
 		std::copy(std::begin(texts) + texts.size() / 2, std::end(texts), std::back_inserter(set_negative_queries));
@@ -366,7 +366,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type,
 	std::map<std::string, size_t> result_exact;
 	std::map<std::string, size_t> result_prefix;
 	std::map<std::string, size_t> result_predict;
-	if(container_type == "set" && sftrie_type == "original"){
+	if(index_type == "set" && optimization_mode == "original"){
 		std::cerr << "constructing index...";
 		sftrie::set_original<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search);
@@ -378,7 +378,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type,
 		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
-	else if(container_type == "set" && sftrie_type == "compact"){
+	else if(index_type == "set" && optimization_mode == "compact"){
 		std::cerr << "constructing index...";
 		sftrie::set_compact<text, integer> index(std::begin(texts), std::end(texts));
 		std::cerr << "done." << std::endl;
@@ -389,7 +389,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type,
 		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
-	else if(container_type == "map" && sftrie_type == "original"){
+	else if(index_type == "map" && optimization_mode == "original"){
 		std::cerr << "constructing index...";
 		sftrie::map_original<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs),
 			min_binary_search);
@@ -401,7 +401,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type,
 		result_predict = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
-	else if(container_type == "map" && sftrie_type == "compact"){
+	else if(index_type == "map" && optimization_mode == "compact"){
 		std::cerr << "constructing index...";
 		sftrie::map_compact<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs), min_binary_search);
 		std::cerr << "done." << std::endl;
@@ -413,7 +413,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type,
 		std::cerr << "done." << std::endl;
 	}
 	else{
-		throw std::runtime_error("unknown container type or trie type: " + container_type + " / " + sftrie_type);
+		throw std::runtime_error("unknown container type or trie type: " + index_type + " / " + optimization_mode);
 	}
 
 	std::cout << std::endl;
@@ -462,8 +462,8 @@ int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
-		{"container_type", "set", {"common", "container_type"}, "container-type", 't', "container type (set or map)"},
-		{"mode", "naive", {"sftrie", "mode"}, "mode", 'm', "sftrie optimization mode (original, or compact)"},
+		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
+		{"optimization_mode", "original", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
 		{"min_binary_search", 42, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
@@ -477,27 +477,27 @@ int main(int argc, char* argv[])
 
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
-		std::string container_type = pm["container_type"];
-		std::string sftrie_type = pm["mode"];
+		std::string index_type = pm["index_type"];
+		std::string optimization_mode = pm["optimization_mode"];
 		int min_binary_search = pm["min_binary_search"];
 
 		std::cout << "[configuration]" << std::endl;
 		std::cout << std::setw(20) << std::left << "corpus_path" << corpus_path << std::endl;
 		std::cout << std::setw(20) << std::left << "symbol_type" << symbol_type << std::endl;
-		std::cout << std::setw(20) << std::left << "container_type" << container_type << std::endl;
-		std::cout << std::setw(20) << std::left << "mode" << sftrie_type << std::endl;
+		std::cout << std::setw(20) << std::left << "index_type" << index_type << std::endl;
+		std::cout << std::setw(20) << std::left << "mode" << optimization_mode << std::endl;
 		std::cout << std::setw(20) << std::left << "min_binary_search" << min_binary_search << std::endl;
 		std::cout << std::endl;
 
 		bool passed;
 		if(symbol_type == "char")
-			passed = exec<std::string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::string, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else if(symbol_type == "wchar_t")
-			passed = exec<std::wstring, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::wstring, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else if(symbol_type == "char16_t")
-			passed = exec<std::u16string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::u16string, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else if(symbol_type == "char32_t")
-			passed = exec<std::u32string, item, integer>(corpus_path, container_type, sftrie_type, min_binary_search);
+			passed = exec<std::u32string, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 
