@@ -64,8 +64,7 @@ int main(int argc, char* argv[])
 
 		size_t count = 0;
 
-		auto back = query.back();
-		if(back != '*' && back != '<'){
+		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match
 			if(index.exists(query)){
 				count++;
@@ -73,6 +72,7 @@ int main(int argc, char* argv[])
 			}
 		}
 		else{
+			auto back = query.back();
 			query.pop_back();
 			if(back == '*'){
 				// predictive search

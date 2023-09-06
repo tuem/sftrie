@@ -61,14 +61,14 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		auto back = query.back();
 		size_t count = 0;
-		if(back != '*' && back != '<'){
+		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match
 			if((count = searcher.count(query)) > 0)
 				std::cout << query << ": found" << std::endl;
 		}
 		else{
+			auto back = query.back();
 			query.pop_back();
 			if(back == '*'){
 				// predictive search
