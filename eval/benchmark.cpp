@@ -92,7 +92,7 @@ size_t benchmark_map_exact_match(map& dict,
 {
 	size_t found = 0;
 	for(const auto& query: queries)
-		if(dict.find(query).first)
+		if(dict.find(query).match())
 			++found;
 	return found;
 }
