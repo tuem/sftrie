@@ -69,6 +69,7 @@ public:
 	size_type total_space() const;
 
 	// search operations
+	bool exists(const text& pattern) const;
 	node_type find(const text& pattern) const;
 	common_searcher searcher();
 
@@ -178,6 +179,12 @@ template<typename text, typename item, typename integer>
 typename map_compact<text, item, integer>::size_type map_compact<text, item, integer>::total_space() const
 {
 	return sizeof(node) * data.size() + sizeof(symbol) * labels.size();
+}
+
+template<typename text, typename item, typename integer>
+bool map_compact<text, item, integer>::exists(const text& pattern) const
+{
+	return find(pattern).match();
 }
 
 template<typename text, typename item, typename integer>
