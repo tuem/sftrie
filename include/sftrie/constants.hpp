@@ -29,7 +29,6 @@ namespace constants{
 // performance tuning
 
 template<typename integer> inline constexpr integer default_min_binary_search = static_cast<integer>(42);
-template<typename integer> inline constexpr integer default_min_tail = static_cast<integer>(1);
 
 
 // header values
