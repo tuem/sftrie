@@ -40,7 +40,6 @@ private:
 public:
 	using symbol_type = symbol;
 	using size_type = std::size_t;
-	using result_type = std::pair<bool, const item&>;
 
 	struct node;
 	struct virtual_node;
@@ -70,17 +69,18 @@ public:
 	size_type total_space() const;
 
 	// search operations
-	node_type search(const text& pattern) const;
-	result_type find(const text& pattern) const;
-	item& operator[](const text& pattern);
+	node_type find(const text& pattern) const;
 	common_searcher searcher();
 
 	// tree operations
 	node_type root();
 	const std::vector<node>& raw_data() const;
 	const std::vector<symbol>& raw_labels() const;
+
+	// value operations
 	bool update(integer id, const item& value);
 	bool update(const text& key, const item& value);
+	item& operator[](const text& pattern);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -98,7 +98,6 @@ private:
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 };
-
 
 #pragma pack(1)
 template<typename text, typename item, typename integer>
@@ -183,45 +182,12 @@ typename map_compact<text, item, integer>::size_type map_compact<text, item, int
 
 template<typename text, typename item, typename integer>
 typename map_compact<text, item, integer>::node_type
-map_compact<text, item, integer>::search(const text& pattern) const
-{
-	integer current = 0;
-	for(integer i = 0; i < pattern.size();){
-		if(data[current].leaf)
-			return {*this, data.size() - 1, 0};
-
-		// find child
-		current = data[current].next;
-		integer end = data[current].next;
-		for(integer w = end - current, m; w > min_binary_search; w = m){
-			m = w >> 1;
-			current += data[current + m].label < pattern[i] ? w - m : 0;
-		}
-		for(; current < end && data[current].label < pattern[i]; ++current);
-		if(!(current < end && data[current].label == pattern[i]))
-			return {*this, data.size() - 1, 0};
-
-		// check compressed labels
-		integer jstart = data[current].ref, jend = data[current + 1].ref, j = jstart;
-		for(; i < pattern.size() && j < jend; ++i, ++j)
-			if(labels[j] != pattern[i])
-				return {*this, data.size() - 1, 0};
-
-		if(j < jend)
-			return {*this, current, j - jstart};
-	}
-	return {*this, current, 0};
-}
-
-
-template<typename text, typename item, typename integer>
-typename map_compact<text, item, integer>::result_type
 map_compact<text, item, integer>::find(const text& pattern) const
 {
-	integer current = 0;
+	integer current = 0, depth = 0;
 	for(integer i = 0; i < pattern.size();){
 		if(data[current].leaf)
-			return {false, data.back().value};
+			return {*this, container_size<integer>(data) - 1, 0};
 
 		// find child
 		current = data[current].next;
@@ -231,18 +197,17 @@ map_compact<text, item, integer>::find(const text& pattern) const
 			current += data[current + m].label < pattern[i] ? w - m : 0;
 		}
 		for(; current < end && data[current].label < pattern[i]; ++current);
-		if(!(current < end && data[current].label == pattern[i]))
-			return {false, data.back().value};
+		if(!(current < end && data[current].label == pattern[i++]))
+			return {*this, container_size<integer>(data) - 1, 0};
 
 		// check compressed labels
-		integer j = data[current].ref, jend = data[current + 1].ref;
-		if(jend - j > pattern.size() - ++i)
-			return {false, data.back().value};
-		for(; j < jend; ++i, ++j)
-			if(labels[j] != pattern[i])
-				return {false, data.back().value};
+		integer jstart = data[current].ref, jend = data[current + 1].ref;
+		for(depth = 0; jstart + depth < jend && i < pattern.size(); ++depth, ++i)
+			if(labels[jstart + depth] != pattern[i])
+				return {*this, container_size<integer>(data) - 1, 0};
 	}
-	return {data[current].match, data[current].value};
+
+	return {*this, current, depth};
 }
 
 template<typename text, typename item, typename integer>
@@ -377,7 +342,6 @@ void map_compact<text, item, integer>::construct(iterator begin, iterator end, i
 	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
 		data[data[current].next + i].ref = container_size<integer>(labels);
 		integer d = depth + 1;
-		//set: while(d < container_size<integer>(*head[i]) && (*head[i])[d] == (*(head[i + 1] - 1))[d])
 		while(d < container_size<integer>((*head[i]).first) && (*head[i]).first[d] == (*(head[i + 1] - 1)).first[d])
 			labels.push_back((*head[i]).first[d++]);
 		depths.push_back(d);
@@ -396,13 +360,23 @@ void map_compact<text, item, integer>::construct(iterator begin, iterator end, i
 template<typename text, typename item, typename integer>
 struct map_compact<text, item, integer>::virtual_node
 {
-	map_compact<text, item, integer>& trie;
+	const map_compact<text, item, integer>& trie;
 	integer id;
 	integer depth;
 
-	virtual_node(map_compact<text, item, integer>& trie, integer id, integer depth):
+	virtual_node(const map_compact<text, item, integer>& trie, integer id, integer depth):
 		trie(trie), id(id), depth(depth)
 	{}
+
+	bool operator!=(const virtual_node& n) const
+	{
+		return id != n.id || depth != n.depth;
+	}
+
+	bool valid() const
+	{
+		return id < trie.data.size() - 1;
+	}
 
 	integer node_id() const
 	{
@@ -414,14 +388,9 @@ struct map_compact<text, item, integer>::virtual_node
 		return id == 0;
 	}
 
-	bool is_valid() const
-	{
-		return id < trie.data.size() - 1;
-	}
-
 	bool is_physical() const
 	{
-		return depth == 0;
+		return valid() && depth == trie.data[id + 1].ref - trie.data[id].ref;
 	}
 
 	symbol label() const
@@ -442,19 +411,9 @@ struct map_compact<text, item, integer>::virtual_node
 		return trie.data[id].leaf && trie.data[id].ref + depth == trie.data[id + 1].ref;
 	}
 
-	item& value()
+	const item& value() const
 	{
 		return trie.data[id].value;
-	}
-
-	bool operator==(const virtual_node& n) const
-	{
-		return id == n.id && depth == n.depth;
-	}
-
-	bool operator!=(const virtual_node& n) const
-	{
-		return id != n.id || depth != n.depth;
 	}
 
 	child_iterator children() const
@@ -487,7 +446,7 @@ struct map_compact<text, item, integer>::child_iterator
 		current(trie, id, depth), last(last)
 	{}
 
-	child_iterator& begin()
+	child_iterator& begin() const
 	{
 		return *this;
 	}
@@ -495,18 +454,6 @@ struct map_compact<text, item, integer>::child_iterator
 	child_iterator end() const
 	{
 		return child_iterator(current.trie, last, 0, last);
-	}
-
-	bool incrementable() const
-	{
-		return current.depth == 0 && last > 0 && current.id < last - 1;
-	}
-
-	bool operator==(const child_iterator& i) const
-	{
-		return
-			(current.id == i.current.id && current.depth == i.current.depth) ||
-			(current.id == last && i.current.id == i.last);
 	}
 
 	bool operator!=(const child_iterator& i) const
@@ -533,64 +480,27 @@ struct map_compact<text, item, integer>::child_iterator
 template<typename text, typename item, typename integer>
 struct map_compact<text, item, integer>::common_searcher
 {
-	map_compact<text, item, integer>& trie;
+	const map_compact<text, item, integer>& trie;
 	std::vector<integer> path;
 	text result;
 
-	common_searcher(map_compact<text, item, integer>& trie): trie(trie){}
+	common_searcher(const map_compact<text, item, integer>& trie): trie(trie){}
 
-	typename map_compact<text, item, integer>::node_type find(const text& pattern)
+	typename map_compact<text, item, integer>::node_type find(const text& pattern) const
 	{
-		integer current = 0;
-		for(integer i = 0; i < pattern.size();){
-			if(trie.data[current].leaf)
-				return {trie, container_size<integer>(trie.data) - 1, 0};
-
-			// find child
-			current = trie.data[current].next;
-			integer end = trie.data[current].next;
-			for(integer w = end - current, m; w > trie.min_binary_search; w = m){
-				m = w >> 1;
-				current += trie.data[current + m].label < pattern[i] ? w - m : 0;
-			}
-			for(; current < end && trie.data[current].label < pattern[i]; ++current);
-			if(!(current < end && trie.data[current].label == pattern[i]))
-				return {trie, container_size<integer>(trie.data) - 1, 0};
-
-			// check compressed labels
-			integer j = trie.data[current].ref, jend = trie.data[current + 1].ref;
-			if(jend - j > pattern.size() - ++i)
-				return {trie, container_size<integer>(trie.data) - 1, 0};
-			for(; j < jend; ++i, ++j)
-				if(trie.labels[j] != pattern[i])
-					return {trie, container_size<integer>(trie.data) - 1, 0};
-		}
-		if(!trie.data[current].match)
-			return {trie, container_size<integer>(trie.data) - 1, 0};
-
-		return {trie, current, trie.data[current + 1].ref - trie.data[current].ref};
-	}
-
-	typename map_compact<text, item, integer>::node_type end() const
-	{
-		return {trie, container_size<integer>(trie.data) - 1, 0};
-	}
-
-	integer count(const text& pattern) const
-	{
-		return find(pattern) != end() ? 1 : 0;
+		return trie.find(pattern);
 	}
 
 	subtree_iterator predict(const text& pattern)
 	{
-		auto root = find(pattern);
-		if(root != end()){
+		auto n = trie.find(pattern);
+		if(n.id < trie.data.size() - 1){
 			result.clear();
 			path.clear();
-			path.push_back(root.id);
+			path.push_back(n.id);
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
-		return subtree_iterator(*this, root);
+		return subtree_iterator(*this, n);
 	}
 
 	prefix_iterator prefix(const text& pattern)
@@ -606,13 +516,16 @@ struct map_compact<text, item, integer>::subtree_iterator
 	common_searcher& searcher;
 	integer current;
 
-	subtree_iterator(common_searcher& searcher, const virtual_node& root):
-		searcher(searcher), current(root.id)
+	subtree_iterator(common_searcher& searcher, const virtual_node& n):
+		searcher(searcher), current(n.id)
 	{
-		if(root.id < searcher.trie.data.size() - 1 && !searcher.trie.data[root.id].match){
-			for(integer d = root.depth; searcher.trie.data[root.id].ref + d < searcher.trie.data[root.id + 1].ref; ++d)
-				searcher.result.push_back(searcher.trie.labels[searcher.trie.data[root.id].ref + d]);
-			++*this;
+		if(n.id < searcher.trie.data.size() - 1){
+			if(searcher.trie.data[n.id + 1].ref - searcher.trie.data[n.id].ref > n.depth)
+				std::copy(searcher.trie.labels.begin() + searcher.trie.data[n.id].ref + n.depth,
+					searcher.trie.labels.begin() + searcher.trie.data[n.id + 1].ref,
+					std::back_inserter(searcher.result));
+			if(!searcher.trie.data[n.id].match)
+				++*this;
 		}
 	}
 
@@ -621,14 +534,14 @@ struct map_compact<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	item& value()
+	const item& value() const
 	{
 		return searcher.trie.data[current].value;
 	}
 
-	map_compact<text, item, integer>::virtual_node node()
+	map_compact<text, item, integer>::virtual_node node() const
 	{
-		return map_compact<text, item, integer>::virtual_node(searcher.trie, current);
+		return {searcher.trie, current, searcher.trie.data[current + 1].ref - searcher.trie.data[current].ref};
 	}
 
 	subtree_iterator& begin()
@@ -709,9 +622,14 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	item& value()
+	const item& value() const
 	{
 		return searcher.trie.data[current].value;
+	}
+
+	map_compact<text, item, integer>::virtual_node node() const
+	{
+		return {searcher.trie, current, depth};
 	}
 
 	prefix_iterator& begin()
@@ -729,7 +647,7 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return this->current != i.current;
 	}
 
-	prefix_iterator& operator*()
+	const prefix_iterator& operator*() const
 	{
 		return *this;
 	}
