@@ -40,6 +40,7 @@ private:
 public:
 	using symbol_type = symbol;
 	using size_type = std::size_t;
+	using key_type = text;
 	using value_type = item;
 
 	struct node;
@@ -81,7 +82,7 @@ public:
 	// value operations
 	bool update(node_type& n, const item& value);
 	bool update(const text& key, const item& value);
-	value_type& operator[](const text& pattern);
+	item& operator[](const text& pattern);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -227,7 +228,7 @@ bool map_original<text, item, integer>::update(const text& key, const item& valu
 }
 
 template<typename text, typename item, typename integer>
-typename map_original<text, item, integer>::value_type&
+typename map_original<text, item, integer>::item&
 map_original<text, item, integer>::operator[](const text& pattern)
 {
 	return data[search(pattern).id].value;
