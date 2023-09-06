@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 		size_t count = 0;
 		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match
-			if(index.exists(query)){
+			if(searcher.exists(query)){
 				count++;
 				std::cout << query << ": found, count=" << ++index[query] << std::endl;
 			}
