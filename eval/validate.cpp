@@ -339,7 +339,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 		negative_queries_size = set_negative_queries.size();
 		predictive_search_queries_size = set_predictive_search_queries.size();
 	}
-	else{
+	else if(index_type == "map"){
 		std::shuffle(std::begin(text_item_pairs), std::end(text_item_pairs), std::default_random_engine(seed));
 		std::copy(std::begin(text_item_pairs), std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::back_inserter(map_positive_queries));
 		std::copy(std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::end(text_item_pairs), std::back_inserter(map_negative_queries));
@@ -360,6 +360,9 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 		positive_queries_size = map_positive_queries.size();
 		negative_queries_size = map_negative_queries.size();
 		predictive_search_queries_size = map_predictive_search_queries.size();
+	}
+	else{
+		throw std::runtime_error("unknown container type or trie type: " + index_type + " / " + optimization_mode);
 	}
 	std::cerr << "done." << std::endl;
 
