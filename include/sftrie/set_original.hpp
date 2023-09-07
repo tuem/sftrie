@@ -116,7 +116,8 @@ set_original<text, integer>::set_original(random_access_iterator begin, random_a
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, {}})
 {
-	construct(begin, end, 0, 0);
+	if(begin < end)
+		construct(begin, end, 0, 0);
 	data.push_back({false, false, container_size<integer>(data), {}});
 	data.shrink_to_fit();
 }
@@ -126,7 +127,8 @@ template<typename random_access_container>
 set_original<text, integer>::set_original(const random_access_container& texts, integer min_binary_search):
 	min_binary_search(min_binary_search), num_texts(std::size(texts))
 {
-	construct(std::begin(texts), std::end(texts), 0, 0);
+	if(std::begin(texts) < std::end(texts))
+		construct(std::begin(texts), std::end(texts), 0, 0);
 	data.push_back({false, false, container_size<integer>(data), {}});
 	data.shrink_to_fit();
 }

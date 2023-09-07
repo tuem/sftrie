@@ -120,7 +120,8 @@ set_compact<text, integer>::set_compact(random_access_iterator begin, random_acc
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, 0, {}})
 {
-	construct(begin, end, 0, 0);
+	if(begin < end)
+		construct(begin, end, 0, 0);
 	data.push_back({false, false, container_size<integer>(data), container_size<integer>(labels), {}});
 	data.shrink_to_fit();
 	labels.shrink_to_fit();
@@ -131,7 +132,8 @@ template<typename random_access_container>
 set_compact<text, integer>::set_compact(const random_access_container& texts, integer min_binary_search):
 	min_binary_search(min_binary_search), num_texts(std::size(texts))
 {
-	construct(std::begin(texts), std::end(texts), 0, 0);
+	if(std::begin(texts) < std::end(texts))
+		construct(std::begin(texts), std::end(texts), 0, 0);
 	data.push_back({false, false, container_size<integer>(data), container_size<integer>(labels), {}});
 	data.shrink_to_fit();
 	labels.shrink_to_fit();
