@@ -11,14 +11,13 @@
 
 3. Build trie
 ```c++
-std::vector<std::string> texts; // you can also use wstring, u16string, u32string, etc.
+std::vector<std::string> texts; // you can also use u16string, u32string, etc.
 ...
-sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
+sftrie::set<text> index(texts.begin()), texts.end());
 ```
 
-4. Search queries
+4. Search texts
 ```c++
 std::string query = "...";
-auto searcher = index.searcher();
-std::cout << searcher.count(query) > 0 ? "found" : "not found" << std::endl;
+std::cout << index.exists(query) ? "found" : "not found" << std::endl;
 ```
