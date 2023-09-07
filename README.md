@@ -19,5 +19,6 @@ sftrie::set<text> index(texts.begin()), texts.end());
 4. Search texts
 ```c++
 std::string query = "...";
-std::cout << index.exists(query) ? "found" : "not found" << std::endl;
+auto searcher = index.searcher();
+std::cout << searcher.exists(query) ? "found" : "not found" << std::endl;
 ```

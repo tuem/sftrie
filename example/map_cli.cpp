@@ -30,17 +30,19 @@ using item = std::uint32_t;
 int main(int argc, char* argv[])
 {
 	if(argc < 2){
-		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
+		std::cerr << "usage: " << argv[0] << " dictionary" << std::endl;
 		return 0;
 	}
 
-	std::string corpus_path = argv[1];
+	std::string dictionary_path = argv[1];
+
 	std::cerr << "loading...";
-	std::ifstream ifs(corpus_path);
+	std::ifstream ifs(dictionary_path);
 	if(!ifs.is_open()){
-		std::cerr << "input file is not available: " << corpus_path << std::endl;
+		std::cerr << "input file is not available: " << dictionary_path << std::endl;
 		return 1;
 	}
+
 	std::vector<std::pair<text, item>> texts;
 	while(ifs.good()){
 		std::string line;
