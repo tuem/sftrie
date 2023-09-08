@@ -74,6 +74,7 @@ public:
 
 	// search operations
 	bool exists(const text& pattern) const;
+	node_type find(const text& pattern) const;
 	common_searcher searcher() const;
 
 	// tree operations
@@ -221,6 +222,13 @@ bool set_compact<text, integer>::exists(const text& pattern) const
 }
 
 template<typename text, typename integer>
+typename set_compact<text, integer>::node_type
+set_compact<text, integer>::find(const text& pattern) const
+{
+	return search(pattern);
+}
+
+template<typename text, typename integer>
 typename set_compact<text, integer>::common_searcher
 set_compact<text, integer>::searcher() const
 {
@@ -228,7 +236,8 @@ set_compact<text, integer>::searcher() const
 }
 
 template<typename text, typename integer>
-typename set_compact<text, integer>::node_type set_compact<text, integer>::root() const
+typename set_compact<text, integer>::node_type
+set_compact<text, integer>::root() const
 {
 	return {*this, 0, 0};
 }
