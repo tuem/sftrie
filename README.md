@@ -8,20 +8,17 @@
 ```c++
 #include <sftrie/set.hpp>
 ```
-or
-```c++
-#include <sftrie/map.hpp>
-```
 
 3. Build trie
 ```c++
-std::vector<std::string> texts = ...; // you can also use u16string, u32string, etc.
+using text = std::string; // you can also use u16string, u32string, etc.
+std::vector<text> texts = ...;
 sftrie::set<text> index(texts.begin()), texts.end());
 ```
 
 4. Search texts
 ```c++
-std::string pattern = "...";
+text pattern = "...";
 auto searcher = index.searcher();
 // exact matching
 std::cout << searcher.exists(pattern) ? "found" : "not found" << std::endl;
