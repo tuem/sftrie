@@ -33,8 +33,6 @@ using integer = std::uint32_t;
 using item = integer;
 
 
-// utility for set
-
 template<typename set>
 void test_set_common_prefix_search(
 	const std::vector<typename set::text_type>& texts,
@@ -101,8 +99,6 @@ void test_set_common_prefix_search_all(
 	}
 }
 
-
-// utility for map
 
 template<typename map>
 void test_map_common_prefix_search(

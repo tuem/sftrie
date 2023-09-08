@@ -33,13 +33,11 @@ using integer = std::uint32_t;
 using item = integer;
 
 
-// utility for set
-
 template<typename set>
 void test_set_exact_match(
 	const std::vector<typename set::text_type>& texts,
 	const std::vector<typename set::text_type>& patterns_not_in_texts,
-	typename set::integer_type expected_size = 0
+	typename set::integer_type expected_size
 )
 {
 	set index(texts.begin(), texts.end());
@@ -68,8 +66,8 @@ template<typename text>
 void test_set_exact_match_all_classes(
 	const std::vector<text>& texts,
 	const std::vector<text>& patterns_not_in_texts,
-	size_t expected_size_original = 0,
-	size_t expected_size_compact = 0
+	size_t expected_size_original,
+	size_t expected_size_compact
 )
 {
 	SECTION("set_original"){
@@ -116,7 +114,7 @@ template<typename map>
 void test_map_exact_match(
 	const std::vector<std::pair<typename map::text_type, typename map::value_type>>& texts,
 	const std::vector<typename map::text_type>& patterns_not_in_texts,
-	typename map::integer_type expected_size = 0
+	typename map::integer_type expected_size
 )
 {
 	map index(texts.begin(), texts.end());
@@ -150,8 +148,8 @@ template<typename text>
 void test_map_exact_match_all_classes(
 	const std::vector<std::pair<text, item>>& texts,
 	const std::vector<text>& patterns_not_in_texts,
-	size_t expected_size_original = 0,
-	size_t expected_size_compact = 0
+	size_t expected_size_original,
+	size_t expected_size_compact
 )
 {
 	SECTION("map_original"){

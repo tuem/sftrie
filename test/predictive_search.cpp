@@ -20,7 +20,6 @@ limitations under the License.
 #include <string>
 #include <vector>
 #include <map>
-#include <iostream>
 
 #include <Catch2/catch.hpp>
 
@@ -33,8 +32,6 @@ limitations under the License.
 using integer = std::uint32_t;
 using item = integer;
 
-
-// utility for set
 
 template<typename set>
 void test_set_predictive_search(
@@ -102,8 +99,6 @@ void test_set_predictive_search_all(
 	}
 }
 
-
-// utility for map
 
 template<typename map>
 void test_map_predictive_search(
