@@ -449,14 +449,14 @@ struct set_original<text, integer>::common_searcher
 
 	subtree_iterator predict(const text& pattern)
 	{
-		auto root = trie.search(pattern);
-		if(root < trie.data.size() - 1){
+		auto n = trie.search(pattern);
+		if(n < trie.data.size() - 1){
 			path.clear();
 			result.clear();
-			path.push_back(root);
+			path.push_back(n);
 			std::copy(std::begin(pattern), std::end(pattern), std::back_inserter(result));
 		}
-		return subtree_iterator(*this, pattern, root);
+		return subtree_iterator(*this, n);
 	}
 
 	prefix_iterator prefix(const text& pattern)
@@ -470,14 +470,17 @@ template<typename text, typename integer>
 struct set_original<text, integer>::subtree_iterator
 {
 	common_searcher& searcher;
-	const text& prefix;
 	integer current;
 
-	subtree_iterator(common_searcher& searcher, const text& prefix, integer root):
-		searcher(searcher), prefix(prefix), current(root)
+	subtree_iterator(common_searcher& searcher, integer n):
+		searcher(searcher), current(n)
 	{
-		if(root < searcher.trie.data.size() - 1 && !searcher.trie.data[root].match)
-			++*this;
+		if(n < searcher.trie.data.size() - 1 && !searcher.trie.data[n].match){
+			if(n != 0 || searcher.trie.data[n].next < searcher.trie.data.size() - 1)
+				++*this;
+			else
+				current = searcher.trie.data.size() - 1;
+		}
 	}
 
 	subtree_iterator& begin()
@@ -487,7 +490,7 @@ struct set_original<text, integer>::subtree_iterator
 
 	subtree_iterator end() const
 	{
-		return subtree_iterator(searcher, prefix, searcher.trie.data.size() - 1);
+		return subtree_iterator(searcher, searcher.trie.data.size() - 1);
 	}
 
 	bool operator!=(const subtree_iterator& i) const

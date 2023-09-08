@@ -500,8 +500,12 @@ struct map_original<text, item, integer>::subtree_iterator
 	subtree_iterator(common_searcher& searcher, integer n):
 		searcher(searcher), current(n)
 	{
-		if(n < searcher.trie.data.size() - 1 && !searcher.trie.data[n].match)
-			++*this;
+		if(n < searcher.trie.data.size() - 1 && !searcher.trie.data[n].match){
+			if(searcher.trie.data[n].next < searcher.trie.data.size() - 1)
+				++*this;
+			else
+				current = searcher.trie.data.size() - 1;
+		}
 	}
 
 	const text& key() const

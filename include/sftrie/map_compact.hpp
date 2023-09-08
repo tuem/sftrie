@@ -542,8 +542,12 @@ struct map_compact<text, item, integer>::subtree_iterator
 				std::copy(searcher.trie.labels.begin() + searcher.trie.data[n.id].ref + n.depth,
 					searcher.trie.labels.begin() + searcher.trie.data[n.id + 1].ref,
 					std::back_inserter(searcher.result));
-			if(!searcher.trie.data[n.id].match)
-				++*this;
+			if(!searcher.trie.data[n.id].match){
+				if(n.id != 0 || searcher.trie.data[n.id].next < searcher.trie.data.size() - 1)
+					++*this;
+				else
+					current = searcher.trie.data.size() - 1;
+			}
 		}
 	}
 
