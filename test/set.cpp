@@ -21,67 +21,142 @@ limitations under the License.
 
 #include <sftrie/set.hpp>
 
-using text = std::string;
+#include "set_util.hpp"
+
+
 using integer = std::uint32_t;
 
-const std::vector<text> set_of_one_empty_string = { "" };
 
-TEST_CASE("set/original/char/empty set", "[set]"){
-	const std::vector<text> texts;
-	sftrie::set_original<text, integer> index(texts.begin(), texts.end());
+TEST_CASE("set_compact/empty set/char", "[set]"){
+	using text = std::string;
 
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
-	}
-
-	SECTION("search"){
-		CHECK(!index.exists(""));
-		CHECK(!index.exists("A"));
-	}
-}
-
-TEST_CASE("set/original/char/set of an empty string", "[set]"){
 	const std::vector<text> texts = {
 		""
 	};
-	sftrie::set_original<text, integer> index(texts.begin(), texts.end());
+	const std::vector<text> patterns_in_texts = {
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		""
+		"A"
+	};
 
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
+	SECTION("set_original"){
+		test_set_exact_match<sftrie::set_original<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
 	}
+	SECTION("set_compact"){
+		test_set_exact_match<sftrie::set_compact<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("set_compact/empty set/char16_t", "[set]"){
+	using text = std::u16string;
 
-	SECTION("search"){
-		CHECK(index.exists(""));
-		CHECK(!index.exists("A"));
+	const std::vector<text> texts = {
+		u""
+	};
+	const std::vector<text> patterns_in_texts = {
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		u""
+		u"A"
+	};
+
+	SECTION("set_original"){
+		test_set_exact_match<sftrie::set_original<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("set_compact"){
+		test_set_exact_match<sftrie::set_compact<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("set_compact/empty set/char32_t", "[set]"){
+	using text = std::u32string;
+
+	const std::vector<text> texts = {
+		U""
+	};
+	const std::vector<text> patterns_in_texts = {
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		U""
+		U"A"
+	};
+
+	SECTION("set_original"){
+		test_set_exact_match<sftrie::set_original<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("set_compact"){
+		test_set_exact_match<sftrie::set_compact<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
 	}
 }
 
-TEST_CASE("set/compact/char/empty set", "[set]"){
-	const std::vector<text> texts;
-	sftrie::set_compact<text, integer> index(texts.begin(), texts.end());
+TEST_CASE("set_compact/set of an empty string/char", "[set]"){
+	using text = std::string;
 
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
-	}
-
-	SECTION("search"){
-		CHECK(!index.exists(""));
-		CHECK(!index.exists("A"));
-	}
-}
-
-TEST_CASE("set/compact/char/set of an empty string", "[set]"){
 	const std::vector<text> texts = {
 		""
 	};
-	sftrie::set_compact<text, integer> index(texts.begin(), texts.end());
+	const std::vector<text> patterns_in_texts = {
+		""
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		"A"
+	};
 
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
+	SECTION("set_original"){
+		test_set_exact_match<sftrie::set_original<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
 	}
+	SECTION("set_compact"){
+		test_set_exact_match<sftrie::set_compact<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("set_compact/set of an empty string/char16_t", "[set]"){
+	using text = std::u16string;
 
-	SECTION("search"){
-		CHECK(index.exists(""));
-		CHECK(!index.exists("A"));
+	const std::vector<text> texts = {
+		u""
+	};
+	const std::vector<text> patterns_in_texts = {
+		u""
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		u"A"
+	};
+
+	SECTION("set_original"){
+		test_set_exact_match<sftrie::set_original<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("set_compact"){
+		test_set_exact_match<sftrie::set_compact<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("set_compact/set of an empty string/char32_t", "[set]"){
+	using text = std::u32string;
+
+	const std::vector<text> texts = {
+		U""
+	};
+	const std::vector<text> patterns_in_texts = {
+		U""
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		U"A"
+	};
+
+	SECTION("set_original"){
+		test_set_exact_match<sftrie::set_original<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("set_compact"){
+		test_set_exact_match<sftrie::set_compact<text, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
 	}
 }

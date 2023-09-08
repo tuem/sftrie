@@ -21,70 +21,140 @@ limitations under the License.
 
 #include <sftrie/map.hpp>
 
-using text = std::string;
-using item = std::uint32_t;
+#include "map_util.hpp"
+
+
 using integer = std::uint32_t;
+using item = integer;
 
-const std::vector<text> set_of_one_empty_string = { "" };
 
-TEST_CASE("map/original/char/empty set", "[map]"){
-	const std::vector<std::pair<text, item>> texts;
-	sftrie::map_original<text, item, integer> index(texts.begin(), texts.end());
+TEST_CASE("map_compact/empty map/char", "[map]"){
+	using text = std::string;
 
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
-	}
-
-	SECTION("search"){
-		CHECK(!index.exists(""));
-		CHECK(!index.exists("A"));
-	}
-}
-
-TEST_CASE("map/original/char/set of an empty string", "[map]"){
-	const std::vector<std::pair<text, integer>> texts = {
-		{"", 42}
+	const std::vector<std::pair<text, item>> texts = {
 	};
-	sftrie::map_original<text, item, integer> index(texts.begin(), texts.end());
-
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
-	}
-
-	SECTION("search"){
-		CHECK(index.exists(""));
-		CHECK(index[""] == 42);
-		CHECK(!index.exists("A"));
-	}
-}
-
-TEST_CASE("map/compact/char/empty set", "[map]"){
-	const std::vector<std::pair<text, item>> texts;
-	sftrie::map_compact<text, item, integer> index(texts.begin(), texts.end());
-
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
-	}
-
-	SECTION("search"){
-		CHECK(!index.exists(""));
-		CHECK(!index.exists("A"));
-	}
-}
-
-TEST_CASE("map/compact/char/set of an empty string", "[map]"){
-	const std::vector<std::pair<text, integer>> texts = {
-		{"", 42}
+	const std::vector<std::pair<text, item>> patterns_in_texts = {
 	};
-	sftrie::map_compact<text, item, integer> index(texts.begin(), texts.end());
+	const std::vector<text> patterns_not_in_texts = {
+		""
+		"A"
+	};
 
-	SECTION("trie size"){
-		CHECK(index.trie_size() == 2); // root and sentinel
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
 	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("map_compact/empty map/char16_t", "[map]"){
+	using text = std::u16string;
 
-	SECTION("search"){
-		CHECK(index.exists(""));
-		CHECK(index[""] == 42);
-		CHECK(!index.exists("A"));
+	const std::vector<std::pair<text, item>> texts = {
+	};
+	const std::vector<std::pair<text, item>> patterns_in_texts = {
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		u""
+		u"A"
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("map_compact/empty map/char32_t", "[map]"){
+	using text = std::u32string;
+
+	const std::vector<std::pair<text, item>> texts = {
+	};
+	const std::vector<std::pair<text, item>> patterns_in_texts = {
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		U""
+		U"A"
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+
+TEST_CASE("map_compact/map of an empty string/char", "[map]"){
+	using text = std::string;
+
+	const std::vector<std::pair<text, item>> texts = {
+		{"", 1}
+	};
+	const std::vector<std::pair<text, item>> patterns_in_texts = {
+		{"", 1}
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		"A"
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("map_compact/map of an empty string/char16_t", "[map]"){
+	using text = std::u16string;
+
+	const std::vector<std::pair<text, item>> texts = {
+		{u"", 1}
+	};
+	const std::vector<std::pair<text, item>> patterns_in_texts = {
+		{u"", 1}
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		u"A"
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+}
+TEST_CASE("map_compact/map of an empty string/char32_t", "[map]"){
+	using text = std::u32string;
+
+	const std::vector<std::pair<text, item>> texts = {
+		{U"", 1}
+	};
+	const std::vector<std::pair<text, item>> patterns_in_texts = {
+		{U"", 1}
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		U"A"
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_in_texts, patterns_not_in_texts, 2);
 	}
 }
