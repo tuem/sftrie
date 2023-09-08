@@ -428,7 +428,7 @@ struct map_original<text, item, integer>::child_iterator
 		current(trie, id), last(last)
 	{}
 
-	child_iterator& begin() const
+	child_iterator begin() const
 	{
 		return *this;
 	}
@@ -436,6 +436,11 @@ struct map_original<text, item, integer>::child_iterator
 	child_iterator end() const
 	{
 		return child_iterator(current.trie, last, last);
+	}
+
+	bool operator==(const child_iterator& i) const
+	{
+		return current.id == i.current.id;
 	}
 
 	bool operator!=(const child_iterator& i) const

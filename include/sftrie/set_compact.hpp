@@ -473,7 +473,7 @@ struct set_compact<text, integer>::child_iterator
 		current(trie, id, depth), last(last)
 	{}
 
-	child_iterator& begin()
+	child_iterator begin() const
 	{
 		return *this;
 	}

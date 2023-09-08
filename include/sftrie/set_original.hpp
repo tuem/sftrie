@@ -397,7 +397,7 @@ struct set_original<text, integer>::child_iterator
 		current(trie, id), last(last)
 	{}
 
-	child_iterator& begin()
+	child_iterator begin() const
 	{
 		return *this;
 	}
