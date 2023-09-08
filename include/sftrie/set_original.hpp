@@ -39,8 +39,9 @@ private:
 
 public:
 	using symbol_type = symbol;
+	using text_type = text;
+	using integer_type = integer;
 	using size_type = std::size_t;
-	using key_type = text;
 
 	struct node;
 	struct virtual_node;
