@@ -108,8 +108,6 @@ void test_set_exact_match_all(
 }
 
 
-// utility for map
-
 template<typename map>
 void test_map_exact_match(
 	const std::vector<std::pair<typename map::text_type, typename map::value_type>>& texts,
