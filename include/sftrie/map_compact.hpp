@@ -470,6 +470,13 @@ struct map_compact<text, item, integer>::child_iterator
 		return child_iterator(current.trie, last, 0, last);
 	}
 
+	bool operator==(const child_iterator& i) const
+	{
+		return
+			(current.id == i.current.id && current.depth == i.current.depth) ||
+			(current.id == last && i.current.id == i.last);
+	}
+
 	bool operator!=(const child_iterator& i) const
 	{
 		return
