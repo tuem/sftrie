@@ -21,7 +21,7 @@ all: $(BINS)
 
 
 CXX := g++
-CXXFLAGS := -Wall -Wextra -O3 -std=c++17 -isystem ../include -isystem ../external/sftrie/include -isystem ../external
+CXXFLAGS := -Wall -Wextra -O3 -std=c++17 -I../include -isystem ../external/sftrie/include -isystem ../external
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
