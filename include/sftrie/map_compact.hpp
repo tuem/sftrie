@@ -229,12 +229,6 @@ map_compact<text, item, integer>::find(const text& pattern) const
 }
 
 template<typename text, typename item, typename integer>
-item& map_compact<text, item, integer>::operator[](const text& key)
-{
-	return data[find(key).id].value;
-}
-
-template<typename text, typename item, typename integer>
 typename map_compact<text, item, integer>::common_searcher
 map_compact<text, item, integer>::searcher()
 {
@@ -244,7 +238,7 @@ map_compact<text, item, integer>::searcher()
 template<typename text, typename item, typename integer>
 bool map_compact<text, item, integer>::update(const node_type& n, const item& value)
 {
-	if(n.depth < data[n.id + 1].ref - data[n.id].ref)
+	if(!n.match())
 		return false;
 
 	data[n.id].value = value;
@@ -255,6 +249,13 @@ template<typename text, typename item, typename integer>
 bool map_compact<text, item, integer>::update(const text& key, const item& value)
 {
 	return update(find(key), value);
+}
+
+template<typename text, typename item, typename integer>
+item& map_compact<text, item, integer>::operator[](const text& key)
+{
+	auto n = find(key);
+	return data[n.match() ? n.id : data.size() - 1].value;
 }
 
 template<typename text, typename item, typename integer>

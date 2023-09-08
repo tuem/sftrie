@@ -240,7 +240,8 @@ bool map_original<text, item, integer>::update(const text& key, const item& valu
 template<typename text, typename item, typename integer>
 item& map_original<text, item, integer>::operator[](const text& key)
 {
-	return data[search(key)].value;
+	auto i = search(key);
+	return data[data[i].match ? i : data.size() - 1].value;
 }
 
 template<typename text, typename item, typename integer>
