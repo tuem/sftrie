@@ -90,19 +90,22 @@ void test_set_exact_match_all(
 )
 {
 	SECTION("char"){
-		test_set_exact_match_all_classes(texts, patterns_not_in_texts, expected_sizes["original/char"], expected_sizes["compact/char"]);
+		test_set_exact_match_all_classes(texts, patterns_not_in_texts,
+			expected_sizes["original/char"], expected_sizes["compact/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto texts_u16 = cast_strings<std::u16string>(texts);
 		auto patterns_not_in_texts_u16 = cast_strings<std::u16string>(patterns_not_in_texts);
-		test_set_exact_match_all_classes(texts_u16, patterns_not_in_texts_u16, expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
+		test_set_exact_match_all_classes(texts_u16, patterns_not_in_texts_u16,
+			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto texts_u32 = cast_strings<std::u32string>(texts);
 		auto patterns_not_in_texts_u32 = cast_strings<std::u32string>(patterns_not_in_texts);
-		test_set_exact_match_all_classes(texts_u32, patterns_not_in_texts_u32, expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
+		test_set_exact_match_all_classes(texts_u32, patterns_not_in_texts_u32,
+			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
 	}
 }
 
@@ -171,19 +174,22 @@ void test_map_exact_match_all(
 	auto text_ids = assign_ids<std::string, item>(texts);
 
 	SECTION("char"){
-		test_map_exact_match_all_classes(text_ids, patterns_not_in_texts, expected_sizes["original/char"], expected_sizes["compact/char"]);
+		test_map_exact_match_all_classes(text_ids, patterns_not_in_texts,
+			expected_sizes["original/char"], expected_sizes["compact/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto text_ids_u16 = cast_strings<std::u16string>(text_ids);
 		auto patterns_not_in_texts_u16 = cast_strings<std::u16string>(patterns_not_in_texts);
-		test_map_exact_match_all_classes(text_ids_u16, patterns_not_in_texts_u16, expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
+		test_map_exact_match_all_classes(text_ids_u16, patterns_not_in_texts_u16,
+			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto text_ids_u32 = cast_strings<std::u32string>(text_ids);
 		auto patterns_not_in_texts_u32 = cast_strings<std::u32string>(patterns_not_in_texts);
-		test_map_exact_match_all_classes(text_ids_u32, patterns_not_in_texts_u32, expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
+		test_map_exact_match_all_classes(text_ids_u32, patterns_not_in_texts_u32,
+			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
 	}
 }
 

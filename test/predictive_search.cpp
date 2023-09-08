@@ -44,16 +44,13 @@ void test_set_predictive_search(
 {
 	set index(texts.begin(), texts.end());
 
-	SECTION("search patterns"){
-		auto searcher = index.searcher();
-		for(const auto& i: patterns){
-			std::vector<typename set::text_type> results;
-			for(const auto& p: searcher.predict(i.first)){
-				results.push_back(p);
-			}
-			CHECK(i.first == i.first);
-			CHECK(results == i.second);
+	auto searcher = index.searcher();
+	for(const auto& i: patterns){
+		std::vector<typename set::text_type> results;
+		for(const auto& p: searcher.predict(i.first)){
+			results.push_back(p);
 		}
+		CHECK(results == i.second);
 	}
 }
 
@@ -114,15 +111,13 @@ void test_map_predictive_search(
 	const std::vector<std::pair<typename map::text_type, std::vector<typename map::text_type>>>& patterns
 )
 {
-	SECTION("search patterns"){
-		map index(texts.begin(), texts.end());
-		auto searcher = index.searcher();
-		for(const auto& i: patterns){
-			std::vector<typename map::text_type> results;
-			for(const auto& p: searcher.predict(i.first))
-				results.push_back(p.key());
-			CHECK(results == i.second);
-		}
+	map index(texts.begin(), texts.end());
+	auto searcher = index.searcher();
+	for(const auto& i: patterns){
+		std::vector<typename map::text_type> results;
+		for(const auto& p: searcher.predict(i.first))
+			results.push_back(p.key());
+		CHECK(results == i.second);
 	}
 }
 
@@ -135,6 +130,7 @@ void test_map_predictive_search_all_classes(
 	SECTION("map_original"){
 		test_map_predictive_search<sftrie::map_original<text, item, integer>>(texts, patterns);
 	}
+
 	SECTION("map_compact"){
 		test_map_predictive_search<sftrie::map_compact<text, item, integer>>(texts, patterns);
 	}
@@ -259,17 +255,18 @@ TEST_CASE("predictive search/set of few texts", "[predictive search]"){
 		"D",
 		"DEF",
 		"DEFGH",
+		"DEFIJ",
 	};
 	const std::vector<std::pair<text, std::vector<text>>> patterns = {
 		{"", texts},
 		{"A", {"ABC"}},
-		{"D", {"D", "DEF", "DEFGH"}},
-		{"DE", {"DEF", "DEFGH"}},
-		{"DEF", {"DEF", "DEFGH"}},
+		{"D", {"D", "DEF", "DEFGH", "DEFIJ"}},
+		{"DE", {"DEF", "DEFGH", "DEFIJ"}},
+		{"DEF", {"DEF", "DEFGH", "DEFIJ"}},
 		{"DEFG", {"DEFGH"}},
 		{"DEFGH", {"DEFGH"}},
-		{"DEFGHI", {}},
-		{"DEFGX", {}},
+		{"DEFGHX", {}},
+		{"DEFX", {}},
 	};
 
 	test_predictive_search_all(texts, patterns);

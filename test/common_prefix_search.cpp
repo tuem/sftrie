@@ -43,14 +43,12 @@ void test_set_common_prefix_search(
 {
 	set index(texts.begin(), texts.end());
 
-	SECTION("search patterns"){
-		auto searcher = index.searcher();
-		for(const auto& i: patterns){
-			std::vector<typename set::text_type> results;
-			for(const auto& p: searcher.prefix(i.first))
-				results.push_back(p);
-			CHECK(results == i.second);
-		}
+	auto searcher = index.searcher();
+	for(const auto& i: patterns){
+		std::vector<typename set::text_type> results;
+		for(const auto& p: searcher.prefix(i.first))
+			results.push_back(p);
+		CHECK(results == i.second);
 	}
 }
 
@@ -63,6 +61,7 @@ void test_set_common_prefix_search_all_classes(
 	SECTION("set_original"){
 		test_set_common_prefix_search<sftrie::set_original<text, integer>>(texts, patterns);
 	}
+
 	SECTION("set_compact"){
 		test_set_common_prefix_search<sftrie::set_compact<text, integer>>(texts, patterns);
 	}
@@ -111,15 +110,13 @@ void test_map_common_prefix_search(
 	const std::vector<std::pair<typename map::text_type, std::vector<typename map::text_type>>>& patterns
 )
 {
-	SECTION("search patterns"){
-		map index(texts.begin(), texts.end());
-		auto searcher = index.searcher();
-		for(const auto& i: patterns){
-			std::vector<typename map::text_type> results;
-			for(const auto& p: searcher.prefix(i.first))
-				results.push_back(p.key());
-			CHECK(results == i.second);
-		}
+	map index(texts.begin(), texts.end());
+	auto searcher = index.searcher();
+	for(const auto& i: patterns){
+		std::vector<typename map::text_type> results;
+		for(const auto& p: searcher.prefix(i.first))
+			results.push_back(p.key());
+		CHECK(results == i.second);
 	}
 }
 
@@ -132,6 +129,7 @@ void test_map_common_prefix_search_all_classes(
 	SECTION("map_original"){
 		test_map_common_prefix_search<sftrie::map_original<text, item, integer>>(texts, patterns);
 	}
+
 	SECTION("map_compact"){
 		test_map_common_prefix_search<sftrie::map_compact<text, item, integer>>(texts, patterns);
 	}
