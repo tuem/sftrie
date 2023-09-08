@@ -60,6 +60,23 @@ void test_map_exact_match(
 	}
 }
 
+template<typename text>
+void test_map_exact_match_all(
+	const std::vector<std::pair<text, item>>& texts,
+	const std::vector<text>& patterns_not_in_texts,
+	size_t expected_size_original = 0,
+	size_t expected_size_compact = 0
+)
+{
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_not_in_texts, expected_size_original);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_not_in_texts, expected_size_compact);
+	}
+}
 
 TEST_CASE("map/empty map/char", "[map]"){
 	using text = std::string;
@@ -71,14 +88,7 @@ TEST_CASE("map/empty map/char", "[map]"){
 		"A",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
 }
 TEST_CASE("map/empty map/char16_t", "[map]"){
 	using text = std::u16string;
@@ -90,14 +100,7 @@ TEST_CASE("map/empty map/char16_t", "[map]"){
 		u"A",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
 }
 TEST_CASE("map/empty map/char32_t", "[map]"){
 	using text = std::u32string;
@@ -109,14 +112,7 @@ TEST_CASE("map/empty map/char32_t", "[map]"){
 		U"A",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
 }
 
 TEST_CASE("map/map of an empty string/char", "[map]"){
@@ -129,14 +125,7 @@ TEST_CASE("map/map of an empty string/char", "[map]"){
 		"A",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
 }
 TEST_CASE("map/map of an empty string/char16_t", "[map]"){
 	using text = std::u16string;
@@ -148,14 +137,7 @@ TEST_CASE("map/map of an empty string/char16_t", "[map]"){
 		u"A",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
 }
 TEST_CASE("map/map of an empty string/char32_t", "[map]"){
 	using text = std::u32string;
@@ -167,14 +149,7 @@ TEST_CASE("map/map of an empty string/char32_t", "[map]"){
 		U"A",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 2);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
 }
 
 TEST_CASE("map/set of a string with a single symbol/char", "[map]"){
@@ -188,14 +163,7 @@ TEST_CASE("map/set of a string with a single symbol/char", "[map]"){
 		"B",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 3, 3);
 }
 TEST_CASE("map/set of a string with a single symbol/char16_t", "[map]"){
 	using text = std::u16string;
@@ -208,14 +176,7 @@ TEST_CASE("map/set of a string with a single symbol/char16_t", "[map]"){
 		u"B",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 3, 3);
 }
 TEST_CASE("map/set of a string with a single symbol/char32_t", "[map]"){
 	using text = std::u32string;
@@ -228,14 +189,7 @@ TEST_CASE("map/set of a string with a single symbol/char32_t", "[map]"){
 		U"B",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 3, 3);
 }
 
 TEST_CASE("map/set of a string/char", "[set]"){
@@ -254,14 +208,7 @@ TEST_CASE("map/set of a string/char", "[set]"){
 		"BC",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 5);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 5, 3);
 }
 TEST_CASE("map/set of a string/char16_t", "[set]"){
 	using text = std::u16string;
@@ -279,14 +226,7 @@ TEST_CASE("map/set of a string/char16_t", "[set]"){
 		u"BC",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 5);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 5, 3);
 }
 TEST_CASE("map/set of a string/char32_t", "[map]"){
 	using text = std::u32string;
@@ -304,12 +244,5 @@ TEST_CASE("map/set of a string/char32_t", "[map]"){
 		U"BC",
 	};
 
-	SECTION("map_original"){
-		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
-			patterns_not_in_texts, 5);
-	}
-	SECTION("map_compact"){
-		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
-			patterns_not_in_texts, 3);
-	}
+	test_map_exact_match_all(texts, patterns_not_in_texts, 5, 3);
 }
