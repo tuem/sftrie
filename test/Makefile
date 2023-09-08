@@ -1,7 +1,7 @@
-# sftrie
-# https://github.com/tuem/sftrie
+# trimatch
+# https://github.com/tuem/trimatch
 #
-# Copyright 2017 Takashi Uemura
+# Copyright 2021 Takashi Uemura
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,33 +15,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-BINS = set_cli map_cli
+BINS = main
 
 all: $(BINS)
 
 
 CXX := g++
-CXXFLAGS := -Wall -Wextra -O3 -std=c++17 -I../include
+CXXFLAGS := -Wall -Wextra -O3 -std=c++17 -I../include -isystem ../external/sftrie/include -isystem include
 
 debug: CXXFLAGS += -DDEBUG -g
 debug: all
-
 
 SRCS = $(wildcard *.cpp)
 OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-set_cli: set_cli.o
-	$(CXX) -o $@ $^
-
-map_cli: map_cli.o
+main: $(OBJS)
 	$(CXX) -o $@ $^
 
 
 clean:
 	$(RM) $(OBJS) $(DEPS) $(BINS)
 
+
+REPORTER=console
+
+test: $(BINS)
+	./main -s -r $(REPORTER)
 
 .PHONY: clean all
 

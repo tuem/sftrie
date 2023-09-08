@@ -22,46 +22,41 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-//#define SFTRIE_MAP_USE_NAIVE
-//#define SFTRIE_MAP_USE_BASIC
-//#define SFTRIE_MAP_USE_TAIL
-//#define SFTRIE_MAP_USE_DECOMPACTION
 #include <sftrie/map.hpp>
 
 using text = std::string;
-using object = unsigned long;
-using integer = unsigned long;
+using item = std::uint32_t;
 
 int main(int argc, char* argv[])
 {
 	if(argc < 2){
-		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
+		std::cerr << "usage: " << argv[0] << " dictionary" << std::endl;
 		return 0;
 	}
 
-	std::string corpus_path = argv[1];
+	std::string dictionary_path = argv[1];
+
 	std::cerr << "loading...";
-	std::ifstream ifs(corpus_path);
+	std::ifstream ifs(dictionary_path);
 	if(!ifs.is_open()){
-		std::cerr << "input file is not available: " << corpus_path << std::endl;
+		std::cerr << "input file is not available: " << dictionary_path << std::endl;
 		return 1;
 	}
-	object value = 1;
-	std::vector<std::pair<text, object>> texts;
+
+	std::vector<std::pair<text, item>> texts;
 	while(ifs.good()){
 		std::string line;
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(std::make_pair(line, value++));
+		texts.push_back(std::make_pair(line, 0));
 	}
 
-	sftrie::sort_text_object_pairs(std::begin(texts), std::end(texts));
-	sftrie::map<text, integer, object> dict(std::begin(texts), std::end(texts));
-	texts.clear();
-	std::cerr << "done." << std::endl;
+	sftrie::sort_text_item_pairs(std::begin(texts), std::end(texts));
+	sftrie::map<text, item> index(std::begin(texts), std::end(texts));
+	std::cerr << "done, " << texts.size() << " texts" << std::endl;
 
-	auto searcher = dict.searcher();
+	auto searcher = index.searcher();
 	while(true){
 		std::cerr << "> ";
 		std::string query;
@@ -69,23 +64,31 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		auto back = query.back();
-		integer count = 0;
-		if(back != '*' && back != '?'){
-			auto result = dict.find(query);
-			if(result.first){
+		size_t count = 0;
+		if(query.empty() || (query.back() != '*' && query.back() != '<')){
+			// exact match
+			if(searcher.exists(query)){
 				count++;
-				std::cout << query << ": found, line=" << result.second << std::endl;
+				std::cout << query << ": found, count=" << ++index[query] << std::endl;
 			}
 		}
 		else{
+			auto back = query.back();
 			query.pop_back();
-			if(back == '*')
-				for(const auto result: searcher.traverse(query))
-					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
-			else
-				for(const auto result: searcher.prefix(query))
-					std::cout << std::setw(4) << ++count << ": " << result.first << ", line=" << result.second << std::endl;
+			if(back == '*'){
+				// predictive search
+				for(const auto& result: searcher.predict(query)){
+					index.update(result.key(), result.value() + 1);
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
+				}
+			}
+			else{
+				// common-prefix search
+				for(const auto& result: searcher.prefix(query)){
+					index.update(result.node(), result.value() + 1);
+					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
+				}
+			}
 		}
 		if(count == 0)
 			std::cout << query << ": " << "not found" << std::endl;

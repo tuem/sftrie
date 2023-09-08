@@ -31,7 +31,7 @@ class set_minimal
 {
 	using symbol = typename text::value_type;
 
-	struct element
+	struct node
 	{
 		bool match: 1;
 		bool leaf: 1;
@@ -67,7 +67,7 @@ public:
 	}
 
 private:
-	std::vector<element> data;
+	std::vector<node> data;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)
@@ -80,7 +80,7 @@ private:
 			}
 		}
 
-		// reserve siblings first
+		// reserve children
 		std::vector<iterator> head{begin};
 		for(iterator i = begin; i < end; head.push_back(i)){
 			data.push_back({false, false, 0, (*i)[depth]});

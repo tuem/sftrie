@@ -22,30 +22,27 @@ limitations under the License.
 #include <fstream>
 #include <string>
 
-//#define SFTRIE_SET_USE_NAIVE
-//#define SFTRIE_SET_USE_BASIC
-//#define SFTRIE_SET_USE_TAIL
-#define SFTRIE_SET_USE_DECOMPACTION
 #include <sftrie/set.hpp>
 
 using text = std::string;
-using integer = unsigned long;
 
 int main(int argc, char* argv[])
 {
 	if(argc < 2){
-		std::cerr << "usage: " << argv[0] << " corpus" << std::endl;
+		std::cerr << "usage: " << argv[0] << " dictionary" << std::endl;
 		return 0;
 	}
 
-	std::string corpus_path = argv[1];
+	std::string dictionary_path = argv[1];
+
 	std::cerr << "loading...";
-	std::vector<text> texts;
-	std::ifstream ifs(corpus_path);
+	std::ifstream ifs(dictionary_path);
 	if(!ifs.is_open()){
-		std::cerr << "input file is not available: " << corpus_path << std::endl;
+		std::cerr << "input file is not available: " << dictionary_path << std::endl;
 		return 1;
 	}
+
+	std::vector<text> texts;
 	while(ifs.good()){
 		std::string line;
 		std::getline(ifs, line);
@@ -55,9 +52,8 @@ int main(int argc, char* argv[])
 	}
 
 	sftrie::sort_texts(std::begin(texts), std::end(texts));
-	sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
-	texts.clear();
-	std::cerr << "done." << std::endl;
+	sftrie::set<text> index(std::begin(texts), std::end(texts));
+	std::cerr << "done, " << texts.size() << " texts" << std::endl;
 
 	auto searcher = index.searcher();
 	while(true){
@@ -67,20 +63,27 @@ int main(int argc, char* argv[])
 		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
 			break;
 
-		auto back = query.back();
-		integer count = 0;
-		if(back != '*' && back != '?'){
-			if((count = searcher.count(query)) > 0)
+		size_t count = 0;
+		if(query.empty() || (query.back() != '*' && query.back() != '<')){
+			// exact match
+			if(searcher.exists(query)){
+				++count;
 				std::cout << query << ": found" << std::endl;
+			}
 		}
 		else{
+			auto back = query.back();
 			query.pop_back();
-			if(back == '*')
-				for(const auto& t: searcher.traverse(query))
+			if(back == '*'){
+				// predictive search
+				for(const auto& t: searcher.predict(query))
 					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
-			else
+			}
+			else{
+				// common-prefix search
 				for(const auto& t: searcher.prefix(query))
 					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
+			}
 		}
 		if(count == 0)
 			std::cout << query << ": " << "not found" << std::endl;

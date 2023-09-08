@@ -20,28 +20,22 @@ limitations under the License.
 #ifndef SFTRIE_SET
 #define SFTRIE_SET
 
+#include <cstdint>
 #include <string>
 
-#include "set_naive.hpp"
-#include "set_basic.hpp"
-#include "set_tail.hpp"
-#include "set_decompaction.hpp"
+#include "set_original.hpp"
+#include "set_compact.hpp"
 
-#if defined SFTRIE_SET_USE_DECOMPACTION
-	#define SFTRIE_SET_TYPE set_decompaction
-#elif defined SFTRIE_SET_USE_TAIL
-	#define SFTRIE_SET_TYPE set_tail
-#elif defined SFTRIE_SET_USE_BASIC
-	#define SFTRIE_SET_TYPE set_basic
-#elif defined SFTRIE_SET_USE_NAIVE
-	#define SFTRIE_SET_TYPE set_naive
+#if defined SFTRIE_SET_USE_ORIGINAL
+	#define SFTRIE_SET_TYPE set_original
+#elif defined SFTRIE_SET_USE_COMACT
+	#define SFTRIE_SET_TYPE set_compact
 #else
-	#define SFTRIE_SET_TYPE set_tail
+	#define SFTRIE_SET_TYPE set_compact
 #endif
 
 namespace sftrie{
-	template<typename text = std::string,
-		typename integer = typename text::size_type>
+	template<typename text = std::string, typename integer = std::uint32_t>
 	using set = SFTRIE_SET_TYPE<text, integer>;
 };
 

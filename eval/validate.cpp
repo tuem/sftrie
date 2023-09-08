@@ -26,6 +26,7 @@ limitations under the License.
 
 #include <random>
 #include <chrono>
+#include <stdexcept>
 
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
@@ -33,7 +34,7 @@ limitations under the License.
 
 #include "string_util.hpp"
 
-using object = unsigned int;
+using item = unsigned int;
 using integer = unsigned int;
 
 template<typename text, typename set>
@@ -58,7 +59,7 @@ template<typename text, typename set>
 std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 	const std::vector<text>& queries)
 {
-	size_t tp = 0, fp = 0, fn = 0;
+	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		std::vector<text> answers;
@@ -87,25 +88,29 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 				++a;
 			}
 		}
-		if(found == answers.size())
-			++tp;
+		if(found == answers.size()){
+			if(found > 0)
+				++tp;
+			else
+				++tn;
+		}
 	}
-	return {{"tp", tp}, {"fp", fp}, {"fn", fn}};
+	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
 template<typename text, typename set>
 std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	const std::vector<text>& positive_queries,
-	const std::vector<integer>& traversal_borders,
+	const std::vector<integer>& predictive_search_borders,
 	const std::vector<text>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	auto searcher = index.searcher();
-	for(size_t i = 0; i < traversal_borders.size(); ++i){
-		size_t answer_start = i, answer_end = traversal_borders[i];
+	for(size_t i = 0; i < predictive_search_borders.size(); ++i){
+		size_t answer_start = i, answer_end = predictive_search_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto& result: searcher.traverse(positive_queries[answer_start])){
+		for(const auto& result: searcher.predict(positive_queries[answer_start])){
 			if(result != positive_queries[j]){
 				correct = false;
 				break;
@@ -123,7 +128,7 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto& result: searcher.traverse(query)){
+		for(const auto& result: searcher.predict(query)){
 			if(result == query){
 				correct = false;
 				break;
@@ -138,21 +143,21 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
-template<typename text_object_pair, typename map>
-std::map<std::string, size_t> validate_map_exact_match(const map& dict,
-	const std::vector<text_object_pair>& positive_queries, const std::vector<text_object_pair>& negative_queries)
+template<typename text_item_pair, typename map>
+std::map<std::string, size_t> validate_map_exact_match(map& index,
+	const std::vector<text_item_pair>& positive_queries, const std::vector<text_item_pair>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
 	for(const auto& query: positive_queries){
-		auto result = dict.find(query.first);
-		if(result.first && result.second == query.second)
+		auto result = index.find(query.first);
+		if(result.match() && result.value() == query.second)
 			++tp;
 		else
 			++fn;
 	}
 	for(const auto& query: negative_queries){
-		auto result = dict.find(query.first);
-		if(!result.first)
+		auto result = index.find(query.first);
+		if(!result.match())
 			++tn;
 		else
 			++fp;
@@ -161,20 +166,20 @@ std::map<std::string, size_t> validate_map_exact_match(const map& dict,
 }
 
 template<typename text, typename map>
-std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
+std::map<std::string, size_t> validate_map_prefix_search(map& index,
 	const std::vector<text>& queries)
 {
-	size_t tp = 0, fp = 0, fn = 0;
-	auto searcher = dict.searcher();
+	size_t tp = 0, tn = 0, fp = 0, fn = 0;
+	auto searcher = index.searcher();
 	for(const auto& query: queries){
 		std::vector<text> answers;
 		text answer = query;
 		while(!answer.empty()){
-			if(dict.find(answer).first)
+			if(index.find(answer).match())
 				answers.push_back(answer);
 			answer.pop_back();
 		}
-		if(dict.find(answer).first)
+		if(index.find(answer).match())
 			answers.push_back(answer);
 		std::reverse(std::begin(answers), std::end(answers));
 
@@ -186,33 +191,37 @@ std::map<std::string, size_t> validate_map_prefix_search(const map& dict,
 				break;
 			}
 			else{
-				if(result.first != *a)
+				if(result.key() != *a)
 					++fp;
 				else
 					++found;
 				++a;
 			}
 		}
-		if(found == answers.size())
-			++tp;
+		if(found == answers.size()){
+			if(found > 0)
+				++tp;
+			else
+				++tn;
+		}
 	}
-	return {{"tp", tp}, {"fp", fp}, {"fn", fn}};
+	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
-template<typename text, typename object, typename map>
-std::map<std::string, size_t> validate_map_predictive_search(const map& dict,
-	const std::vector<std::pair<text, object>>& positive_queries,
-	const std::vector<integer>& traversal_borders,
-	const std::vector<std::pair<text, object>>& negative_queries)
+template<typename text, typename item, typename map>
+std::map<std::string, size_t> validate_map_predictive_search(map& index,
+	const std::vector<std::pair<text, item>>& positive_queries,
+	const std::vector<integer>& predictive_search_borders,
+	const std::vector<std::pair<text, item>>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
-	auto searcher = dict.searcher();
-	for(size_t i = 0; i < traversal_borders.size(); ++i){
-		size_t answer_start = i, answer_end = traversal_borders[i];
+	auto searcher = index.searcher();
+	for(size_t i = 0; i < predictive_search_borders.size(); ++i){
+		size_t answer_start = i, answer_end = predictive_search_borders[i];
 		bool correct = true;
 		size_t j = answer_start, count = 0;
-		for(const auto result: searcher.traverse(positive_queries[answer_start].first)){
-			if(result.first != positive_queries[j].first || result.second != positive_queries[j].second){
+		for(auto result: searcher.predict(positive_queries[answer_start].first)){
+			if(result.key() != positive_queries[j].first || result.value() != positive_queries[j].second){
 				correct = false;
 				break;
 			}
@@ -229,8 +238,8 @@ std::map<std::string, size_t> validate_map_predictive_search(const map& dict,
 	}
 	for(const auto& query: negative_queries){
 		bool correct = true;
-		for(const auto result: searcher.traverse(query.first)){
-			if(result.first == query.first){
+		for(const auto result: searcher.predict(query.first)){
+			if(result.key() == query.first){
 				correct = false;
 				break;
 			}
@@ -244,9 +253,9 @@ std::map<std::string, size_t> validate_map_predictive_search(const map& dict,
 	return {{"tp", tp}, {"tn", tn}, {"fp", fp}, {"fn", fn}};
 }
 
-template<typename text, typename object, typename integer>
-void exec(const std::string& corpus_path, const std::string& index_type,
-	const std::string& sftrie_type, int min_binary_search, int min_tail, int min_decompaction)
+template<typename text, typename item, typename integer>
+bool exec(const std::string& corpus_path, const std::string& index_type,
+	const std::string& optimization_mode, int min_binary_search)
 {
 	using symbol = typename text::value_type;
 
@@ -262,11 +271,11 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 			break;
 		texts.push_back(cast_string<text>(line));
 	}
-	std::vector<std::pair<text, object>> text_object_pairs;
+	std::vector<std::pair<text, item>> text_item_pairs;
 	if(index_type == "map"){
-		object value = 0;
+		item value = 0;
 		for(const auto& t: texts)
-			text_object_pairs.push_back(std::make_pair(t, value++));
+			text_item_pairs.push_back(std::make_pair(t, value++));
 	}
 	std::cerr << "done." << std::endl;
 
@@ -300,11 +309,11 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 	std::vector<text> all_queries = texts;
 	std::vector<text> set_positive_queries, set_negative_queries;
 	std::vector<text> set_predictive_search_queries;
-	std::vector<integer> set_traversal_borders;
+	std::vector<integer> set_predictive_search_borders;
 
-	std::vector<std::pair<text, object>> map_positive_queries, map_negative_queries;
-	std::vector<std::pair<text, object>> map_predictive_search_queries;
-	std::vector<integer> map_traversal_borders;
+	std::vector<std::pair<text, item>> map_positive_queries, map_negative_queries;
+	std::vector<std::pair<text, item>> map_predictive_search_queries;
+	std::vector<integer> map_predictive_search_borders;
 
 	size_t positive_queries_size, negative_queries_size, predictive_search_queries_size;
 	auto seed = std::chrono::system_clock::now().time_since_epoch().count();
@@ -321,7 +330,7 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 			while(end < set_predictive_search_queries.size() &&
 					std::equal(std::begin(set_predictive_search_queries[i]), std::end(set_predictive_search_queries[i]), std::begin(set_predictive_search_queries[end])))
 				++end;
-			set_traversal_borders.push_back(end);
+			set_predictive_search_borders.push_back(end);
 		}
 
 		sftrie::sort_texts(std::begin(texts), std::end(texts));
@@ -330,121 +339,84 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 		negative_queries_size = set_negative_queries.size();
 		predictive_search_queries_size = set_predictive_search_queries.size();
 	}
-	else{
-		std::shuffle(std::begin(text_object_pairs), std::end(text_object_pairs), std::default_random_engine(seed));
-		std::copy(std::begin(text_object_pairs), std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::back_inserter(map_positive_queries));
-		std::copy(std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::end(text_object_pairs), std::back_inserter(map_negative_queries));
-		text_object_pairs.erase(std::begin(text_object_pairs) + text_object_pairs.size() / 2, std::end(text_object_pairs));
+	else if(index_type == "map"){
+		std::shuffle(std::begin(text_item_pairs), std::end(text_item_pairs), std::default_random_engine(seed));
+		std::copy(std::begin(text_item_pairs), std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::back_inserter(map_positive_queries));
+		std::copy(std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::end(text_item_pairs), std::back_inserter(map_negative_queries));
+		text_item_pairs.erase(std::begin(text_item_pairs) + text_item_pairs.size() / 2, std::end(text_item_pairs));
 
 		map_predictive_search_queries = map_positive_queries;
-		sftrie::sort_text_object_pairs(std::begin(map_predictive_search_queries), std::end(map_predictive_search_queries));
+		sftrie::sort_text_item_pairs(std::begin(map_predictive_search_queries), std::end(map_predictive_search_queries));
 		for(size_t i = 0; i < map_predictive_search_queries.size(); ++i){
 			size_t end = i + 1;
 			while(end < map_predictive_search_queries.size() &&
 					std::equal(std::begin(map_predictive_search_queries[i].first), std::end(map_predictive_search_queries[i].first), std::begin(map_predictive_search_queries[end].first)))
 				++end;
-			map_traversal_borders.push_back(end);
+			map_predictive_search_borders.push_back(end);
 		}
 
-		sftrie::sort_text_object_pairs(std::begin(text_object_pairs), std::end(text_object_pairs));
+		sftrie::sort_text_item_pairs(std::begin(text_item_pairs), std::end(text_item_pairs));
 
 		positive_queries_size = map_positive_queries.size();
 		negative_queries_size = map_negative_queries.size();
 		predictive_search_queries_size = map_predictive_search_queries.size();
 	}
+	else{
+		throw std::runtime_error("unknown container type or trie type: " + index_type + " / " + optimization_mode);
+	}
 	std::cerr << "done." << std::endl;
 
 	std::map<std::string, size_t> result_exact;
 	std::map<std::string, size_t> result_prefix;
-	std::map<std::string, size_t> result_traversal;
-	if(index_type == "set" && sftrie_type == "naive"){
+	std::map<std::string, size_t> result_predict;
+	if(index_type == "set" && optimization_mode == "original"){
 		std::cerr << "constructing index...";
-		sftrie::set_naive<text, integer> index(std::begin(texts), std::end(texts));
-		std::cerr << "done." << std::endl;
-		std::cerr << "validating...";
-		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
-		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_traversal = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
-		std::cerr << "done." << std::endl;
-	}
-	else if(index_type == "set" && sftrie_type == "basic"){
-		std::cerr << "constructing index...";
-		sftrie::set_basic<text, integer> index(std::begin(texts), std::end(texts),
+		sftrie::set_original<text, integer> index(std::begin(texts), std::end(texts),
 			min_binary_search);
 		std::cerr << "done." << std::endl;
+
 		std::cerr << "validating...";
 		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
 		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_traversal = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
+		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
-	else if(index_type == "set" && sftrie_type == "tail"){
+	else if(index_type == "set" && optimization_mode == "compact"){
 		std::cerr << "constructing index...";
-		sftrie::set_tail<text, integer> index(std::begin(texts), std::end(texts),
-			min_binary_search, min_tail);
+		sftrie::set_compact<text, integer> index(std::begin(texts), std::end(texts));
 		std::cerr << "done." << std::endl;
+
 		std::cerr << "validating...";
 		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
 		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_traversal = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
+		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
-	else if(index_type == "set" && sftrie_type == "decompaction"){
+	else if(index_type == "map" && optimization_mode == "original"){
 		std::cerr << "constructing index...";
-		sftrie::set_decompaction<text, integer> index(std::begin(texts), std::end(texts),
-			min_binary_search, min_tail, min_decompaction);
-		std::cerr << "done." << std::endl;
-		std::cerr << "validating...";
-		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
-		result_prefix = validate_set_prefix_search(index, all_queries);
-		result_traversal = validate_set_predictive_search(index, set_predictive_search_queries, set_traversal_borders, set_negative_queries);
-		std::cerr << "done." << std::endl;
-	}
-	else if(index_type == "map" && sftrie_type == "naive"){
-		std::cerr << "constructing index...";
-		sftrie::map_naive<text, object, integer> dict(std::begin(text_object_pairs), std::end(text_object_pairs));
-		std::cerr << "done." << std::endl;
-		std::cerr << "validating...";
-		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_prefix = validate_map_prefix_search(dict, all_queries);
-		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
-		std::cerr << "done." << std::endl;
-	}
-	else if(index_type == "map" && sftrie_type == "basic"){
-		std::cerr << "constructing index...";
-		sftrie::map_basic<text, object, integer> dict(std::begin(text_object_pairs), std::end(text_object_pairs),
+		sftrie::map_original<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs),
 			min_binary_search);
 		std::cerr << "done." << std::endl;
+
 		std::cerr << "validating...";
-		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_prefix = validate_map_prefix_search(dict, all_queries);
-		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
+		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(index, all_queries);
+		result_predict = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
-	else if(index_type == "map" && sftrie_type == "tail"){
+	else if(index_type == "map" && optimization_mode == "compact"){
 		std::cerr << "constructing index...";
-		sftrie::map_tail<text, object, integer> dict(std::begin(text_object_pairs), std::end(text_object_pairs),
-			min_binary_search, min_tail);
+		sftrie::map_compact<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs), min_binary_search);
 		std::cerr << "done." << std::endl;
+
 		std::cerr << "validating...";
-		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_prefix = validate_map_prefix_search(dict, all_queries);
-		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
-		std::cerr << "done." << std::endl;
-	}
-	else if(index_type == "map" && sftrie_type == "decompaction"){
-		std::cerr << "constructing index...";
-		sftrie::map_decompaction<text, object, integer> dict(std::begin(text_object_pairs), std::end(text_object_pairs),
-			min_binary_search, min_tail, min_decompaction);
-		std::cerr << "done." << std::endl;
-		std::cerr << "validating...";
-		result_exact = validate_map_exact_match(dict, map_positive_queries, map_negative_queries);
-		result_prefix = validate_map_prefix_search(dict, all_queries);
-		result_traversal = validate_map_predictive_search(dict, map_predictive_search_queries, map_traversal_borders, map_negative_queries);
+		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(index, all_queries);
+		result_predict = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
 	else{
-		throw std::runtime_error("unknown index type or trie type: " + index_type + " / " + sftrie_type);
+		throw std::runtime_error("unknown container type or trie type: " + index_type + " / " + optimization_mode);
 	}
 
 	std::cout << std::endl;
@@ -469,26 +441,33 @@ void exec(const std::string& corpus_path, const std::string& index_type,
 	std::cout << "[prefix search]" << std::endl;
 	std::cout << std::left << std::setw(20) << "total queries" << std::right << std::setw(12) << all_queries.size() << std::endl;
 	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_prefix["tp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_prefix["tn"] << std::endl;
 	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_prefix["fp"] << std::endl;
 	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_prefix["fn"] << std::endl;
 	std::cout << std::endl;
 	std::cout << "[predictive search]" << std::endl;
 	std::cout << std::left << std::setw(20) << "total queries" << std::right << std::setw(12) << (predictive_search_queries_size + negative_queries_size) << std::endl;
-	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_traversal["tp"] << std::endl;
-	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_traversal["tn"] << std::endl;
-	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_traversal["fp"] << std::endl;
-	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_traversal["fn"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true positive" << std::right << std::setw(12) << result_predict["tp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "true negative" << std::right << std::setw(12) << result_predict["tn"] << std::endl;
+	std::cout << std::left << std::setw(20) << "false positive" << std::right << std::setw(12) << result_predict["fp"] << std::endl;
+	std::cout << std::left << std::setw(20) << "false negative" << std::right << std::setw(12) << result_predict["fn"] << std::endl;
+
+	return
+		result_exact["fp"] == 0 &&
+		result_exact["fp"] == 0 &&
+		result_prefix["fp"] == 0 &&
+		result_prefix["fn"] == 0 &&
+		result_predict["fp"] == 0 &&
+		result_predict["fn"] == 0;
 }
 
 int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
-		{"index_type", "set", {"common", "index_type"}, "container-type", 'i', "index type (set or map)"},
-		{"mode", "naive", {"sftrie", "mode"}, "mode", 'm', "sftrie optimization mode (naive, basic, tail or decompaction)"},
+		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
+		{"optimization_mode", "original", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
 		{"min_binary_search", 42, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value"},
-		{"min_tail", 1, {"sftrie", "min_tail"}, "min-tail", 't', "minumum length to compress tail strings"},
-		{"min_decompaction", 0, {"sftrie", "min_decompaction"}, "min-decompaction", 'd', "minumum number of children to enable decompaction"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
 	paramset::manager pm(defs);
@@ -502,33 +481,33 @@ int main(int argc, char* argv[])
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
 		std::string index_type = pm["index_type"];
-		std::string sftrie_type = pm["mode"];
+		std::string optimization_mode = pm["optimization_mode"];
 		int min_binary_search = pm["min_binary_search"];
-		int min_tail = pm["min_tail"];
-		int min_decompaction = pm["min_decompaction"];
 
 		std::cout << "[configuration]" << std::endl;
 		std::cout << std::setw(20) << std::left << "corpus_path" << corpus_path << std::endl;
 		std::cout << std::setw(20) << std::left << "symbol_type" << symbol_type << std::endl;
 		std::cout << std::setw(20) << std::left << "index_type" << index_type << std::endl;
-		std::cout << std::setw(20) << std::left << "mode" << sftrie_type << std::endl;
+		std::cout << std::setw(20) << std::left << "mode" << optimization_mode << std::endl;
 		std::cout << std::setw(20) << std::left << "min_binary_search" << min_binary_search << std::endl;
-		std::cout << std::setw(20) << std::left << "min_tail" << min_tail << std::endl;
-		std::cout << std::setw(20) << std::left << "min_decompaction" << min_decompaction << std::endl;
 		std::cout << std::endl;
 
+		bool passed;
 		if(symbol_type == "char")
-			exec<std::string, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			passed = exec<std::string, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else if(symbol_type == "wchar_t")
-			exec<std::wstring, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			passed = exec<std::wstring, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else if(symbol_type == "char16_t")
-			exec<std::u16string, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			passed = exec<std::u16string, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else if(symbol_type == "char32_t")
-			exec<std::u32string, object, integer>(corpus_path, index_type, sftrie_type, min_binary_search, min_tail, min_decompaction);
+			passed = exec<std::u32string, item, integer>(corpus_path, index_type, optimization_mode, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 
-		return 0;
+		if(passed)
+			std::cout << std::endl << "all tests paeeed"<< std::endl;
+
+		return passed ? 0 : 1;
 	}
 	catch(const std::exception& e){
 		std::cerr << "error: " << e.what() << std::endl;

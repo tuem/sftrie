@@ -7,9 +7,7 @@
 		"max_result": 0
 	},
 	"sftrie": {
-		"type": "tail",
-		"min_binary_search": 42,
-		"min_tail": 1,
-		"min_decompaction": 32
+		"type": "compact",
+		"min_binary_search": 42
 	}
 }

@@ -1,4 +1,4 @@
-# sftrie: a compact trie representation
+# sftrie: a compact trie representation for integer alphabets
 
 ## Usage
 
@@ -11,14 +11,21 @@
 
 3. Build trie
 ```c++
-std::vector<std::string> texts; // you can also use wstring, u16string, u32string, etc.
-...
-sftrie::set<text, integer> index(std::begin(texts), std::end(texts));
+using text = std::string; // you can also use u16string, u32string, etc.
+std::vector<text> texts = ...;
+sftrie::set<text> index(texts.begin()), texts.end());
 ```
 
-4. Search queries
+4. Search texts
 ```c++
-std::string query = "...";
+text pattern = "...";
 auto searcher = index.searcher();
-std::cout << searcher.count(query) > 0 ? "found" : "not found" << std::endl;
+// exact matching
+std::cout << searcher.exists(pattern) ? "found" : "not found" << std::endl;
+// common-prefix search
+for(const auto& entry: searcher.prefix(pattern))
+	std::cout << entry << std::endl;
+// predictive search
+for(const auto& entry: searcher.predict(pattern))
+	std::cout << entry << std::endl;
 ```

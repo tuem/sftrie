@@ -43,7 +43,7 @@ struct file_header
 	std::uint8_t value_type;
 
 	std::uint64_t node_count;
-	std::uint64_t tail_length;
+	std::uint64_t label_count;
 };
 
 };
