@@ -17,9 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <string>
+#include <vector>
+#include <map>
+
 #include <Catch2/catch.hpp>
 
 #include <sftrie/map.hpp>
+
+#include "string_util.hpp"
 
 
 using integer = std::uint32_t;
@@ -61,7 +67,7 @@ void test_map_exact_match(
 }
 
 template<typename text>
-void test_map_exact_match_all(
+void test_map_exact_match_all_classes(
 	const std::vector<std::pair<text, item>>& texts,
 	const std::vector<text>& patterns_not_in_texts,
 	size_t expected_size_original = 0,
@@ -78,6 +84,29 @@ void test_map_exact_match_all(
 	}
 }
 
+void test_map_exact_match_all(
+	const std::vector<std::pair<std::string, item>>& texts,
+	const std::vector<std::string>& patterns_not_in_texts,
+	std::map<std::string, size_t>& expected_sizes
+)
+{
+	SECTION("char"){
+		test_map_exact_match_all_classes(texts, patterns_not_in_texts, expected_sizes["original/char"], expected_sizes["compact/char"]);
+	}
+
+	SECTION("char16_t"){
+		auto texts_u16 = cast_strings<std::u16string>(texts);
+		auto patterns_not_in_texts_u16 = cast_strings<std::u16string>(patterns_not_in_texts);
+		test_map_exact_match_all_classes(texts_u16, patterns_not_in_texts_u16, expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
+	}
+
+	SECTION("char32_t"){
+		auto texts_u32 = cast_strings<std::u32string>(texts);
+		auto patterns_not_in_texts_u32 = cast_strings<std::u32string>(patterns_not_in_texts);
+		test_map_exact_match_all_classes(texts_u32, patterns_not_in_texts_u32, expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
+	}
+}
+
 TEST_CASE("map/empty map/char", "[map]"){
 	using text = std::string;
 
@@ -87,32 +116,16 @@ TEST_CASE("map/empty map/char", "[map]"){
 		"",
 		"A",
 	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
-}
-TEST_CASE("map/empty map/char16_t", "[map]"){
-	using text = std::u16string;
-
-	const std::vector<std::pair<text, item>> texts = {
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		u"",
-		u"A",
+	std::map<std::string, size_t> expected_sizes = {
+		{"original/char", 2},
+		{"compact/char", 2},
+		{"original/char16_t", 2},
+		{"compact/char16_t", 2},
+		{"original/char32_t", 2},
+		{"compact/char32_t", 2},
 	};
 
-	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
-}
-TEST_CASE("map/empty map/char32_t", "[map]"){
-	using text = std::u32string;
-
-	const std::vector<std::pair<text, item>> texts = {
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		U"",
-		U"A",
-	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
+	test_map_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
 TEST_CASE("map/map of an empty string/char", "[map]"){
@@ -124,32 +137,16 @@ TEST_CASE("map/map of an empty string/char", "[map]"){
 	const std::vector<text> patterns_not_in_texts = {
 		"A",
 	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
-}
-TEST_CASE("map/map of an empty string/char16_t", "[map]"){
-	using text = std::u16string;
-
-	const std::vector<std::pair<text, item>> texts = {
-		{u"", 1},
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		u"A",
+	std::map<std::string, size_t> expected_sizes = {
+		{"original/char", 2},
+		{"compact/char", 2},
+		{"original/char16_t", 2},
+		{"compact/char16_t", 2},
+		{"original/char32_t", 2},
+		{"compact/char32_t", 2},
 	};
 
-	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
-}
-TEST_CASE("map/map of an empty string/char32_t", "[map]"){
-	using text = std::u32string;
-
-	const std::vector<std::pair<text, item>> texts = {
-		{U"", 1},
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		U"A",
-	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 2, 2);
+	test_map_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
 TEST_CASE("map/set of a string with a single symbol/char", "[map]"){
@@ -162,34 +159,16 @@ TEST_CASE("map/set of a string with a single symbol/char", "[map]"){
 		"",
 		"B",
 	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 3, 3);
-}
-TEST_CASE("map/set of a string with a single symbol/char16_t", "[map]"){
-	using text = std::u16string;
-
-	const std::vector<std::pair<text, item>> texts = {
-		{u"A", 1},
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		u"",
-		u"B",
+	std::map<std::string, size_t> expected_sizes = {
+		{"original/char", 3},
+		{"compact/char", 3},
+		{"original/char16_t", 3},
+		{"compact/char16_t", 3},
+		{"original/char32_t", 3},
+		{"compact/char32_t", 3},
 	};
 
-	test_map_exact_match_all(texts, patterns_not_in_texts, 3, 3);
-}
-TEST_CASE("map/set of a string with a single symbol/char32_t", "[map]"){
-	using text = std::u32string;
-
-	const std::vector<std::pair<text, item>> texts = {
-		{U"A", 1},
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		U"",
-		U"B",
-	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 3, 3);
+	test_map_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
 TEST_CASE("map/set of a string/char", "[set]"){
@@ -207,42 +186,14 @@ TEST_CASE("map/set of a string/char", "[set]"){
 		"C",
 		"BC",
 	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 5, 3);
-}
-TEST_CASE("map/set of a string/char16_t", "[set]"){
-	using text = std::u16string;
-
-	const std::vector<std::pair<text, item>> texts = {
-		{u"ABC", 1},
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		u"",
-		u"A",
-		u"AB",
-		u"ABCD",
-		u"B",
-		u"C",
-		u"BC",
+	std::map<std::string, size_t> expected_sizes = {
+		{"original/char", 5},
+		{"compact/char", 3},
+		{"original/char16_t", 5},
+		{"compact/char16_t", 3},
+		{"original/char32_t", 5},
+		{"compact/char32_t", 3},
 	};
 
-	test_map_exact_match_all(texts, patterns_not_in_texts, 5, 3);
-}
-TEST_CASE("map/set of a string/char32_t", "[map]"){
-	using text = std::u32string;
-
-	const std::vector<std::pair<text, item>> texts = {
-		{U"ABC", 1},
-	};
-	const std::vector<text> patterns_not_in_texts = {
-		U"",
-		U"A",
-		U"AB",
-		U"ABCD",
-		U"B",
-		U"C",
-		U"BC",
-	};
-
-	test_map_exact_match_all(texts, patterns_not_in_texts, 5, 3);
+	test_map_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
