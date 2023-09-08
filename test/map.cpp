@@ -128,7 +128,7 @@ TEST_CASE("map/empty map/char", "[map]"){
 	test_map_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("map/map of an empty string/char", "[map]"){
+TEST_CASE("map/map of an empty string", "[map]"){
 	using text = std::string;
 
 	const std::vector<std::pair<text, item>> texts = {
@@ -149,7 +149,7 @@ TEST_CASE("map/map of an empty string/char", "[map]"){
 	test_map_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("map/set of a string with a single symbol/char", "[map]"){
+TEST_CASE("map/set of a string with a single symbol", "[map]"){
 	using text = std::string;
 
 	const std::vector<std::pair<text, item>> texts = {
@@ -171,7 +171,7 @@ TEST_CASE("map/set of a string with a single symbol/char", "[map]"){
 	test_map_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("map/set of a string/char", "[set]"){
+TEST_CASE("map/set of a string", "[map]"){
 	using text = std::string;
 
 	const std::vector<std::pair<text, item>> texts = {
