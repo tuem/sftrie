@@ -381,14 +381,14 @@ struct map_compact<text, item, integer>::virtual_node
 		trie(trie), id(id), depth(depth)
 	{}
 
+	bool operator==(const virtual_node& n) const
+	{
+		return id == n.id && depth == n.depth;
+	}
+
 	bool operator!=(const virtual_node& n) const
 	{
 		return id != n.id || depth != n.depth;
-	}
-
-	bool valid() const
-	{
-		return id < trie.data.size() - 1;
 	}
 
 	integer node_id() const
@@ -396,12 +396,12 @@ struct map_compact<text, item, integer>::virtual_node
 		return id;
 	}
 
-	bool is_root() const
+	bool valid() const
 	{
-		return id == 0;
+		return id < trie.data.size() - 1;
 	}
 
-	bool is_physical() const
+	bool physical() const
 	{
 		return valid() && depth == trie.data[id + 1].ref - trie.data[id].ref;
 	}

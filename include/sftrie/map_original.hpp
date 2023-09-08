@@ -357,14 +357,14 @@ struct map_original<text, item, integer>::virtual_node
 		trie(trie), id(id)
 	{}
 
-	bool operator!=(const map_original<text, item, integer>::virtual_node& n) const
+	bool operator==(const virtual_node& n) const
 	{
-		return &trie != &n.trie || id != n.id;
+		return id == n.id;
 	}
 
-	bool valid() const
+	bool operator!=(const virtual_node& n) const
 	{
-		return id < trie.data.size() - 1;
+		return id != n.id;
 	}
 
 	integer node_id() const
@@ -372,9 +372,14 @@ struct map_original<text, item, integer>::virtual_node
 		return id;
 	}
 
-	bool is_root() const
+	bool valid() const
 	{
-		return id == 0;
+		return id < trie.data.size() - 1;
+	}
+
+	bool physical() const
+	{
+		return valid();
 	}
 
 	symbol label() const

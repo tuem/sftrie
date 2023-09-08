@@ -41,6 +41,7 @@ public:
 	using symbol_type = symbol;
 	using text_type = text;
 	using integer_type = integer;
+	using value_type = integer;
 	using size_type = std::size_t;
 
 	struct node;
@@ -385,24 +386,29 @@ struct set_compact<text, integer>::virtual_node
 		trie(trie), id(id), depth(depth)
 	{}
 
+	bool operator==(const virtual_node& n) const
+	{
+		return id == n.id && depth == n.depth;
+	}
+
+	bool operator!=(const virtual_node& n) const
+	{
+		return id != n.id || depth != n.depth;
+	}
+
 	integer node_id() const
 	{
 		return id;
 	}
 
-	bool is_root() const
-	{
-		return id == 0;
-	}
-
-	bool is_valid() const
+	bool valid() const
 	{
 		return id < trie.data.size() - 1;
 	}
 
-	bool is_physical() const
+	bool physical() const
 	{
-		return is_valid() && depth == trie.data[id + 1].ref - trie.data[id].ref;
+		return valid() && depth == trie.data[id + 1].ref - trie.data[id].ref;
 	}
 
 	symbol label() const
@@ -423,14 +429,9 @@ struct set_compact<text, integer>::virtual_node
 		return trie.data[id].leaf && trie.data[id].ref + depth == trie.data[id + 1].ref;
 	}
 
-	bool operator==(const virtual_node& n) const
+	value_type value() const
 	{
-		return id == n.id && depth == n.depth;
-	}
-
-	bool operator!=(const virtual_node& n) const
-	{
-		return id != n.id || depth != n.depth;
+		return id;
 	}
 
 	child_iterator children() const

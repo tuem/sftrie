@@ -41,6 +41,7 @@ public:
 	using symbol_type = symbol;
 	using text_type = text;
 	using integer_type = integer;
+	using value_type = integer;
 	using size_type = std::size_t;
 
 	struct node;
@@ -317,9 +318,29 @@ struct set_original<text, integer>::virtual_node
 		trie(trie), id(id)
 	{}
 
+	bool operator==(const virtual_node& n) const
+	{
+		return id == n.id;
+	}
+
+	bool operator!=(const virtual_node& n) const
+	{
+		return id != n.id;
+	}
+
 	integer node_id() const
 	{
 		return id;
+	}
+
+	bool valid() const
+	{
+		return id < trie.data.size() - 1;
+	}
+
+	bool physical() const
+	{
+		return valid();
 	}
 
 	symbol label() const
@@ -335,6 +356,11 @@ struct set_original<text, integer>::virtual_node
 	bool leaf() const
 	{
 		return trie.data[id].leaf;
+	}
+
+	value_type value() const
+	{
+		return id;
 	}
 
 	child_iterator children() const
