@@ -428,7 +428,7 @@ struct map_original<text, item, integer>::child_iterator
 		current(trie, id), last(last)
 	{}
 
-	child_iterator& begin() const
+	child_iterator begin() const
 	{
 		return *this;
 	}

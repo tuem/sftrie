@@ -460,7 +460,7 @@ struct map_compact<text, item, integer>::child_iterator
 		current(trie, id, depth), last(last)
 	{}
 
-	child_iterator& begin() const
+	child_iterator begin() const
 	{
 		return *this;
 	}
