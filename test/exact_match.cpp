@@ -108,16 +108,6 @@ void test_set_exact_match_all(
 
 // utility for map
 
-template<typename text>
-std::vector<std::pair<text, item>> assign_ids(const std::vector<text>& texts, item start = 1)
-{
-	std::vector<std::pair<text, item>> results;
-	auto i = start;
-	for(const auto& t: texts)
-		results.push_back({t, ++i});
-	return results;
-}
-
 template<typename map>
 void test_map_exact_match(
 	const std::vector<std::pair<typename map::text_type, typename map::value_type>>& texts,
@@ -176,7 +166,7 @@ void test_map_exact_match_all(
 	std::map<std::string, size_t>& expected_sizes
 )
 {
-	auto text_ids = assign_ids(texts);
+	auto text_ids = assign_ids<std::string, item>(texts);
 
 	SECTION("char"){
 		test_map_exact_match_all_classes(text_ids, patterns_not_in_texts, expected_sizes["original/char"], expected_sizes["compact/char"]);

@@ -65,4 +65,14 @@ std::vector<std::pair<text, item>> cast_strings(const std::vector<std::pair<std:
 	return results;
 }
 
+template<typename text, typename item>
+std::vector<std::pair<text, item>> assign_ids(const std::vector<text>& texts, item start = static_cast<item>(1))
+{
+	std::vector<std::pair<text, item>> results;
+	auto i = start;
+	for(const auto& t: texts)
+		results.push_back({t, ++i});
+	return results;
+}
+
 #endif
