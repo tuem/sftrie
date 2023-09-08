@@ -8,6 +8,10 @@
 ```c++
 #include <sftrie/set.hpp>
 ```
+or
+```c++
+#include <sftrie/map.hpp>
+```
 
 3. Build trie
 ```c++
