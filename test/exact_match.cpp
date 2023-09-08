@@ -76,6 +76,7 @@ void test_set_exact_match_all_classes(
 		test_set_exact_match<sftrie::set_original<text, integer>>(texts,
 			patterns_not_in_texts, expected_size_original);
 	}
+
 	SECTION("set_compact"){
 		test_set_exact_match<sftrie::set_compact<text, integer>>(texts,
 			patterns_not_in_texts, expected_size_compact);
@@ -154,6 +155,7 @@ void test_map_exact_match_all_classes(
 		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
 			patterns_not_in_texts, expected_size_original);
 	}
+
 	SECTION("map_compact"){
 		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
 			patterns_not_in_texts, expected_size_compact);
@@ -218,7 +220,7 @@ TEST_CASE("exact match/empty set", "[exact match]"){
 	test_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("set/set of an empty text", "[set]"){
+TEST_CASE("exact match/set of an empty text", "[exact match]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
@@ -239,7 +241,7 @@ TEST_CASE("set/set of an empty text", "[set]"){
 	test_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("set/set of a text with a single symbol", "[set]"){
+TEST_CASE("exact match/set of a text with a single symbol", "[exact match]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
@@ -261,7 +263,7 @@ TEST_CASE("set/set of a text with a single symbol", "[set]"){
 	test_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("set/set of a text", "[set]"){
+TEST_CASE("exact match/set of a text", "[exact match]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
@@ -288,7 +290,7 @@ TEST_CASE("set/set of a text", "[set]"){
 	test_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("set/few texts", "[set]"){
+TEST_CASE("exact match/few texts", "[exact match]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
