@@ -185,7 +185,7 @@ void test_common_prefix_search_all(
 }
 
 
-TEST_CASE("common prefix search/empty set", "[exact match]"){
+TEST_CASE("common-prefix search/empty set", "[common-prefix search]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
@@ -198,16 +198,75 @@ TEST_CASE("common prefix search/empty set", "[exact match]"){
 	test_common_prefix_search_all(texts, patterns);
 }
 
-TEST_CASE("common prefix search/set of an empty string", "[exact match]"){
+TEST_CASE("common-prefix search/set of an empty text", "[common-prefix search]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
-		{"", {}},
+		"",
 	};
 	const std::vector<std::pair<text, std::vector<text>>> patterns = {
 		{"", {""}},
 		{"A", {""}},
 		{"XYZ", {""}},
+	};
+
+	test_common_prefix_search_all(texts, patterns);
+}
+
+TEST_CASE("common-prefix search/set of a text with one symbol", "[common-prefix search]"){
+	using text = std::string;
+
+	const std::vector<text> texts = {
+		"A",
+	};
+	const std::vector<std::pair<text, std::vector<text>>> patterns = {
+		{"", {}},
+		{"A", {"A"}},
+		{"B", {}},
+		{"AB", {"A"}},
+	};
+
+	test_common_prefix_search_all(texts, patterns);
+}
+
+TEST_CASE("common-prefix search/set of a text", "[common-prefix search]"){
+	using text = std::string;
+
+	const std::vector<text> texts = {
+		"ABC",
+	};
+	const std::vector<std::pair<text, std::vector<text>>> patterns = {
+		{"", {}},
+		{"A", {}},
+		{"AB", {}},
+		{"ABC", {"ABC"}},
+		{"ABCD", {"ABC"}},
+		{"ABCDEFG", {"ABC"}},
+		{"ABX", {}},
+	};
+
+	test_common_prefix_search_all(texts, patterns);
+}
+
+TEST_CASE("common-prefix search/set of few texts", "[common-prefix search]"){
+	using text = std::string;
+
+	const std::vector<text> texts = {
+		"ABC",
+		"D",
+		"DEF",
+		"DEFGH",
+	};
+	const std::vector<std::pair<text, std::vector<text>>> patterns = {
+		{"", {}},
+		{"A", {}},
+		{"D", {"D"}},
+		{"DE", {"D"}},
+		{"DEF", {"D", "DEF"}},
+		{"DEFG", {"D", "DEF"}},
+		{"DEFGH", {"D", "DEF", "DEFGH"}},
+		{"DEFGHI", {"D", "DEF", "DEFGH"}},
+		{"DEFGX", {"D", "DEF"}},
 	};
 
 	test_common_prefix_search_all(texts, patterns);

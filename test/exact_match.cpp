@@ -218,7 +218,7 @@ TEST_CASE("exact match/empty set", "[exact match]"){
 	test_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("set/set of an empty string", "[set]"){
+TEST_CASE("set/set of an empty text", "[set]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
@@ -239,7 +239,7 @@ TEST_CASE("set/set of an empty string", "[set]"){
 	test_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("set/set of a string with a single symbol", "[set]"){
+TEST_CASE("set/set of a text with a single symbol", "[set]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
@@ -261,7 +261,7 @@ TEST_CASE("set/set of a string with a single symbol", "[set]"){
 	test_exact_match_all(texts, patterns_not_in_texts, expected_sizes);
 }
 
-TEST_CASE("set/set of a string", "[set]"){
+TEST_CASE("set/set of a text", "[set]"){
 	using text = std::string;
 
 	const std::vector<text> texts = {
