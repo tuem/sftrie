@@ -36,7 +36,7 @@ void test_map_exact_match(
 	map index(texts.begin(), texts.end());
 	if(expected_size > 0){
 		SECTION("trie size"){
-			CHECK(index.trie_size() == 2); // root and sentinel
+			CHECK(index.trie_size() == expected_size); // root and sentinel
 		}
 	}
 
@@ -174,5 +174,66 @@ TEST_CASE("map_compact/map of an empty string/char32_t", "[map]"){
 	SECTION("map_compact"){
 		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
 			patterns_not_in_texts, 2);
+	}
+}
+
+TEST_CASE("map_compact/set of a string with a single symbol/char", "[map]"){
+	using text = std::string;
+
+	const std::vector<std::pair<text, item>> texts = {
+		{"A", 1},
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		"",
+		"B",
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_not_in_texts, 3);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_not_in_texts, 3);
+	}
+}
+TEST_CASE("map_compact/set of a string with a single symbol/char16_t", "[map]"){
+	using text = std::u16string;
+
+	const std::vector<std::pair<text, item>> texts = {
+		{u"A", 1},
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		u"",
+		u"B",
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_not_in_texts, 3);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_not_in_texts, 3);
+	}
+}
+TEST_CASE("map_compact/set of a string with a single symbol/char32_t", "[map]"){
+	using text = std::u32string;
+
+	const std::vector<std::pair<text, item>> texts = {
+		{U"A", 1},
+	};
+	const std::vector<text> patterns_not_in_texts = {
+		U"",
+		U"B",
+	};
+
+	SECTION("map_original"){
+		test_map_exact_match<sftrie::map_original<text, item, integer>>(texts,
+			patterns_not_in_texts, 3);
+	}
+	SECTION("map_compact"){
+		test_map_exact_match<sftrie::map_compact<text, item, integer>>(texts,
+			patterns_not_in_texts, 3);
 	}
 }
