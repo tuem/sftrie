@@ -46,6 +46,6 @@ struct file_header
 	std::uint64_t label_count;
 };
 
-};
+}
 
 #endif

@@ -698,6 +698,6 @@ struct set_compact<text, integer>::prefix_iterator
 	}
 };
 
-};
+}
 
 #endif

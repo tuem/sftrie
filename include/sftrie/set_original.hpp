@@ -588,6 +588,6 @@ struct set_original<text, integer>::prefix_iterator
 	}
 };
 
-};
+}
 
 #endif
