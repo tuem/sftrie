@@ -715,6 +715,6 @@ struct map_compact<text, item, integer>::prefix_iterator
 	}
 };
 
-};
+}
 
 #endif

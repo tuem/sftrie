@@ -112,8 +112,8 @@ template<> constexpr std::uint8_t value_type<std::uint32_t>(){ return value_type
 template<> constexpr std::uint8_t value_type<std::int64_t>(){ return value_type_int64; }
 template<> constexpr std::uint8_t value_type<std::uint64_t>(){ return value_type_uint64; }
 
-};
+}
 
-};
+}
 
 #endif

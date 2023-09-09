@@ -649,6 +649,6 @@ struct map_original<text, item, integer>::prefix_iterator
 	}
 };
 
-};
+}
 
 #endif

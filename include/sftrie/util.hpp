@@ -90,6 +90,6 @@ void sort_text_item_pairs(iterator begin, iterator end)
 	std::sort(begin, end, text_item_pair_comparator());
 }
 
-};
+}
 
 #endif
