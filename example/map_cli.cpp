@@ -26,50 +26,69 @@ limitations under the License.
 
 using text = std::string;
 using item = std::uint32_t;
+using index_type = sftrie::map<text, item>;
 
 int main(int argc, char* argv[])
 {
 	if(argc < 2){
-		std::cerr << "usage: " << argv[0] << " dictionary" << std::endl;
+		std::cerr << "usage: " << argv[0] << " input_path [load_index=false]" << std::endl;
 		return 0;
 	}
 
-	std::string dictionary_path = argv[1];
+	std::string input_path = argv[1];
+	bool load_index = argc > 2 && std::string(argv[2]) == "true";
 
-	std::cerr << "loading...";
-	std::ifstream ifs(dictionary_path);
-	if(!ifs.is_open()){
-		std::cerr << "input file is not available: " << dictionary_path << std::endl;
-		return 1;
+	std::shared_ptr<index_type> index;
+	if(load_index){
+		std::cerr << "loadinag index...";
+		index = std::make_shared<index_type>(input_path);
+		std::cerr << "done." << std::endl;
+	}
+	else{
+		std::cerr << "loading texts...";
+		std::ifstream ifs(input_path);
+		if(!ifs.is_open()){
+			std::cerr << "input file is not available: " << input_path << std::endl;
+			return 1;
+		}
+
+		std::vector<std::pair<text, item>> texts;
+		while(ifs.good()){
+			std::string line;
+			std::getline(ifs, line);
+			if(ifs.eof())
+				break;
+			texts.push_back(std::make_pair(line, 0));
+		}
+
+		sftrie::sort_text_item_pairs(texts.begin(), texts.end());
+		std::cerr << "building index...";
+		index = std::make_shared<index_type>(texts.begin(), texts.end());
+		std::cerr << "done, " << texts.size() << " texts" << std::endl;
 	}
 
-	std::vector<std::pair<text, item>> texts;
-	while(ifs.good()){
-		std::string line;
-		std::getline(ifs, line);
-		if(ifs.eof())
-			break;
-		texts.push_back(std::make_pair(line, 0));
-	}
-
-	sftrie::sort_text_item_pairs(std::begin(texts), std::end(texts));
-	sftrie::map<text, item> index(std::begin(texts), std::end(texts));
-	std::cerr << "done, " << texts.size() << " texts" << std::endl;
-
-	auto searcher = index.searcher();
+	auto searcher = index->searcher();
 	while(true){
 		std::cerr << "> ";
 		std::string query;
 		std::getline(std::cin, query);
-		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye")
+		if(std::cin.eof() || query == "exit" || query == "quit" || query == "bye"){
 			break;
+		}
+		else if(query.substr(0, 5) == "save="){
+			std::string output_path = query.substr(5);
+			index->save(output_path);
+			std::cout << "index saved to " << output_path << std::endl;
+			continue;
+		}
+
 
 		size_t count = 0;
 		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match
 			if(searcher.exists(query)){
 				count++;
-				std::cout << query << ": found, count=" << ++index[query] << std::endl;
+				std::cout << query << ": found, count=" << ++(*index)[query] << std::endl;
 			}
 		}
 		else{
@@ -78,14 +97,15 @@ int main(int argc, char* argv[])
 			if(back == '*'){
 				// predictive search
 				for(const auto& result: searcher.predict(query)){
-					index.update(result.key(), result.value() + 1);
+					index->update(result.key(), result.value() + 1);
 					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
 				}
 			}
 			else{
 				// common-prefix search
 				for(const auto& result: searcher.prefix(query)){
-					index.update(result.node(), result.value() + 1);
+					if(!index->update(result.node(), result.value() + 1))
+						std::cerr << "update failed" << std::endl;
 					std::cout << std::setw(4) << ++count << ": " << result.key() << ", search count=" << result.value() << std::endl;
 				}
 			}
