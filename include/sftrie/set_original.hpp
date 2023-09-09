@@ -586,6 +586,11 @@ struct set_original<text, integer>::prefix_iterator
 		current = searcher.trie.data.size() - 1;
 		return *this;
 	}
+
+	set_original<text, integer>::virtual_node node() const
+	{
+		return {searcher.trie, current};
+	}
 };
 
 }

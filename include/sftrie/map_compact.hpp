@@ -301,6 +301,8 @@ void map_compact<text, item, integer>::save(output_stream& os) const
 	os.write(reinterpret_cast<const char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
 
 	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
+
+	os.write(reinterpret_cast<const char*>(labels.data()), static_cast<std::streamsize>(sizeof(symbol) * labels.size()));
 }
 
 template<typename text, typename item, typename integer>
@@ -319,6 +321,9 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
+
+	labels.resize(header.label_count);
+	is.read(reinterpret_cast<char*>(labels.data()), static_cast<std::streamsize>(sizeof(symbol) * header.label_count));
 
 	return std::count_if(data.begin(), data.end(), [](const auto& n){
 		return n.match;
@@ -380,6 +385,10 @@ struct map_compact<text, item, integer>::virtual_node
 
 	virtual_node(const map_compact<text, item, integer>& trie, integer id, integer depth):
 		trie(trie), id(id), depth(depth)
+	{}
+
+	virtual_node(const map_compact<text, item, integer>& trie, integer id):
+		trie(trie), id(id), depth(trie.data[id + 1].ref - trie.data[id].ref)
 	{}
 
 	bool operator==(const virtual_node& n) const
@@ -647,21 +656,6 @@ struct map_compact<text, item, integer>::prefix_iterator
 		}
 	}
 
-	const text& key() const
-	{
-		return searcher.result;
-	}
-
-	const item& value() const
-	{
-		return searcher.trie.data[current].value;
-	}
-
-	map_compact<text, item, integer>::virtual_node node() const
-	{
-		return {searcher.trie, current, depth};
-	}
-
 	prefix_iterator& begin()
 	{
 		return *this;
@@ -712,6 +706,21 @@ struct map_compact<text, item, integer>::prefix_iterator
 
 		current = searcher.trie.data.size() - 1;
 		return *this;
+	}
+
+	const text& key() const
+	{
+		return searcher.result;
+	}
+
+	const item& value() const
+	{
+		return searcher.trie.data[current].value;
+	}
+
+	map_compact<text, item, integer>::virtual_node node() const
+	{
+		return {searcher.trie, current};
 	}
 };
 

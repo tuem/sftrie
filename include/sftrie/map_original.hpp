@@ -593,21 +593,6 @@ struct map_original<text, item, integer>::prefix_iterator
 		}
 	}
 
-	const text& key() const
-	{
-		return searcher.result;
-	}
-
-	const item& value() const
-	{
-		return searcher.trie.data[current].value;
-	}
-
-	map_original<text, item, integer>::virtual_node node() const
-	{
-		return {searcher.trie, current};
-	}
-
 	prefix_iterator& begin()
 	{
 		return *this;
@@ -646,6 +631,21 @@ struct map_original<text, item, integer>::prefix_iterator
 		}
 		current = searcher.trie.data.size() - 1;
 		return *this;
+	}
+
+	const text& key() const
+	{
+		return searcher.result;
+	}
+
+	const item& value() const
+	{
+		return searcher.trie.data[current].value;
+	}
+
+	map_original<text, item, integer>::virtual_node node() const
+	{
+		return {searcher.trie, current};
 	}
 };
 

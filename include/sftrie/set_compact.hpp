@@ -395,6 +395,10 @@ struct set_compact<text, integer>::virtual_node
 		trie(trie), id(id), depth(depth)
 	{}
 
+	virtual_node(const set_compact<text, integer>& trie, integer id):
+		trie(trie), id(id), depth(trie.data[id + 1].ref - trie.data[id].ref)
+	{}
+
 	bool operator==(const virtual_node& n) const
 	{
 		return id == n.id && depth == n.depth;
@@ -695,6 +699,11 @@ struct set_compact<text, integer>::prefix_iterator
 
 		current = searcher.trie.data.size() - 1;
 		return *this;
+	}
+
+	set_compact<text, integer>::virtual_node node() const
+	{
+		return {searcher.trie, current};
 	}
 };
 
