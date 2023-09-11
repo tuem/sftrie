@@ -263,3 +263,22 @@ TEST_CASE("construction/few texts", "[construction]"){
 
 	test_construction_all(texts, expected_sizes);
 }
+
+TEST_CASE("construction/a long text", "[construction]"){
+	using text = std::string;
+
+	const std::vector<text> texts = {
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	};
+	auto l = texts.front().size();
+	std::map<std::string, size_t> expected_sizes = {
+		{"original/char", l + 2},
+		{"compact/char", 3},
+		{"original/char16_t", l + 2},
+		{"compact/char16_t", 3},
+		{"original/char32_t", l + 2},
+		{"compact/char32_t", 3},
+	};
+
+	test_construction_all(texts, expected_sizes);
+}

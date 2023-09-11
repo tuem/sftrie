@@ -245,3 +245,17 @@ TEST_CASE("exact match/few texts", "[exact match]"){
 
 	test_exact_match_all(texts, patterns_not_in_texts);
 }
+
+TEST_CASE("exact match/a long text", "[construction]"){
+	using text = std::string;
+
+	const std::vector<text> texts = {
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+	};
+
+	std::vector<text> patterns_not_in_texts;
+	for(integer i = 0; i < texts.front().size() - 1; ++i)
+		patterns_not_in_texts.push_back(texts.front().substr(0, i));
+
+	test_exact_match_all(texts, patterns_not_in_texts);
+}
