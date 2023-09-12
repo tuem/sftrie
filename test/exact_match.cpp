@@ -99,12 +99,23 @@ void test_map_exact_match(
 {
 	map index(texts.begin(), texts.end());
 
+	SECTION("search patterns in texts using all methods"){
+		for(const auto& [pattern, expected_value]: texts){
+			CHECK(index.exists(pattern));
+			auto v0 = index[pattern];
+			CHECK(v0 == expected_value);
+			auto v1 = index.find(pattern).value();
+			CHECK(v1 == expected_value);
+			auto v2 = index.raw_data()[index.find(pattern).node_id()].value;
+			CHECK(v2 == expected_value);
+		}
+	}
+
 	SECTION("search patterns NOT in texts"){
 		for(const auto& pattern: patterns_not_in_texts){
 			CHECK(!index.exists(pattern));
 			auto n = index.find(pattern);
-			if(n != index.root()) // root is always valid
-				CHECK(!n.match());
+			CHECK(!n.match());
 		}
 	}
 }

@@ -44,6 +44,7 @@ void test_set_construction(
 		SECTION("trie size"){
 			CHECK(index.trie_size() == expected_size);
 		}
+		// TODO: check other information
 	}
 
 	SECTION("search patterns in texts"){
@@ -106,15 +107,8 @@ void test_map_construction(
 	}
 
 	SECTION("search patterns in texts"){
-		for(const auto& [pattern, expected_value]: texts){
-			CHECK(index.exists(pattern));
-			auto v0 = index[pattern];
-			CHECK(v0 == expected_value);
-			auto v1 = index.find(pattern).value();
-			CHECK(v1 == expected_value);
-			auto v2 = index.raw_data()[index.find(pattern).node_id()].value;
-			CHECK(v2 == expected_value);
-		}
+		for(const auto& [pattern, expected_value]: texts)
+			CHECK(index[pattern] == expected_value);
 	}
 }
 
