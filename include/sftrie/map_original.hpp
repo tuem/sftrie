@@ -405,7 +405,10 @@ struct map_original<text, item, integer>::virtual_node
 
 	child_iterator children() const
 	{
-		return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+		if(!trie.data[id].leaf)
+			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+		else
+			return child_iterator(trie, trie.data.size() - 1, trie.data.size() - 1);
 	}
 };
 
@@ -415,16 +418,16 @@ struct map_original<text, item, integer>::child_iterator
 	virtual_node current;
 	const integer last;
 
-	child_iterator(map_original<text, item, integer>& trie):
+	child_iterator(const map_original<text, item, integer>& trie):
 		current(trie, 0), last(1)
 	{}
 
-	child_iterator(map_original<text, item, integer>& trie, integer parent):
+	child_iterator(const map_original<text, item, integer>& trie, integer parent):
 		current(trie, trie.data[parent].next),
 		last(trie.data[parent].next < trie.data.size() ? trie.data[trie.data[parent].next].next : trie.data.size())
 	{}
 
-	child_iterator(map_original<text, item, integer>& trie, integer id, integer last):
+	child_iterator(const map_original<text, item, integer>& trie, integer id, integer last):
 		current(trie, id), last(last)
 	{}
 
