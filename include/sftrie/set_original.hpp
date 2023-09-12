@@ -374,7 +374,10 @@ struct set_original<text, integer>::virtual_node
 
 	child_iterator children() const
 	{
-		return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+		if(!trie.data[id].leaf)
+			return child_iterator(trie, trie.data[id].next, trie.data[trie.data[id].next].next);
+		else
+			return child_iterator(trie, trie.data.size() - 1, trie.data.size() - 1);
 	}
 };
 
