@@ -27,7 +27,7 @@ limitations under the License.
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
 
-#include "string_util.hpp"
+#include "util.hpp"
 
 
 using integer = std::uint32_t;

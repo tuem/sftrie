@@ -17,12 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_UTIL_HPP
-#define SFTRIE_UTIL_HPP
+#ifndef SFTRIE_UTIL
+#define SFTRIE_UTIL
 
+#include <string>
 #include <algorithm>
+#include <locale>
+#include <codecvt>
 
 namespace sftrie{
+
+// general utilities
 
 template<typename integer>
 constexpr int bit_width()
@@ -51,6 +56,9 @@ integer container_size(const container& t)
 {
 	return static_cast<integer>(t.size());
 }
+
+
+// sorting
 
 struct text_comparator
 {
@@ -88,6 +96,81 @@ template<typename iterator>
 void sort_text_item_pairs(iterator begin, iterator end)
 {
 	std::sort(begin, end, text_item_pair_comparator());
+}
+
+
+// string conversion
+
+template<typename src_type, typename dest_type>
+void cast_string(const src_type& src, dest_type& dest);
+
+template<typename src_type>
+void cast_string(const src_type& src, src_type& dest)
+{
+	dest = src;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+template<typename symbol>
+void from_stdstring(const std::string& src, std::basic_string<symbol>& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<symbol>, symbol> converter;
+	dest = converter.from_bytes(src);
+}
+
+template<typename symbol>
+void to_stdstring(const std::basic_string<symbol>& src, std::string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<symbol>, symbol> converter;
+	dest = converter.to_bytes(src);
+}
+#pragma GCC diagnostic pop
+
+template<>
+inline void from_stdstring(const std::string& src, std::string& dest)
+{
+	dest = src;
+}
+
+template<>
+inline void to_stdstring(const std::string& src, std::string& dest)
+{
+	dest = src;
+}
+
+template<typename dest_type, typename src_type>
+dest_type cast_string(const src_type& src);
+
+template<typename src_type>
+src_type cast_string(const src_type& src)
+{
+	return src;
+}
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+template<typename src_type>
+std::string cast_string(const src_type& src)
+{
+	std::string dest;
+	to_stdstring(src, dest);
+	return dest;
+}
+
+template<typename dest_type>
+dest_type cast_string(const std::string& src)
+{
+	dest_type dest;
+	from_stdstring(src, dest);
+	return dest;
+}
+#pragma GCC diagnostic pop
+
+template<typename dest_type>
+dest_type cast_string(const char* src)
+{
+	return cast_string<dest_type>(std::string(src));
 }
 
 }

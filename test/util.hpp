@@ -17,42 +17,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_STRING_UTIL_HPP
-#define SFTRIE_STRING_UTIL_HPP
+#ifndef SFTRIE_TEST_UTIL
+#define SFTRIE_TEST_UTIL
 
 #include <string>
-#include <locale>
 #include <codecvt>
 
-template<typename src_type, typename dest_type>
-void cast_string(const src_type& src, dest_type& dest);
-
-template<typename src_type>
-void cast_string(const src_type& src, src_type& dest)
-{
-	dest = src;
-}
-
-template<typename dest_type, typename src_type>
-dest_type cast_string(const src_type& src)
-{
-	dest_type desc;
-	cast_string(src, desc);
-	return desc;
-}
-
-template<typename dest_type>
-dest_type cast_string(const char* src)
-{
-	return cast_string<dest_type>(std::string(src));
-}
+#include <sftrie/util.hpp>
 
 template<typename text>
 std::vector<text> cast_strings(const std::vector<std::string>& texts)
 {
 	std::vector<text> results;
 	for(const auto& t: texts)
-		results.push_back(cast_string<text>(t));
+		results.push_back(sftrie::cast_string<text>(t));
 	return results;
 }
 
@@ -61,7 +39,7 @@ std::vector<std::pair<text, item>> cast_strings(const std::vector<std::pair<std:
 {
 	std::vector<std::pair<text, item>> results;
 	for(const auto& i: texts)
-		results.push_back({cast_string<text>(i.first), i.second});
+		results.push_back({sftrie::cast_string<text>(i.first), i.second});
 	return results;
 }
 

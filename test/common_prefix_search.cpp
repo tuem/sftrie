@@ -26,7 +26,7 @@ limitations under the License.
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
 
-#include "string_util.hpp"
+#include "util.hpp"
 
 
 using integer = std::uint32_t;
@@ -80,8 +80,8 @@ void test_set_common_prefix_search_all(
 		for(const auto& i: patterns){
 			std::vector<std::u16string> results;
 			for(const auto& j: i.second)
-				results.push_back(cast_string<std::u16string>(j));
-			patterns_u16.push_back({cast_string<std::u16string>(i.first), results});
+				results.push_back(sftrie::cast_string<std::u16string>(j));
+			patterns_u16.push_back({sftrie::cast_string<std::u16string>(i.first), results});
 		}
 		test_set_common_prefix_search_all_classes(texts_u16, patterns_u16);
 	}
@@ -92,8 +92,8 @@ void test_set_common_prefix_search_all(
 		for(const auto& i: patterns){
 			std::vector<std::u32string> results;
 			for(const auto& j: i.second)
-				results.push_back(cast_string<std::u32string>(j));
-			patterns_u32.push_back({cast_string<std::u32string>(i.first), results});
+				results.push_back(sftrie::cast_string<std::u32string>(j));
+			patterns_u32.push_back({sftrie::cast_string<std::u32string>(i.first), results});
 		}
 		test_set_common_prefix_search_all_classes(texts_u32, patterns_u32);
 	}
@@ -148,8 +148,8 @@ void test_map_common_prefix_search_all(
 		for(const auto& i: patterns){
 			std::vector<std::u16string> results;
 			for(const auto& j: i.second)
-				results.push_back(cast_string<std::u16string>(j));
-			patterns_u16.push_back({cast_string<std::u16string>(i.first), results});
+				results.push_back(sftrie::cast_string<std::u16string>(j));
+			patterns_u16.push_back({sftrie::cast_string<std::u16string>(i.first), results});
 		}
 		test_map_common_prefix_search_all_classes(text_ids_u16, patterns_u16);
 	}
@@ -161,8 +161,8 @@ void test_map_common_prefix_search_all(
 		for(const auto& i: patterns){
 			std::vector<std::u32string> results;
 			for(const auto& j: i.second)
-				results.push_back(cast_string<std::u32string>(j));
-			patterns_u32.push_back({cast_string<std::u32string>(i.first), results});
+				results.push_back(sftrie::cast_string<std::u32string>(j));
+			patterns_u32.push_back({sftrie::cast_string<std::u32string>(i.first), results});
 		}
 		test_map_common_prefix_search_all_classes(text_ids_u32, patterns_u32);
 	}

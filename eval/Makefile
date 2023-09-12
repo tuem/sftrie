@@ -31,10 +31,10 @@ OBJS = $(patsubst %.cpp,%.o,$(SRCS))
 DEPS = $(patsubst %.cpp,%.d,$(SRCS))
 
 
-validate: validate.o string_util.o
+validate: validate.o
 	$(CXX) -o $@ $^
 
-benchmark: benchmark.o string_util.o history.o
+benchmark: benchmark.o history.o
 	$(CXX) -o $@ $^
 
 
