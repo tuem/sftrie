@@ -27,45 +27,10 @@ limitations under the License.
 using text = std::string;
 using index_type = sftrie::set<text>;
 
-int main(int argc, char* argv[])
+template<typename index_type>
+void exec(const index_type& index)
 {
-	if(argc < 2){
-		std::cerr << "usage: " << argv[0] << " input_path [load_index=false]" << std::endl;
-		return 0;
-	}
-
-	std::string input_path = argv[1];
-	bool load_index = argc > 2 && std::string(argv[2]) == "true";
-
-	std::shared_ptr<index_type> index;
-	if(load_index){
-		std::cerr << "loadinag index...";
-		index = std::make_shared<index_type>(input_path);
-		std::cerr << "done." << std::endl;
-	}
-	else{
-		std::cerr << "loading texts...";
-		std::ifstream ifs(input_path);
-		if(!ifs.is_open()){
-			std::cerr << "input file is not available: " << input_path << std::endl;
-			return 1;
-		}
-
-		std::vector<text> texts;
-		while(ifs.good()){
-			std::string line;
-			std::getline(ifs, line);
-			if(ifs.eof())
-				break;
-			texts.push_back(line);
-		}
-
-		sftrie::sort_texts(std::begin(texts), std::end(texts));
-		index = std::make_shared<index_type>(texts.begin(), texts.end());
-		std::cerr << "done, " << texts.size() << " texts" << std::endl;
-	}
-
-	auto searcher = index->searcher();
+	auto searcher = index.searcher();
 	while(true){
 		std::cerr << "> ";
 		std::string query;
@@ -75,7 +40,7 @@ int main(int argc, char* argv[])
 		}
 		else if(query.substr(0, 5) == "save="){
 			std::string output_path = query.substr(5);
-			index->save(output_path);
+			index.save(output_path);
 			std::cout << "index saved to " << output_path << std::endl;
 			continue;
 		}
@@ -104,6 +69,47 @@ int main(int argc, char* argv[])
 		}
 		if(count == 0)
 			std::cout << query << ": " << "not found" << std::endl;
+	}
+}
+
+int main(int argc, char* argv[])
+{
+	if(argc < 2){
+		std::cerr << "usage: " << argv[0] << " input_path [load_index=false]" << std::endl;
+		return 0;
+	}
+
+	std::string input_path = argv[1];
+	bool load_index = argc > 2 && std::string(argv[2]) == "true";
+
+	std::shared_ptr<index_type> index;
+	if(load_index){
+		std::cerr << "loadinag index...";
+		index_type index(input_path);
+		std::cerr << "done." << std::endl;
+		exec(index);
+	}
+	else{
+		std::cerr << "loading texts...";
+		std::ifstream ifs(input_path);
+		if(!ifs.is_open()){
+			std::cerr << "input file is not available: " << input_path << std::endl;
+			return 1;
+		}
+
+		std::vector<text> texts;
+		while(ifs.good()){
+			std::string line;
+			std::getline(ifs, line);
+			if(ifs.eof())
+				break;
+			texts.push_back(line);
+		}
+
+		sftrie::sort_texts(std::begin(texts), std::end(texts));
+		index_type index(texts.begin(), texts.end());
+		std::cerr << "done, " << texts.size() << " texts" << std::endl;
+		exec(index);
 	}
 
 	return 0;
