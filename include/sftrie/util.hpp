@@ -115,35 +115,6 @@ void cast_text(const src_type& src, src_type& dest)
 	dest = src;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-template<typename symbol>
-void from_stdstring(const std::string& src, std::basic_string<symbol>& dest)
-{
-	std::wstring_convert<std::codecvt_utf8<symbol>, symbol> converter;
-	dest = converter.from_bytes(src);
-}
-
-template<typename symbol>
-void to_stdstring(const std::basic_string<symbol>& src, std::string& dest)
-{
-	std::wstring_convert<std::codecvt_utf8<symbol>, symbol> converter;
-	dest = converter.to_bytes(src);
-}
-#pragma GCC diagnostic pop
-
-template<>
-inline void from_stdstring(const std::string& src, std::string& dest)
-{
-	dest = src;
-}
-
-template<>
-inline void to_stdstring(const std::string& src, std::string& dest)
-{
-	dest = src;
-}
-
 template<typename src_type>
 src_type cast_text(const src_type& src)
 {
@@ -153,10 +124,25 @@ src_type cast_text(const src_type& src)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 template<typename src_type>
-std::string cast_text(const src_type& src)
+void cast_text(const src_type& src, std::string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<typename src_type::value_type>, typename src_type::value_type> converter;
+	dest = converter.to_bytes(src);
+}
+
+template<typename dest_type>
+void cast_text(const std::string& src, dest_type& dest)
+{
+	std::wstring_convert<std::codecvt_utf8<typename dest_type::value_type>, typename dest_type::value_type> converter;
+	dest = converter.from_bytes(src);
+}
+#pragma GCC diagnostic pop
+
+template<typename dest_type, typename src_type>
+dest_type cast_text(const src_type& src)
 {
 	std::string dest;
-	to_stdstring(src, dest);
+	cast_text(src, dest);
 	return dest;
 }
 
@@ -164,10 +150,9 @@ template<typename dest_type>
 dest_type cast_text(const std::string& src)
 {
 	dest_type dest;
-	from_stdstring(src, dest);
+	cast_text(src, dest);
 	return dest;
 }
-#pragma GCC diagnostic pop
 
 template<typename dest_type>
 dest_type cast_text(const char* src)
