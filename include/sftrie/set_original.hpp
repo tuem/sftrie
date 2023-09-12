@@ -26,10 +26,9 @@ limitations under the License.
 #include <algorithm>
 #include <fstream>
 
-#include "util.hpp"
-
 #include "constants.hpp"
 #include "file_header.hpp"
+#include "util.hpp"
 
 namespace sftrie{
 
