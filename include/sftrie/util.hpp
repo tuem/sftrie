@@ -24,6 +24,8 @@ limitations under the License.
 #include <algorithm>
 #include <locale>
 #include <codecvt>
+#include <vector>
+
 
 namespace sftrie{
 

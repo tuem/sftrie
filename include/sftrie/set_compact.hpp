@@ -20,8 +20,10 @@ limitations under the License.
 #ifndef SFTRIE_SET_COMPACT
 #define SFTRIE_SET_COMPACT
 
-#include <cstddef>
+#include <cstdint>
+#include <string>
 #include <vector>
+#include <algorithm>
 #include <fstream>
 
 #include "util.hpp"

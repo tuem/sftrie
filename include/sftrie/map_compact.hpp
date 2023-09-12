@@ -20,8 +20,10 @@ limitations under the License.
 #ifndef SFTRIE_MAP_COMPACT
 #define SFTRIE_MAP_COMPACT
 
-#include <cstddef>
+#include <cstdint>
+#include <string>
 #include <vector>
+#include <algorithm>
 #include <fstream>
 
 #include "util.hpp"
