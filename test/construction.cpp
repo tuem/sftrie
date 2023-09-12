@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <cstdint>
 #include <string>
 #include <vector>
 #include <map>
@@ -30,21 +31,31 @@ limitations under the License.
 
 
 using integer = std::uint32_t;
-using item = integer;
+using item = std::uint32_t;
 
 
 template<typename set>
 void test_set_construction(
 	const std::vector<typename set::text_type>& texts,
-	typename set::integer_type expected_size
+	const std::vector<size_t>& expected_sizes
 )
 {
 	set index(texts.begin(), texts.end());
-	if(expected_size > 0){
+	SECTION("# of texts"){
+		CHECK(index.size() == texts.size());
+	}
+	SECTION("node size"){
+		CHECK(index.node_size() == sizeof(typename set::node));
+	}
+	if(expected_sizes[0] > 0){
 		SECTION("trie size"){
-			CHECK(index.trie_size() == expected_size);
+			CHECK(index.trie_size() == expected_sizes[0]);
 		}
-		// TODO: check other information
+	}
+	if(expected_sizes[1] > 0){
+		SECTION("total space"){
+			CHECK(index.total_space() == expected_sizes[1]);
+		}
 	}
 
 	SECTION("search patterns in texts"){
@@ -53,42 +64,43 @@ void test_set_construction(
 	}
 }
 
-template<typename text>
+template<typename text, typename integer>
 void test_set_construction_all_classes(
 	const std::vector<text>& texts,
-	size_t expected_size_original,
-	size_t expected_size_compact
+	const std::vector<size_t>& expected_sizes_original,
+	const std::vector<size_t>& expected_sizes_compact
 )
 {
 	SECTION("set_original"){
-		test_set_construction<sftrie::set_original<text, integer>>(texts, expected_size_original);
+		test_set_construction<sftrie::set_original<text, integer>>(texts, expected_sizes_original);
 	}
 
 	SECTION("set_compact"){
-		test_set_construction<sftrie::set_compact<text, integer>>(texts, expected_size_compact);
+		test_set_construction<sftrie::set_compact<text, integer>>(texts, expected_sizes_compact);
 	}
 }
 
+template<typename integer>
 void test_set_construction_all(
 	const std::vector<std::string>& texts,
-	std::map<std::string, size_t>& expected_sizes
+	std::map<std::string, std::vector<size_t>>& expected_sizes
 )
 {
 	SECTION("char"){
-		test_set_construction_all_classes(texts,
-			expected_sizes["original/char"], expected_sizes["compact/char"]);
+		test_set_construction_all_classes<std::string, integer>(texts,
+			expected_sizes["set/original/char"], expected_sizes["set/compact/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto texts_u16 = sftrie::cast_texts<std::u16string>(texts);
-		test_set_construction_all_classes(texts_u16,
-			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
+		test_set_construction_all_classes<std::u16string, integer>(texts_u16,
+			expected_sizes["set/original/char16_t"], expected_sizes["set/compact/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto texts_u32 = sftrie::cast_texts<std::u32string>(texts);
-		test_set_construction_all_classes(texts_u32,
-			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
+		test_set_construction_all_classes<std::u32string, integer>(texts_u32,
+			expected_sizes["set/original/char32_t"], expected_sizes["set/compact/char32_t"]);
 	}
 }
 
@@ -96,13 +108,24 @@ void test_set_construction_all(
 template<typename map>
 void test_map_construction(
 	const std::vector<std::pair<typename map::text_type, typename map::value_type>>& texts,
-	typename map::integer_type expected_size
+	const std::vector<size_t>& expected_sizes
 )
 {
 	map index(texts.begin(), texts.end());
-	if(expected_size > 0){
+	SECTION("# of texts"){
+		CHECK(index.size() == texts.size());
+	}
+	SECTION("node size"){
+		CHECK(index.node_size() == sizeof(typename map::node));
+	}
+	if(expected_sizes[0] > 0){
 		SECTION("trie size"){
-			CHECK(index.trie_size() == expected_size); // root and sentinel
+			CHECK(index.trie_size() == expected_sizes[0]);
+		}
+	}
+	if(expected_sizes[1] > 0){
+		SECTION("total space"){
+			CHECK(index.total_space() == expected_sizes[1]);
 		}
 	}
 
@@ -112,55 +135,57 @@ void test_map_construction(
 	}
 }
 
-template<typename text>
+template<typename text, typename integer>
 void test_map_construction_all_classes(
 	const std::vector<std::pair<text, item>>& texts,
-	size_t expected_size_original,
-	size_t expected_size_compact
+	const std::vector<size_t>& expected_sizes_original,
+	const std::vector<size_t>& expected_sizes_compact
 )
 {
 	SECTION("map_original"){
-		test_map_construction<sftrie::map_original<text, item, integer>>(texts, expected_size_original);
+		test_map_construction<sftrie::map_original<text, item, integer>>(texts, expected_sizes_original);
 	}
 
 	SECTION("map_compact"){
-		test_map_construction<sftrie::map_compact<text, item, integer>>(texts, expected_size_compact);
+		test_map_construction<sftrie::map_compact<text, item, integer>>(texts, expected_sizes_compact);
 	}
 }
 
+template<typename integer>
 void test_map_construction_all(
 	const std::vector<std::string>& texts,
-	std::map<std::string, size_t>& expected_sizes
+	std::map<std::string, std::vector<size_t>>& expected_sizes
 )
 {
 	auto text_ids = assign_ids<std::string, item>(texts);
 
 	SECTION("char"){
-		test_map_construction_all_classes(text_ids,
-			expected_sizes["original/char"], expected_sizes["compact/char"]);
+		test_map_construction_all_classes<std::string, integer>(text_ids,
+			expected_sizes["map/original/char"], expected_sizes["map/compact/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto text_ids_u16 = sftrie::cast_text_item_pairs<std::u16string>(text_ids);
-		test_map_construction_all_classes(text_ids_u16,
-			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
+		test_map_construction_all_classes<std::u16string, integer>(text_ids_u16,
+			expected_sizes["map/original/char16_t"], expected_sizes["map/compact/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto text_ids_u32 = sftrie::cast_text_item_pairs<std::u32string>(text_ids);
-		test_map_construction_all_classes(text_ids_u32,
-			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
+		test_map_construction_all_classes<std::u32string, integer>(text_ids_u32,
+			expected_sizes["map/original/char32_t"], expected_sizes["map/compact/char32_t"]);
 	}
 }
 
 
+template<typename integer>
 void test_construction_all(
 	const std::vector<std::string>& texts,
-	std::map<std::string, size_t>& expected_sizes
+	std::map<std::string, std::vector<size_t>>& expected_sizes
 )
 {
-	test_set_construction_all(texts, expected_sizes);
-	test_map_construction_all(texts, expected_sizes);
+	test_set_construction_all<integer>(texts, expected_sizes);
+	test_map_construction_all<integer>(texts, expected_sizes);
 }
 
 
@@ -169,16 +194,22 @@ TEST_CASE("construction/empty set", "[construction]"){
 
 	const std::vector<text> texts = {
 	};
-	std::map<std::string, size_t> expected_sizes = {
-		{"original/char", 2},
-		{"compact/char", 2},
-		{"original/char16_t", 2},
-		{"compact/char16_t", 2},
-		{"original/char32_t", 2},
-		{"compact/char32_t", 2},
+	std::map<std::string, std::vector<size_t>> expected_sizes = {
+		{"set/original/char",     {2, 2 * (sizeof(integer) + sizeof(char))}},
+		{"set/original/char16_t", {2, 2 * (sizeof(integer) + sizeof(char16_t))}},
+		{"set/original/char32_t", {2, 2 * (sizeof(integer) + sizeof(char32_t))}},
+		{"set/compact/char",      {2, 2 * (2 * sizeof(integer) + sizeof(char))}},
+		{"set/compact/char16_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"set/compact/char32_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/original/char",     {2, 2 * (2 * sizeof(integer) + sizeof(char))}},
+		{"map/original/char16_t", {2, 2 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/original/char32_t", {2, 2 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/compact/char",      {2, 2 * (3 * sizeof(integer) + sizeof(char))}},
+		{"map/compact/char16_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/compact/char32_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char32_t))}},
 	};
 
-	test_construction_all(texts, expected_sizes);
+	test_construction_all<integer>(texts, expected_sizes);
 }
 
 TEST_CASE("construction/set of an empty text", "[construction]"){
@@ -187,16 +218,22 @@ TEST_CASE("construction/set of an empty text", "[construction]"){
 	const std::vector<text> texts = {
 		"",
 	};
-	std::map<std::string, size_t> expected_sizes = {
-		{"original/char", 2},
-		{"compact/char", 2},
-		{"original/char16_t", 2},
-		{"compact/char16_t", 2},
-		{"original/char32_t", 2},
-		{"compact/char32_t", 2},
+	std::map<std::string, std::vector<size_t>> expected_sizes = {
+		{"set/original/char",     {2, 2 * (sizeof(integer) + sizeof(char))}},
+		{"set/original/char16_t", {2, 2 * (sizeof(integer) + sizeof(char16_t))}},
+		{"set/original/char32_t", {2, 2 * (sizeof(integer) + sizeof(char32_t))}},
+		{"set/compact/char",      {2, 2 * (2 * sizeof(integer) + sizeof(char))}},
+		{"set/compact/char16_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"set/compact/char32_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/original/char",     {2, 2 * (2 * sizeof(integer) + sizeof(char))}},
+		{"map/original/char16_t", {2, 2 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/original/char32_t", {2, 2 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/compact/char",      {2, 2 * (3 * sizeof(integer) + sizeof(char))}},
+		{"map/compact/char16_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/compact/char32_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char32_t))}},
 	};
 
-	test_construction_all(texts, expected_sizes);
+	test_construction_all<integer>(texts, expected_sizes);
 }
 
 TEST_CASE("construction/set of a text with a single symbol", "[construction]"){
@@ -205,16 +242,22 @@ TEST_CASE("construction/set of a text with a single symbol", "[construction]"){
 	const std::vector<text> texts = {
 		"A",
 	};
-	std::map<std::string, size_t> expected_sizes = {
-		{"original/char", 3},
-		{"compact/char", 3},
-		{"original/char16_t", 3},
-		{"compact/char16_t", 3},
-		{"original/char32_t", 3},
-		{"compact/char32_t", 3},
+	std::map<std::string, std::vector<size_t>> expected_sizes = {
+		{"set/original/char",     {3, 3 * (sizeof(integer) + sizeof(char))}},
+		{"set/original/char16_t", {3, 3 * (sizeof(integer) + sizeof(char16_t))}},
+		{"set/original/char32_t", {3, 3 * (sizeof(integer) + sizeof(char32_t))}},
+		{"set/compact/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char))}},
+		{"set/compact/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"set/compact/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/original/char",     {3, 3 * (2 * sizeof(integer) + sizeof(char))}},
+		{"map/original/char16_t", {3, 3 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/original/char32_t", {3, 3 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/compact/char",      {3, 3 * (3 * sizeof(integer) + sizeof(char))}},
+		{"map/compact/char16_t",  {3, 3 * (3 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/compact/char32_t",  {3, 3 * (3 * sizeof(integer) + sizeof(char32_t))}},
 	};
 
-	test_construction_all(texts, expected_sizes);
+	test_construction_all<integer>(texts, expected_sizes);
 }
 
 TEST_CASE("construction/set of a text", "[construction]"){
@@ -223,16 +266,22 @@ TEST_CASE("construction/set of a text", "[construction]"){
 	const std::vector<text> texts = {
 		"ABC",
 	};
-	std::map<std::string, size_t> expected_sizes = {
-		{"original/char", 5},
-		{"compact/char", 3},
-		{"original/char16_t", 5},
-		{"compact/char16_t", 3},
-		{"original/char32_t", 5},
-		{"compact/char32_t", 3},
+	std::map<std::string, std::vector<size_t>> expected_sizes = {
+		{"set/original/char",     {5, 5 * (sizeof(integer) + sizeof(char))}},
+		{"set/original/char16_t", {5, 5 * (sizeof(integer) + sizeof(char16_t))}},
+		{"set/original/char32_t", {5, 5 * (sizeof(integer) + sizeof(char32_t))}},
+		{"set/compact/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char)) + sizeof(char) * 2}},
+		{"set/compact/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * 2}},
+		{"set/compact/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * 2}},
+		{"map/original/char",     {5, 5 * (2 * sizeof(integer) + sizeof(char))}},
+		{"map/original/char16_t", {5, 5 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/original/char32_t", {5, 5 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/compact/char",      {3, 3 * (3 * sizeof(integer) + sizeof(char)) + sizeof(char) * 2}},
+		{"map/compact/char16_t",  {3, 3 * (3 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * 2}},
+		{"map/compact/char32_t",  {3, 3 * (3 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * 2}},
 	};
 
-	test_construction_all(texts, expected_sizes);
+	test_construction_all<integer>(texts, expected_sizes);
 }
 
 TEST_CASE("construction/few texts", "[construction]"){
@@ -246,16 +295,22 @@ TEST_CASE("construction/few texts", "[construction]"){
 		"CM",
 		"DM",
 	};
-	std::map<std::string, size_t> expected_sizes = {
-		{"original/char", 12},
-		{"compact/char", 10},
-		{"original/char16_t", 12},
-		{"compact/char16_t", 10},
-		{"original/char32_t", 12},
-		{"compact/char32_t", 10},
+	std::map<std::string, std::vector<size_t>> expected_sizes = {
+		{"set/original/char",     {12, 12 * (sizeof(integer) + sizeof(char))}},
+		{"set/original/char16_t", {12, 12 * (sizeof(integer) + sizeof(char16_t))}},
+		{"set/original/char32_t", {12, 12 * (sizeof(integer) + sizeof(char32_t))}},
+		{"set/compact/char",      {10, 10 * (2 * sizeof(integer) + sizeof(char)) + sizeof(char) * 2}},
+		{"set/compact/char16_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * 2}},
+		{"set/compact/char32_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * 2}},
+		{"map/original/char",     {12, 12 * (2 * sizeof(integer) + sizeof(char))}},
+		{"map/original/char16_t", {12, 12 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/original/char32_t", {12, 12 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/compact/char",      {10, 10 * (3 * sizeof(integer) + sizeof(char)) + sizeof(char) * 2}},
+		{"map/compact/char16_t",  {10, 10 * (3 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * 2}},
+		{"map/compact/char32_t",  {10, 10 * (3 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * 2}},
 	};
 
-	test_construction_all(texts, expected_sizes);
+	test_construction_all<integer>(texts, expected_sizes);
 }
 
 TEST_CASE("construction/a long text", "[construction]"){
@@ -265,14 +320,20 @@ TEST_CASE("construction/a long text", "[construction]"){
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 	};
 	auto l = texts.front().size();
-	std::map<std::string, size_t> expected_sizes = {
-		{"original/char", l + 2},
-		{"compact/char", 3},
-		{"original/char16_t", l + 2},
-		{"compact/char16_t", 3},
-		{"original/char32_t", l + 2},
-		{"compact/char32_t", 3},
+	std::map<std::string, std::vector<size_t>> expected_sizes = {
+		{"set/original/char",     {l + 2, (l + 2) * (sizeof(integer) + sizeof(char))}},
+		{"set/original/char16_t", {l + 2, (l + 2) * (sizeof(integer) + sizeof(char16_t))}},
+		{"set/original/char32_t", {l + 2, (l + 2) * (sizeof(integer) + sizeof(char32_t))}},
+		{"set/compact/char",      {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char)) + sizeof(char) * (l - 1)}},
+		{"set/compact/char16_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * (l - 1)}},
+		{"set/compact/char32_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * (l - 1)}},
+		{"map/original/char",     {l + 2, (l + 2) * (2 * sizeof(integer) + sizeof(char))}},
+		{"map/original/char16_t", {l + 2, (l + 2) * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/original/char32_t", {l + 2, (l + 2) * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/compact/char",      {1 + 2, (1 + 2) * (3 * sizeof(integer) + sizeof(char)) + sizeof(char) * (l - 1)}},
+		{"map/compact/char16_t",  {1 + 2, (1 + 2) * (3 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * (l - 1)}},
+		{"map/compact/char32_t",  {1 + 2, (1 + 2) * (3 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * (l - 1)}},
 	};
 
-	test_construction_all(texts, expected_sizes);
+	test_construction_all<integer>(texts, expected_sizes);
 }
