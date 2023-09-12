@@ -75,25 +75,25 @@ void test_set_predictive_search_all(
 	}
 
 	SECTION("char16_t"){
-		auto texts_u16 = cast_strings<std::u16string>(texts);
+		auto texts_u16 = sftrie::cast_texts<std::u16string>(texts);
 		std::vector<std::pair<std::u16string, std::vector<std::u16string>>> patterns_u16;
 		for(const auto& i: patterns){
 			std::vector<std::u16string> results;
 			for(const auto& j: i.second)
-				results.push_back(sftrie::cast_string<std::u16string>(j));
-			patterns_u16.push_back({sftrie::cast_string<std::u16string>(i.first), results});
+				results.push_back(sftrie::cast_text<std::u16string>(j));
+			patterns_u16.push_back({sftrie::cast_text<std::u16string>(i.first), results});
 		}
 		test_set_predictive_search_all_classes(texts_u16, patterns_u16);
 	}
 
 	SECTION("char32_t"){
-		auto texts_u32 = cast_strings<std::u32string>(texts);
+		auto texts_u32 = sftrie::cast_texts<std::u32string>(texts);
 		std::vector<std::pair<std::u32string, std::vector<std::u32string>>> patterns_u32;
 		for(const auto& i: patterns){
 			std::vector<std::u32string> results;
 			for(const auto& j: i.second)
-				results.push_back(sftrie::cast_string<std::u32string>(j));
-			patterns_u32.push_back({sftrie::cast_string<std::u32string>(i.first), results});
+				results.push_back(sftrie::cast_text<std::u32string>(j));
+			patterns_u32.push_back({sftrie::cast_text<std::u32string>(i.first), results});
 		}
 		test_set_predictive_search_all_classes(texts_u32, patterns_u32);
 	}
@@ -143,26 +143,26 @@ void test_map_predictive_search_all(
 	}
 
 	SECTION("char16_t"){
-		auto text_ids_u16 = cast_strings<std::u16string>(text_ids);
+		auto text_ids_u16 = sftrie::cast_text_item_pairs<std::u16string>(text_ids);
 		std::vector<std::pair<std::u16string, std::vector<std::u16string>>> patterns_u16;
 		for(const auto& i: patterns){
 			std::vector<std::u16string> results;
 			for(const auto& j: i.second)
-				results.push_back(sftrie::cast_string<std::u16string>(j));
-			patterns_u16.push_back({sftrie::cast_string<std::u16string>(i.first), results});
+				results.push_back(sftrie::cast_text<std::u16string>(j));
+			patterns_u16.push_back({sftrie::cast_text<std::u16string>(i.first), results});
 		}
 		test_map_predictive_search_all_classes(text_ids_u16, patterns_u16);
 	}
 
 	SECTION("char32_t"){
-		auto text_ids_u32 = cast_strings<std::u32string>(text_ids);
+		auto text_ids_u32 = sftrie::cast_text_item_pairs<std::u32string>(text_ids);
 		std::vector<std::pair<std::u16string, std::vector<std::u16string>>> patterns_u16;
 		std::vector<std::pair<std::u32string, std::vector<std::u32string>>> patterns_u32;
 		for(const auto& i: patterns){
 			std::vector<std::u32string> results;
 			for(const auto& j: i.second)
-				results.push_back(sftrie::cast_string<std::u32string>(j));
-			patterns_u32.push_back({sftrie::cast_string<std::u32string>(i.first), results});
+				results.push_back(sftrie::cast_text<std::u32string>(j));
+			patterns_u32.push_back({sftrie::cast_text<std::u32string>(i.first), results});
 		}
 		test_map_predictive_search_all_classes(text_ids_u32, patterns_u32);
 	}

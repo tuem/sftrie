@@ -102,10 +102,15 @@ void sort_text_item_pairs(iterator begin, iterator end)
 // string conversion
 
 template<typename src_type, typename dest_type>
-void cast_string(const src_type& src, dest_type& dest);
+void cast_text(const src_type& src, dest_type& dest);
+
+template<typename dest_type, typename src_type>
+dest_type cast_text(const src_type& src);
+
+// implementations
 
 template<typename src_type>
-void cast_string(const src_type& src, src_type& dest)
+void cast_text(const src_type& src, src_type& dest)
 {
 	dest = src;
 }
@@ -139,11 +144,8 @@ inline void to_stdstring(const std::string& src, std::string& dest)
 	dest = src;
 }
 
-template<typename dest_type, typename src_type>
-dest_type cast_string(const src_type& src);
-
 template<typename src_type>
-src_type cast_string(const src_type& src)
+src_type cast_text(const src_type& src)
 {
 	return src;
 }
@@ -151,7 +153,7 @@ src_type cast_string(const src_type& src)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 template<typename src_type>
-std::string cast_string(const src_type& src)
+std::string cast_text(const src_type& src)
 {
 	std::string dest;
 	to_stdstring(src, dest);
@@ -159,7 +161,7 @@ std::string cast_string(const src_type& src)
 }
 
 template<typename dest_type>
-dest_type cast_string(const std::string& src)
+dest_type cast_text(const std::string& src)
 {
 	dest_type dest;
 	from_stdstring(src, dest);
@@ -168,9 +170,28 @@ dest_type cast_string(const std::string& src)
 #pragma GCC diagnostic pop
 
 template<typename dest_type>
-dest_type cast_string(const char* src)
+dest_type cast_text(const char* src)
 {
-	return cast_string<dest_type>(std::string(src));
+	return cast_text<dest_type>(std::string(src));
+}
+
+template<typename dest_type, typename src_type>
+std::vector<dest_type> cast_texts(const std::vector<src_type>& texts)
+{
+	std::vector<dest_type> results;
+	for(const auto& t: texts)
+		results.push_back(sftrie::cast_text<dest_type>(t));
+	return results;
+}
+
+template<typename dest_type, typename src_type, typename item>
+std::vector<std::pair<dest_type, item>>
+cast_text_item_pairs(const std::vector<std::pair<src_type, item>>& texts)
+{
+	std::vector<std::pair<dest_type, item>> results;
+	for(const auto& i: texts)
+		results.push_back({cast_text<dest_type>(i.first), i.second});
+	return results;
 }
 
 }
