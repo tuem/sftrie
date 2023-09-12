@@ -17,34 +17,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_STRING_UTIL_HPP
-#define SFTRIE_STRING_UTIL_HPP
+#ifndef SFTRIE_TEST_UTIL
+#define SFTRIE_TEST_UTIL
 
-#include <string>
-#include <locale>
-#include <codecvt>
+#include <vector>
 
-template<typename src_type, typename dest_type>
-void cast_string(const src_type& src, dest_type& dest);
 
-template<typename src_type>
-void cast_string(const src_type& src, src_type& dest)
+template<typename text, typename item>
+std::vector<std::pair<text, item>> assign_ids(const std::vector<text>& texts, item start = static_cast<item>(1))
 {
-	dest = src;
-}
-
-template<typename dest_type, typename src_type>
-dest_type cast_string(const src_type& src)
-{
-	dest_type desc;
-	cast_string(src, desc);
-	return desc;
-}
-
-template<typename dest_type>
-dest_type cast_string(const char* src)
-{
-	return cast_string<dest_type>(std::string(src));
+	std::vector<std::pair<text, item>> results;
+	auto i = start;
+	for(const auto& t: texts)
+		results.push_back({t, ++i});
+	return results;
 }
 
 #endif

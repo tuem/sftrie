@@ -31,7 +31,6 @@ limitations under the License.
 #include <sftrie/map.hpp>
 #include <paramset.hpp>
 
-#include "string_util.hpp"
 #include "history.hpp"
 
 using item = unsigned int;
@@ -234,7 +233,7 @@ void exec(const std::string& corpus_path, const std::string& index_type, int max
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		auto t = cast_string<text>(line);
+		auto t = sftrie::cast_text<text>(line);
 		texts.push_back(t);
 	}
 	std::vector<std::pair<text, item>> text_item_pairs;

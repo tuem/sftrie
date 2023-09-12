@@ -26,7 +26,7 @@ limitations under the License.
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
 
-#include "string_util.hpp"
+#include "util.hpp"
 
 
 using integer = std::uint32_t;
@@ -103,16 +103,16 @@ void test_map_update_all(
 	}
 
 	SECTION("char16_t"){
-		auto before_u16 = cast_strings<std::u16string>(before);
-		auto operations_u16 = cast_strings<std::u16string>(operations);
-		auto after_u16 = cast_strings<std::u16string>(after);
+		auto before_u16 = sftrie::cast_text_item_pairs<std::u16string>(before);
+		auto operations_u16 = sftrie::cast_text_item_pairs<std::u16string>(operations);
+		auto after_u16 = sftrie::cast_text_item_pairs<std::u16string>(after);
 		test_map_update_all_classes(before_u16, operations_u16, after_u16);
 	}
 
 	SECTION("char32_t"){
-		auto before_u32 = cast_strings<std::u32string>(before);
-		auto operations_u32 = cast_strings<std::u32string>(operations);
-		auto after_u32 = cast_strings<std::u32string>(after);
+		auto before_u32 = sftrie::cast_text_item_pairs<std::u32string>(before);
+		auto operations_u32 = sftrie::cast_text_item_pairs<std::u32string>(operations);
+		auto after_u32 = sftrie::cast_text_item_pairs<std::u32string>(after);
 		test_map_update_all_classes(before_u32, operations_u32, after_u32);
 	}
 }

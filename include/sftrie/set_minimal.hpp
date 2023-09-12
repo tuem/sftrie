@@ -17,8 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_SET_MINIMAL_HPP
-#define SFTRIE_SET_MINIMAL_HPP
+#ifndef SFTRIE_SET_MINIMAL
+#define SFTRIE_SET_MINIMAL
 
 #include <vector>
 

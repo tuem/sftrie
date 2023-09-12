@@ -26,7 +26,7 @@ limitations under the License.
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
 
-#include "string_util.hpp"
+#include "util.hpp"
 
 
 using integer = std::uint32_t;
@@ -85,12 +85,12 @@ void test_set_child_iterator_all(
 	}
 
 	SECTION("char16_t"){
-		auto texts_u16 = cast_strings<std::u16string>(texts);
+		auto texts_u16 = sftrie::cast_texts<std::u16string>(texts);
 		test_set_child_iterator_all_classes(texts_u16);
 	}
 
 	SECTION("char32_t"){
-		auto texts_u32 = cast_strings<std::u32string>(texts);
+		auto texts_u32 = sftrie::cast_texts<std::u32string>(texts);
 		test_set_child_iterator_all_classes(texts_u32);
 	}
 }
@@ -139,12 +139,12 @@ void test_map_child_iterator_all(
 	}
 
 	SECTION("char16_t"){
-		auto texts_u16 = cast_strings<std::u16string>(texts);
+		auto texts_u16 = sftrie::cast_texts<std::u16string>(texts);
 		test_map_child_iterator_all_classes(texts_u16);
 	}
 
 	SECTION("char32_t"){
-		auto texts_u32 = cast_strings<std::u32string>(texts);
+		auto texts_u32 = sftrie::cast_texts<std::u32string>(texts);
 		test_map_child_iterator_all_classes(texts_u32);
 	}
 }

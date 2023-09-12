@@ -32,8 +32,6 @@ limitations under the License.
 #include <sftrie/map.hpp>
 #include <paramset.hpp>
 
-#include "string_util.hpp"
-
 using item = unsigned int;
 using integer = unsigned int;
 
@@ -269,7 +267,7 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 		std::getline(ifs, line);
 		if(ifs.eof())
 			break;
-		texts.push_back(cast_string<text>(line));
+		texts.push_back(sftrie::cast_text<text>(line));
 	}
 	std::vector<std::pair<text, item>> text_item_pairs;
 	if(index_type == "map"){

@@ -27,7 +27,7 @@ limitations under the License.
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
 
-#include "string_util.hpp"
+#include "util.hpp"
 
 
 using integer = std::uint32_t;
@@ -84,13 +84,13 @@ void test_set_save_load_all(
 	}
 
 	SECTION("char16_t"){
-		auto texts_u16 = cast_strings<std::u16string>(texts);
+		auto texts_u16 = sftrie::cast_texts<std::u16string>(texts);
 		test_set_save_load_all_classes(texts_u16,
 			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
 	}
 
 	SECTION("char32_t"){
-		auto texts_u32 = cast_strings<std::u32string>(texts);
+		auto texts_u32 = sftrie::cast_texts<std::u32string>(texts);
 		test_set_save_load_all_classes(texts_u32,
 			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
 	}
@@ -149,13 +149,13 @@ void test_map_save_load_all(
 	}
 
 	SECTION("char16_t"){
-		auto text_ids_u16 = cast_strings<std::u16string>(text_ids);
+		auto text_ids_u16 = sftrie::cast_text_item_pairs<std::u16string>(text_ids);
 		test_map_save_load_all_classes(text_ids_u16,
 			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
 	}
 
 	SECTION("char32_t"){
-		auto text_ids_u32 = cast_strings<std::u32string>(text_ids);
+		auto text_ids_u32 = sftrie::cast_text_item_pairs<std::u32string>(text_ids);
 		test_map_save_load_all_classes(text_ids_u32,
 			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
 	}
