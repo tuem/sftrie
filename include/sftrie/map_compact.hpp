@@ -58,13 +58,13 @@ public:
 	// constructors
 	template<typename random_access_iterator>
 	map_compact(random_access_iterator begin, random_access_iterator end,
-		integer min_binary_search = constants::default_min_binary_search<integer>);
+		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename random_access_container>
 	map_compact(const random_access_container& texts,
-		integer min_binary_search = constants::default_min_binary_search<integer>);
+		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_compact(input_stream& is,
-		integer min_binary_search = constants::default_min_binary_search<integer>);
-	map_compact(std::string path, integer min_binary_search = constants::default_min_binary_search<integer>);
+		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
+	map_compact(std::string path, integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 	// information
 	size_type size() const;

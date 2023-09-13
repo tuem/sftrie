@@ -28,7 +28,9 @@ namespace constants{
 
 // performance tuning
 
-template<typename integer> inline constexpr integer default_min_binary_search = static_cast<integer>(42);
+template<typename symbol> constexpr std::uint32_t default_min_binary_search() { return 42; }
+template<> inline constexpr std::uint32_t default_min_binary_search<char16_t>() { return 64; }
+template<> inline constexpr std::uint32_t default_min_binary_search<char32_t>() { return 64; }
 
 
 // header values
