@@ -24,6 +24,45 @@ limitations under the License.
 #include <sftrie/util.hpp>
 
 
+TEST_CASE("cast_text/cast to same class", "[cast_text]"){
+	std::string src = "これはテストです";
+	const std::u16string src_u16 = u"これはテストです";
+	std::u32string src_u32 = U"これはテストです";
+
+	SECTION("std::string to std::string, using cast_text(src, dest)"){
+		std::string dest;
+		sftrie::cast_text(src, dest);
+		CHECK(dest == src);
+	}
+
+	SECTION("std::string to std::string, using cast_text(src)"){
+		auto dest = sftrie::cast_text<std::string>(src);
+		CHECK(dest == src);
+	}
+
+	SECTION("std::u16string to std::u16string, using cast_text(src, dest)"){
+		std::u16string dest;
+		sftrie::cast_text(src_u16, dest);
+		CHECK(dest == src_u16);
+	}
+
+	SECTION("std::u16string to std::u16string, using cast_text(src)"){
+		auto dest = sftrie::cast_text<std::u16string>(src_u16);
+		CHECK(dest == src_u16);
+	}
+
+	SECTION("std::u32string to std::u32string, using cast_text(src, dest)"){
+		std::u32string dest;
+		sftrie::cast_text(src_u32, dest);
+		CHECK(dest == src_u32);
+	}
+
+	SECTION("std::u32string to std::u32string, using cast_text(src)"){
+		auto dest = sftrie::cast_text<std::u32string>(src_u32);
+		CHECK(dest == src_u32);
+	}
+}
+
 TEST_CASE("cast_text/cast from std::string", "[cast_text]"){
 	std::string src = "これはテストです";
 	std::u16string src_u16 = u"これはテストです";
@@ -77,5 +116,33 @@ TEST_CASE("cast_text/cast to std::string", "[cast_text]"){
 	SECTION("std::u32string to std::string, using cast_text(src, dest)"){
 		auto dest_u32 = sftrie::cast_text<std::string>(src_u32);
 		CHECK(dest_u32 == src);
+	}
+}
+
+TEST_CASE("cast_text/std::u16string <=> std::u32string", "[cast_text]"){
+	std::string src = "これはテストです";
+	const std::u16string src_u16 = u"これはテストです";
+	std::u32string src_u32 = U"これはテストです";
+
+	SECTION("std::u16string to std::u32string, using cast_text(src)"){
+		std::u32string dest_u32;
+		sftrie::cast_text(src_u16, dest_u32);
+		CHECK(dest_u32 == src_u32);
+	}
+
+	SECTION("std::u16string to std::u32string, using cast_text(src, dest)"){
+		auto dest_u32 = sftrie::cast_text<std::u32string>(src_u16);
+		CHECK(dest_u32 == src_u32);
+	}
+
+	SECTION("std::u32string to std::u16string, using cast_text(src)"){
+		std::u16string dest_u16;
+		sftrie::cast_text(src_u32, dest_u16);
+		CHECK(dest_u16 == src_u16);
+	}
+
+	SECTION("std::u32string to std::u16string, using cast_text(src, dest)"){
+		auto dest_u16 = sftrie::cast_text<std::u16string>(src_u32);
+		CHECK(dest_u16 == src_u16);
 	}
 }
