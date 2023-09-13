@@ -112,16 +112,32 @@ void cast_text(const src_type& src, src_type& dest)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 template<typename src_type>
-void cast_text(const src_type& src, std::string& dest, typename std::enable_if<!std::is_same<src_type, std::string>::value>::type* = nullptr)
+void cast_text(const src_type& src, std::string& dest,
+	typename std::enable_if<!std::is_same<src_type, std::string>::value>::type* = nullptr,
+	typename std::enable_if<!std::is_same<src_type, std::u16string>::value>::type* = nullptr)
 {
 	std::wstring_convert<std::codecvt_utf8<typename src_type::value_type>, typename src_type::value_type> converter;
 	dest = converter.to_bytes(src);
 }
 
+inline void cast_text(const std::u16string& src, std::string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+	dest = converter.to_bytes(src);
+}
+
 template<typename dest_type>
-void cast_text(const std::string& src, dest_type& dest, typename std::enable_if<!std::is_same<dest_type, std::string>::value>::type* = nullptr)
+void cast_text(const std::string& src, dest_type& dest,
+	typename std::enable_if<!std::is_same<dest_type, std::string>::value>::type* = nullptr,
+	typename std::enable_if<!std::is_same<dest_type, std::u16string>::value>::type* = nullptr)
 {
 	std::wstring_convert<std::codecvt_utf8<typename dest_type::value_type>, typename dest_type::value_type> converter;
+	dest = converter.from_bytes(src);
+}
+
+inline void cast_text(const std::string& src, std::u16string& dest)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
 	dest = converter.from_bytes(src);
 }
 

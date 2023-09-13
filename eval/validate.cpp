@@ -257,6 +257,8 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 {
 	using symbol = typename text::value_type;
 
+	min_binary_search = min_binary_search > 0 ? min_binary_search : sftrie::constants::default_min_binary_search<symbol>();
+
 	std::cerr << "loading texts...";
 	std::vector<text> texts;
 	std::ifstream ifs(corpus_path);
@@ -465,7 +467,7 @@ int main(int argc, char* argv[])
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
 		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
 		{"optimization_mode", "original", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
-		{"min_binary_search", 42, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value"},
+		{"min_binary_search", 0, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value (set 0 to use default setting)"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
 	paramset::manager pm(defs);
