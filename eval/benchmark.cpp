@@ -220,6 +220,8 @@ void exec(const std::string& corpus_path, const std::string& index_type, int max
 {
 	using symbol = typename text::value_type;
 
+	min_binary_search = min_binary_search > 0 ? min_binary_search : sftrie::constants::default_min_binary_search<symbol>();
+
 	History history;
 
 	std::cerr << "loading texts...";
@@ -381,7 +383,7 @@ int main(int argc, char* argv[])
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar_t, char16_t or char32_t)"},
 		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
 		{"optimization_mode", "original", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
-		{"min_binary_search", 42, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value"},
+		{"min_binary_search", 0, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value (set 0 to use default setting)"},
 		{"max_result", 0, {"sftrie", "max_result"}, "max-result", 'n', "max number of results in common-prefix search and predictive search"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
