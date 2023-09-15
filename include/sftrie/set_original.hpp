@@ -64,7 +64,8 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> set_original(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-	set_original(std::string path, integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
+	set_original(const std::string path,
+		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 	// information
 	size_type size() const;
@@ -83,15 +84,18 @@ public:
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
-	void save(std::string os) const;
+	void save(const std::string path) const;
 	template<typename input_stream> integer load(input_stream& is);
-	integer load(std::string path);
+	integer load(const std::string path);
 
 private:
 	const integer min_binary_search;
 
 	size_type num_texts;
 	std::vector<node> data;
+
+	template<typename container>
+	static integer container_size(const container& c);
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -122,7 +126,7 @@ set_original<text, integer>::set_original(random_access_iterator begin, random_a
 {
 	if(begin < end)
 		construct(begin, end, 0, 0);
-	data.push_back({false, false, container_size<integer>(data), {}});
+	data.push_back({false, false, container_size(data), {}});
 	data.shrink_to_fit();
 }
 
@@ -133,7 +137,7 @@ set_original<text, integer>::set_original(const random_access_container& texts, 
 {
 	if(std::begin(texts) < std::end(texts))
 		construct(std::begin(texts), std::end(texts), 0, 0);
-	data.push_back({false, false, container_size<integer>(data), {}});
+	data.push_back({false, false, container_size(data), {}});
 	data.shrink_to_fit();
 }
 
@@ -146,7 +150,7 @@ set_original<text, integer>::set_original(input_stream& is, integer min_binary_s
 }
 
 template<typename text, typename integer>
-set_original<text, integer>::set_original(std::string path, integer min_binary_search):
+set_original<text, integer>::set_original(const std::string path, integer min_binary_search):
 	min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
@@ -240,7 +244,7 @@ void set_original<text, integer>::save(output_stream& os) const
 }
 
 template<typename text, typename integer>
-void set_original<text, integer>::save(std::string path) const
+void set_original<text, integer>::save(const std::string path) const
 {
 	std::ofstream ofs(path);
 	save(ofs);
@@ -262,7 +266,7 @@ integer set_original<text, integer>::load(input_stream& is)
 }
 
 template<typename text, typename integer>
-integer set_original<text, integer>::load(std::string path)
+integer set_original<text, integer>::load(const std::string path)
 {
 	std::ifstream ifs(path);
 	return load(path);
@@ -272,11 +276,19 @@ integer set_original<text, integer>::load(std::string path)
 // private functions
 
 template<typename text, typename integer>
+template<typename container>
+typename set_original<text, integer>::integer_type
+set_original<text, integer>::container_size(const container& c)
+{
+	return static_cast<integer>(c.size());
+}
+
+template<typename text, typename integer>
 template<typename iterator>
 void set_original<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
 	// set flags
-	if((data[current].match = (depth == container_size<integer>(*begin))))
+	if((data[current].match = (depth == container_size(*begin))))
 		if((data[current].leaf = (++begin == end)))
 			return;
 
@@ -288,9 +300,9 @@ void set_original<text, integer>::construct(iterator begin, iterator end, intege
 	}
 
 	// recursively construct subtries
-	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+	for(integer i = 0; i < container_size(head) - 1; ++i){
 		integer child = data[current].next + i;
-		data[child].next = container_size<integer>(data);
+		data[child].next = container_size(data);
 		construct(head[i], head[i + 1], depth + 1, child);
 	}
 }

@@ -64,7 +64,8 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_compact(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-	map_compact(std::string path, integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
+	map_compact(const std::string path,
+		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 	// information
 	size_type size() const;
@@ -89,9 +90,9 @@ public:
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
-	void save(std::string os) const;
+	void save(const std::string path) const;
 	template<typename input_stream> integer load(input_stream& is);
-	integer load(std::string path);
+	integer load(const std::string path);
 
 private:
 	const integer min_binary_search;
@@ -99,6 +100,9 @@ private:
 	size_type num_texts;
 	std::vector<node> data;
 	std::vector<symbol> labels;
+
+	template<typename container>
+	static integer container_size(const container& c);
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -132,7 +136,7 @@ map_compact<text, item, integer>::map_compact(random_access_iterator begin, rand
 			data[0].value = (*begin).second;
 		construct(begin, end, 0, 0);
 	}
-	data.push_back({false, false, container_size<integer>(data), container_size<integer>(labels), {}, {}});
+	data.push_back({false, false, container_size(data), container_size(labels), {}, {}});
 	data.shrink_to_fit();
 }
 
@@ -146,7 +150,7 @@ map_compact<text, item, integer>::map_compact(const random_access_container& tex
 			data[0].value = (*std::begin(texts)).second;
 		construct(std::begin(texts), std::end(texts), 0, 0);
 	}
-	data.push_back({false, false, container_size<integer>(data), container_size<integer>(labels), {}, {}});
+	data.push_back({false, false, container_size(data), container_size(labels), {}, {}});
 	data.shrink_to_fit();
 }
 
@@ -159,7 +163,7 @@ map_compact<text, item, integer>::map_compact(input_stream& is, integer min_bina
 }
 
 template<typename text, typename item, typename integer>
-map_compact<text, item, integer>::map_compact(std::string path, integer min_binary_search):
+map_compact<text, item, integer>::map_compact(const std::string path, integer min_binary_search):
 	min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
@@ -206,7 +210,7 @@ map_compact<text, item, integer>::find(const text& pattern) const
 	integer current = 0, depth = 0;
 	for(integer i = 0; i < pattern.size();){
 		if(data[current].leaf)
-			return {*this, container_size<integer>(data) - 1, 0};
+			return {*this, container_size(data) - 1, 0};
 
 		// find child
 		current = data[current].next;
@@ -217,13 +221,13 @@ map_compact<text, item, integer>::find(const text& pattern) const
 		}
 		for(; current < end && data[current].label < pattern[i]; ++current);
 		if(!(current < end && data[current].label == pattern[i++]))
-			return {*this, container_size<integer>(data) - 1, 0};
+			return {*this, container_size(data) - 1, 0};
 
 		// check compressed labels
 		integer jstart = data[current].ref, jend = data[current + 1].ref;
 		for(depth = 0; jstart + depth < jend && i < pattern.size(); ++depth, ++i)
 			if(labels[jstart + depth] != pattern[i])
-				return {*this, container_size<integer>(data) - 1, 0};
+				return {*this, container_size(data) - 1, 0};
 	}
 
 	return {*this, current, depth};
@@ -307,7 +311,7 @@ void map_compact<text, item, integer>::save(output_stream& os) const
 }
 
 template<typename text, typename item, typename integer>
-void map_compact<text, item, integer>::save(std::string path) const
+void map_compact<text, item, integer>::save(const std::string path) const
 {
 	std::ofstream ofs(path);
 	save(ofs);
@@ -332,7 +336,7 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 }
 
 template<typename text, typename item, typename integer>
-integer map_compact<text, item, integer>::load(std::string path)
+integer map_compact<text, item, integer>::load(const std::string path)
 {
 	std::ifstream ifs(path);
 	return load(path);
@@ -342,11 +346,19 @@ integer map_compact<text, item, integer>::load(std::string path)
 // private functions
 
 template<typename text, typename item, typename integer>
+template<typename container>
+typename map_compact<text, item, integer>::integer_type
+map_compact<text, item, integer>::container_size(const container& c)
+{
+	return static_cast<integer>(c.size());
+}
+
+template<typename text, typename item, typename integer>
 template<typename iterator>
 void map_compact<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
 	// set flags
-	if((data[current].match = (depth == container_size<integer>((*begin).first))))
+	if((data[current].match = (depth == container_size((*begin).first))))
 		if((data[current].leaf = (++begin == end)))
 			return;
 
@@ -359,17 +371,17 @@ void map_compact<text, item, integer>::construct(iterator begin, iterator end, i
 
 	// compress single paths
 	std::vector<integer> depths;
-	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-		data[data[current].next + i].ref = container_size<integer>(labels);
+	for(integer i = 0; i < container_size(head) - 1; ++i){
+		data[data[current].next + i].ref = container_size(labels);
 		integer d = depth + 1;
-		while(d < container_size<integer>((*head[i]).first) && (*head[i]).first[d] == (*(head[i + 1] - 1)).first[d])
+		while(d < container_size((*head[i]).first) && (*head[i]).first[d] == (*(head[i + 1] - 1)).first[d])
 			labels.push_back((*head[i]).first[d++]);
 		depths.push_back(d);
 	}
 
 	// recursively construct subtries
-	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-		data[data[current].next + i].next = container_size<integer>(data);
+	for(integer i = 0; i < container_size(head) - 1; ++i){
+		data[data[current].next + i].next = container_size(data);
 		construct(head[i], head[i + 1], depths[i], data[current].next + i);
 	}
 }
@@ -591,7 +603,7 @@ struct map_compact<text, item, integer>::subtree_iterator
 
 	subtree_iterator end() const
 	{
-		return subtree_iterator(searcher, {searcher.trie, container_size<integer>(searcher.trie.data) - 1, 0});
+		return subtree_iterator(searcher, {searcher.trie, container_size(searcher.trie.data) - 1, 0});
 	}
 
 	bool operator!=(const subtree_iterator& i) const

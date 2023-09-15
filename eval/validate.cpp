@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <cstdint>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -32,8 +33,8 @@ limitations under the License.
 #include <sftrie/map.hpp>
 #include <paramset.hpp>
 
-using item = unsigned int;
-using integer = unsigned int;
+using integer = std::uint32_t;
+using item = std::uint32_t;
 
 template<typename text, typename set>
 std::map<std::string, size_t> validate_set_exact_match(const set& index,
@@ -281,14 +282,14 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 
 	std::cerr << "analyzing texts...";
 	std::set<symbol> alphabet;
-	symbol min_char = texts.front().front(), max_char = min_char;
+	symbol min_symbol = texts.front().front(), max_symbol = min_symbol;
 	bool first = true;
 	size_t min_length = 0, max_length = 0, total_length = 0;
 	for(const auto& t: texts){
 		for(auto c: t){
 			alphabet.insert(c);
-			min_char = std::min(min_char, c);
-			max_char = std::max(max_char, c);
+			min_symbol = std::min(min_symbol, c);
+			max_symbol = std::max(max_symbol, c);
 		}
 		if(first){
 			min_length = t.size();
@@ -422,8 +423,8 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 	std::cout << std::endl;
 	std::cout << "[input]" << std::endl;
 	std::cout << std::left << std::setw(20) << "alphabet size" << std::right << std::setw(12) << alphabet.size() << std::endl;
-	std::cout << std::left << std::setw(20) << "min symbol" << std::right << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
-	std::cout << std::left << std::setw(20) << "max symbol" << std::right << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
+	std::cout << std::left << std::setw(20) << "min symbol" << std::right << std::setw(12) << static_cast<signed long long>(min_symbol) << std::endl;
+	std::cout << std::left << std::setw(20) << "max symbol" << std::right << std::setw(12) << static_cast<signed long long>(max_symbol) << std::endl;
 	std::cout << std::left << std::setw(20) << "number of texts" << std::right << std::setw(12) << texts.size() << std::endl;
 	std::cout << std::left << std::setw(20) << "max length" << std::right << std::setw(12) << max_length << std::endl;
 	std::cout << std::left << std::setw(20) << "min length" << std::right << std::setw(12) << min_length << std::endl;
@@ -466,7 +467,7 @@ int main(int argc, char* argv[])
 	paramset::definitions defs = {
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
 		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
-		{"optimization_mode", "original", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
+		{"optimization_mode", "compact", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
 		{"min_binary_search", 0, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value (set 0 to use default setting)"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};

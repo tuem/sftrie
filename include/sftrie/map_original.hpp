@@ -64,7 +64,8 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_original(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-	map_original(std::string path, integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
+	map_original(const std::string path,
+		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 	// information
 	size_type size() const;
@@ -88,15 +89,18 @@ public:
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
-	void save(std::string os) const;
+	void save(const std::string path) const;
 	template<typename input_stream> integer load(input_stream& is);
-	integer load(std::string path);
+	integer load(const std::string path);
 
 private:
 	const integer min_binary_search;
 
 	size_type num_texts;
 	std::vector<node> data;
+
+	template<typename container>
+	static integer container_size(const container& c);
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -131,7 +135,7 @@ map_original<text, item, integer>::map_original(random_access_iterator begin, ra
 			data[0].value = (*begin).second;
 		construct(begin, end, 0, 0);
 	}
-	data.push_back({false, false, container_size<integer>(data), {}, {}});
+	data.push_back({false, false, container_size(data), {}, {}});
 	data.shrink_to_fit();
 }
 
@@ -145,7 +149,7 @@ map_original<text, item, integer>::map_original(const random_access_container& t
 			data[0].value = (*std::begin(texts)).second;
 		construct(std::begin(texts), std::end(texts), 0, 0);
 	}
-	data.push_back({false, false, container_size<integer>(data), {}, {}});
+	data.push_back({false, false, container_size(data), {}, {}});
 	data.shrink_to_fit();
 }
 
@@ -158,7 +162,7 @@ map_original<text, item, integer>::map_original(input_stream& is, integer min_bi
 }
 
 template<typename text, typename item, typename integer>
-map_original<text, item, integer>::map_original(std::string path, integer min_binary_search):
+map_original<text, item, integer>::map_original(const std::string path, integer min_binary_search):
 	min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
@@ -271,7 +275,7 @@ void map_original<text, item, integer>::save(output_stream& os) const
 }
 
 template<typename text, typename item, typename integer>
-void map_original<text, item, integer>::save(std::string path) const
+void map_original<text, item, integer>::save(const std::string path) const
 {
 	std::ofstream ofs(path);
 	save(ofs);
@@ -293,7 +297,7 @@ integer map_original<text, item, integer>::load(input_stream& is)
 }
 
 template<typename text, typename item, typename integer>
-integer map_original<text, item, integer>::load(std::string path)
+integer map_original<text, item, integer>::load(const std::string path)
 {
 	std::ifstream ifs(path);
 	return load(path);
@@ -303,11 +307,19 @@ integer map_original<text, item, integer>::load(std::string path)
 // private functions
 
 template<typename text, typename item, typename integer>
+template<typename container>
+typename map_original<text, item, integer>::integer_type
+map_original<text, item, integer>::container_size(const container& c)
+{
+	return static_cast<integer>(c.size());
+}
+
+template<typename text, typename item, typename integer>
 template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
 	// set flags
-	if((data[current].match = (depth == container_size<integer>((*begin).first))))
+	if((data[current].match = (depth == container_size((*begin).first))))
 		if((data[current].leaf = (++begin == end)))
 			return;
 
@@ -319,9 +331,9 @@ void map_original<text, item, integer>::construct(iterator begin, iterator end, 
 	}
 
 	// recursively construct subtries
-	for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
+	for(integer i = 0; i < container_size(head) - 1; ++i){
 		integer child = data[current].next + i;
-		data[child].next = container_size<integer>(data);
+		data[child].next = container_size(data);
 		construct(head[i], head[i + 1], depth + 1, child);
 	}
 }
