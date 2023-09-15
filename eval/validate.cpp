@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+#include <cstdint>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
@@ -32,8 +33,8 @@ limitations under the License.
 #include <sftrie/map.hpp>
 #include <paramset.hpp>
 
-using item = unsigned int;
-using integer = unsigned int;
+using integer = std::uint32_t;
+using item = std::uint32_t;
 
 template<typename text, typename set>
 std::map<std::string, size_t> validate_set_exact_match(const set& index,
@@ -466,7 +467,7 @@ int main(int argc, char* argv[])
 	paramset::definitions defs = {
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
 		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
-		{"optimization_mode", "original", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
+		{"optimization_mode", "compact", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
 		{"min_binary_search", 0, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value (set 0 to use default setting)"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
