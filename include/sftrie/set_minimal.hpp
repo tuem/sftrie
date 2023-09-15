@@ -72,7 +72,7 @@ private:
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current)
 	{
-		if(depth == container_size<integer>(*begin)){
+		if(depth == static_cast<integer>((*begin).size())){
 			data[current].match = true;
 			if(++begin == end){
 				data[current].leaf = true;
@@ -88,8 +88,8 @@ private:
 		}
 
 		// recursively construct subtries
-		for(integer i = 0; i < container_size<integer>(head) - 1; ++i){
-			data[data[current].next + i].next = container_size<integer>(data);
+		for(integer i = 0; i < static_cast<integer>(head.size()) - 1; ++i){
+			data[data[current].next + i].next = static_cast<integer>(data.size());
 			construct(head[i], head[i + 1], depth + 1, data[current].next + i);
 		}
 	}
