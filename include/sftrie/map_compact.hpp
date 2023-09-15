@@ -64,7 +64,7 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_compact(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-	map_compact(std::string path,
+	map_compact(const std::string path,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 	// information
@@ -90,9 +90,9 @@ public:
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
-	void save(std::string os) const;
+	void save(const std::string path) const;
 	template<typename input_stream> integer load(input_stream& is);
-	integer load(std::string path);
+	integer load(const std::string path);
 
 private:
 	const integer min_binary_search;
@@ -163,7 +163,7 @@ map_compact<text, item, integer>::map_compact(input_stream& is, integer min_bina
 }
 
 template<typename text, typename item, typename integer>
-map_compact<text, item, integer>::map_compact(std::string path, integer min_binary_search):
+map_compact<text, item, integer>::map_compact(const std::string path, integer min_binary_search):
 	min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
@@ -311,7 +311,7 @@ void map_compact<text, item, integer>::save(output_stream& os) const
 }
 
 template<typename text, typename item, typename integer>
-void map_compact<text, item, integer>::save(std::string path) const
+void map_compact<text, item, integer>::save(const std::string path) const
 {
 	std::ofstream ofs(path);
 	save(ofs);
@@ -336,7 +336,7 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 }
 
 template<typename text, typename item, typename integer>
-integer map_compact<text, item, integer>::load(std::string path)
+integer map_compact<text, item, integer>::load(const std::string path)
 {
 	std::ifstream ifs(path);
 	return load(path);

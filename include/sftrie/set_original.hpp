@@ -64,7 +64,7 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> set_original(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-	set_original(std::string path,
+	set_original(const std::string path,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 	// information
@@ -84,9 +84,9 @@ public:
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
-	void save(std::string os) const;
+	void save(const std::string path) const;
 	template<typename input_stream> integer load(input_stream& is);
-	integer load(std::string path);
+	integer load(const std::string path);
 
 private:
 	const integer min_binary_search;
@@ -150,7 +150,7 @@ set_original<text, integer>::set_original(input_stream& is, integer min_binary_s
 }
 
 template<typename text, typename integer>
-set_original<text, integer>::set_original(std::string path, integer min_binary_search):
+set_original<text, integer>::set_original(const std::string path, integer min_binary_search):
 	min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
@@ -244,7 +244,7 @@ void set_original<text, integer>::save(output_stream& os) const
 }
 
 template<typename text, typename integer>
-void set_original<text, integer>::save(std::string path) const
+void set_original<text, integer>::save(const std::string path) const
 {
 	std::ofstream ofs(path);
 	save(ofs);
@@ -266,7 +266,7 @@ integer set_original<text, integer>::load(input_stream& is)
 }
 
 template<typename text, typename integer>
-integer set_original<text, integer>::load(std::string path)
+integer set_original<text, integer>::load(const std::string path)
 {
 	std::ifstream ifs(path);
 	return load(path);

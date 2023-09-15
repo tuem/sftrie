@@ -26,7 +26,6 @@ limitations under the License.
 #include <codecvt>
 #include <vector>
 
-
 namespace sftrie{
 
 // general utilities
