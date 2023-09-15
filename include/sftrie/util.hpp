@@ -53,12 +53,6 @@ constexpr symbol max_char()
 		static_cast<symbol>(symbol(0) - 1);
 }
 
-template<typename integer, typename container>
-integer container_size(const container& t)
-{
-	return static_cast<integer>(t.size());
-}
-
 
 // sorting
 
