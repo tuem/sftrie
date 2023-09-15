@@ -281,14 +281,14 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 
 	std::cerr << "analyzing texts...";
 	std::set<symbol> alphabet;
-	symbol min_char = texts.front().front(), max_char = min_char;
+	symbol min_symbol = texts.front().front(), max_symbol = min_symbol;
 	bool first = true;
 	size_t min_length = 0, max_length = 0, total_length = 0;
 	for(const auto& t: texts){
 		for(auto c: t){
 			alphabet.insert(c);
-			min_char = std::min(min_char, c);
-			max_char = std::max(max_char, c);
+			min_symbol = std::min(min_symbol, c);
+			max_symbol = std::max(max_symbol, c);
 		}
 		if(first){
 			min_length = t.size();
@@ -422,8 +422,8 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 	std::cout << std::endl;
 	std::cout << "[input]" << std::endl;
 	std::cout << std::left << std::setw(20) << "alphabet size" << std::right << std::setw(12) << alphabet.size() << std::endl;
-	std::cout << std::left << std::setw(20) << "min symbol" << std::right << std::setw(12) << static_cast<signed long long>(min_char) << std::endl;
-	std::cout << std::left << std::setw(20) << "max symbol" << std::right << std::setw(12) << static_cast<signed long long>(max_char) << std::endl;
+	std::cout << std::left << std::setw(20) << "min symbol" << std::right << std::setw(12) << static_cast<signed long long>(min_symbol) << std::endl;
+	std::cout << std::left << std::setw(20) << "max symbol" << std::right << std::setw(12) << static_cast<signed long long>(max_symbol) << std::endl;
 	std::cout << std::left << std::setw(20) << "number of texts" << std::right << std::setw(12) << texts.size() << std::endl;
 	std::cout << std::left << std::setw(20) << "max length" << std::right << std::setw(12) << max_length << std::endl;
 	std::cout << std::left << std::setw(20) << "min length" << std::right << std::setw(12) << min_length << std::endl;
