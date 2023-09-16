@@ -23,6 +23,7 @@ limitations under the License.
 #include <fstream>
 
 #include <sftrie/set.hpp>
+#include <sftrie/util.hpp>
 
 using text = std::string;
 using index_type = sftrie::set<text>;

@@ -24,6 +24,7 @@ limitations under the License.
 #include <fstream>
 
 #include <sftrie/map.hpp>
+#include <sftrie/util.hpp>
 
 using text = std::string;
 using item = std::uint32_t;
