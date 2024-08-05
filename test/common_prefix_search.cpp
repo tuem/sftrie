@@ -46,7 +46,7 @@ void test_set_common_prefix_search(
 	for(const auto& i: patterns){
 		std::vector<typename set::text_type> results;
 		for(const auto& p: searcher.prefix(i.first))
-			results.push_back(p);
+			results.push_back(p.key());
 		CHECK(results == i.second);
 	}
 }
