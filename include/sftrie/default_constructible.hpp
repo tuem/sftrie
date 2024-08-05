@@ -17,12 +17,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_EMPTY
-#define SFTRIE_EMPTY
+#ifndef SFTRIE_DEFAULT_CONSTRUCTIBLE
+#define SFTRIE_DEFAULT_CONSTRUCTIBLE
+
+#include <type_traits>
 
 namespace sftrie{
 
-struct empty{};
+template<typename item>
+concept default_constructible = std::is_default_constructible_v<item>;
 
 }
 

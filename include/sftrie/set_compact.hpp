@@ -34,7 +34,7 @@ limitations under the License.
 
 namespace sftrie{
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 class set_compact: public map_compact<text, empty, integer>
 {
 protected:
@@ -65,7 +65,7 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 protected:
-	constexpr std::uint8_t container_type() const override;
+	std::uint8_t container_type() const override;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -74,7 +74,7 @@ protected:
 
 // constructors
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename random_access_iterator>
 set_compact<text, integer>::set_compact(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search):
@@ -89,7 +89,7 @@ set_compact<text, integer>::set_compact(random_access_iterator begin, random_acc
 	this->labels.shrink_to_fit();
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename random_access_container>
 set_compact<text, integer>::set_compact(const random_access_container& texts, integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
@@ -103,7 +103,7 @@ set_compact<text, integer>::set_compact(const random_access_container& texts, in
 	this->labels.shrink_to_fit();
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename input_stream>
 set_compact<text, integer>::set_compact(input_stream& is, integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
@@ -111,7 +111,7 @@ set_compact<text, integer>::set_compact(input_stream& is, integer min_binary_sea
 	this->num_texts = this->load(is);
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 set_compact<text, integer>::set_compact(const std::string path, integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
 {
@@ -122,13 +122,13 @@ set_compact<text, integer>::set_compact(const std::string path, integer min_bina
 
 // protected functions
 
-template<typename text, typename integer>
-constexpr std::uint8_t set_compact<text, integer>::container_type() const
+template<lexicographically_comparable text, std::integral integer>
+std::uint8_t set_compact<text, integer>::container_type() const
 {
 	return constants::container_type_set;
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename iterator>
 void set_compact<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {

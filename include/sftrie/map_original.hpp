@@ -25,14 +25,17 @@ limitations under the License.
 #include <vector>
 #include <algorithm>
 #include <fstream>
+#include <type_traits>
 
 #include "constants.hpp"
 #include "file_header.hpp"
 #include "util.hpp"
+#include "lexicographically_comparable.hpp"
+#include "default_constructible.hpp"
 
 namespace sftrie{
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 class map_original
 {
 protected:
@@ -102,7 +105,7 @@ protected:
 	size_type num_texts;
 	std::vector<node> data;
 
-	virtual constexpr std::uint8_t container_type() const;
+	virtual std::uint8_t container_type() const;
 
 	template<typename container>
 	static integer container_size(const container& c);
@@ -114,7 +117,7 @@ protected:
 };
 
 #pragma pack(1)
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 struct map_original<text, item, integer>::node
 {
 	bool match: 1;
@@ -128,12 +131,12 @@ struct map_original<text, item, integer>::node
 
 // constructors
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_original<text, item, integer>::map_original(integer min_binary_search):
 	min_binary_search(min_binary_search), num_texts(0)
 {}
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename random_access_iterator>
 map_original<text, item, integer>::map_original(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search):
@@ -149,7 +152,7 @@ map_original<text, item, integer>::map_original(random_access_iterator begin, ra
 	data.shrink_to_fit();
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename random_access_container>
 map_original<text, item, integer>::map_original(const random_access_container& texts, integer min_binary_search):
 	min_binary_search(min_binary_search),
@@ -164,7 +167,7 @@ map_original<text, item, integer>::map_original(const random_access_container& t
 	data.shrink_to_fit();
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename input_stream>
 map_original<text, item, integer>::map_original(input_stream& is, integer min_binary_search):
 	min_binary_search(min_binary_search)
@@ -172,7 +175,7 @@ map_original<text, item, integer>::map_original(input_stream& is, integer min_bi
 	num_texts = load(is);
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_original<text, item, integer>::map_original(const std::string path, integer min_binary_search):
 	min_binary_search(min_binary_search)
 {
@@ -183,84 +186,84 @@ map_original<text, item, integer>::map_original(const std::string path, integer 
 
 // public functions
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_original<text, item, integer>::size_type map_original<text, item, integer>::size() const
 {
 	return num_texts;
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_original<text, item, integer>::size_type map_original<text, item, integer>::node_size() const
 {
 	return sizeof(node);
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_original<text, item, integer>::size_type map_original<text, item, integer>::trie_size() const
 {
 	return data.size();
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_original<text, item, integer>::size_type map_original<text, item, integer>::total_space() const
 {
 	return sizeof(node) * data.size();
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 bool map_original<text, item, integer>::exists(const text& pattern) const
 {
 	return data[search(pattern)].match;
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_original<text, item, integer>::node_type
 map_original<text, item, integer>::find(const text& pattern) const
 {
 	return {*this, search(pattern)};
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_original<text, item, integer>::common_searcher
 map_original<text, item, integer>::searcher() const
 {
 	return common_searcher(*this);
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_original<text, item, integer>::node_type map_original<text, item, integer>::root() const
 {
 	return {*this, static_cast<integer>(0)};
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 const std::vector<typename map_original<text, item, integer>::node>&
 map_original<text, item, integer>::raw_data() const
 {
 	return data;
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 bool map_original<text, item, integer>::update(const node_type& n, const item& value)
 {
 	data[n.id].value = value;
 	return true;
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 bool map_original<text, item, integer>::update(const text& key, const item& value)
 {
 	return update(find(key), value);
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 item& map_original<text, item, integer>::operator[](const text& key)
 {
 	auto i = search(key);
 	return data[data[i].match ? i : data.size() - 1].value;
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename output_stream>
 void map_original<text, item, integer>::save(output_stream& os) const
 {
@@ -285,14 +288,14 @@ void map_original<text, item, integer>::save(output_stream& os) const
 	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 void map_original<text, item, integer>::save(const std::string path) const
 {
 	std::ofstream ofs(path);
 	save(ofs);
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename input_stream>
 integer map_original<text, item, integer>::load(input_stream& is)
 {
@@ -307,7 +310,7 @@ integer map_original<text, item, integer>::load(input_stream& is)
 	});
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 integer map_original<text, item, integer>::load(const std::string path)
 {
 	std::ifstream ifs(path);
@@ -317,13 +320,13 @@ integer map_original<text, item, integer>::load(const std::string path)
 
 // protected functions
 
-template<typename text, typename item, typename integer>
-constexpr std::uint8_t map_original<text, item, integer>::container_type() const
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+std::uint8_t map_original<text, item, integer>::container_type() const
 {
 	return constants::container_type_map;
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename container>
 typename map_original<text, item, integer>::integer_type
 map_original<text, item, integer>::container_size(const container& c)
@@ -331,7 +334,7 @@ map_original<text, item, integer>::container_size(const container& c)
 	return static_cast<integer>(c.size());
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
@@ -355,7 +358,7 @@ void map_original<text, item, integer>::construct(iterator begin, iterator end, 
 	}
 }
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 integer map_original<text, item, integer>::search(const text& pattern) const
 {
 	integer current = 0;
@@ -378,7 +381,7 @@ integer map_original<text, item, integer>::search(const text& pattern) const
 
 // subclasses
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 struct map_original<text, item, integer>::virtual_node
 {
 	const map_original<text, item, integer>& trie;
@@ -442,7 +445,7 @@ struct map_original<text, item, integer>::virtual_node
 	}
 };
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 struct map_original<text, item, integer>::child_iterator
 {
 	virtual_node current;
@@ -492,7 +495,7 @@ struct map_original<text, item, integer>::child_iterator
 	}
 };
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 struct map_original<text, item, integer>::common_searcher
 {
 	const map_original<text, item, integer>& trie;
@@ -530,7 +533,7 @@ struct map_original<text, item, integer>::common_searcher
 	}
 };
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 struct map_original<text, item, integer>::subtree_iterator
 {
 	common_searcher& searcher;
@@ -607,7 +610,7 @@ struct map_original<text, item, integer>::subtree_iterator
 	}
 };
 
-template<typename text, typename item, typename integer>
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 struct map_original<text, item, integer>::prefix_iterator
 {
 	common_searcher& searcher;

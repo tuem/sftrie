@@ -34,7 +34,7 @@ limitations under the License.
 
 namespace sftrie{
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 class set_original: public map_original<text, empty, integer>
 {
 protected:
@@ -65,7 +65,7 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 
 protected:
-	constexpr std::uint8_t container_type() const override;
+	std::uint8_t container_type() const override;
 
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -74,7 +74,7 @@ protected:
 
 // constructors
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename random_access_iterator>
 set_original<text, integer>::set_original(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search):
@@ -88,7 +88,7 @@ set_original<text, integer>::set_original(random_access_iterator begin, random_a
 	this->data.shrink_to_fit();
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename random_access_container>
 set_original<text, integer>::set_original(const random_access_container& texts, integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
@@ -101,7 +101,7 @@ set_original<text, integer>::set_original(const random_access_container& texts, 
 	this->data.shrink_to_fit();
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename input_stream>
 set_original<text, integer>::set_original(input_stream& is, integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
@@ -109,7 +109,7 @@ set_original<text, integer>::set_original(input_stream& is, integer min_binary_s
 	this->num_texts = this->load(is);
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 set_original<text, integer>::set_original(const std::string path, integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
 {
@@ -120,13 +120,13 @@ set_original<text, integer>::set_original(const std::string path, integer min_bi
 
 // protected functions
 
-template<typename text, typename integer>
-constexpr std::uint8_t set_original<text, integer>::container_type() const
+template<lexicographically_comparable text, std::integral integer>
+std::uint8_t set_original<text, integer>::container_type() const
 {
 	return constants::container_type_set;
 }
 
-template<typename text, typename integer>
+template<lexicographically_comparable text, std::integral integer>
 template<typename iterator>
 void set_original<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
