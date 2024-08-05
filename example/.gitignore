@@ -1,2 +1,6 @@
+# executables
 set_cli
 map_cli
+
+# index files
+*.sft
