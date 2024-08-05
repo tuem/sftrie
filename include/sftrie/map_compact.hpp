@@ -35,7 +35,7 @@ namespace sftrie{
 template<typename text, typename item, typename integer>
 class map_compact
 {
-private:
+protected:
 	using symbol = typename text::value_type;
 
 public:
@@ -54,8 +54,11 @@ public:
 
 	using node_type = virtual_node;
 
-public:
 	// constructors
+protected:
+	map_compact(
+		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
+public:
 	template<typename random_access_iterator>
 	map_compact(random_access_iterator begin, random_access_iterator end,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -94,12 +97,14 @@ public:
 	template<typename input_stream> integer load(input_stream& is);
 	integer load(const std::string path);
 
-private:
+protected:
 	const integer min_binary_search;
 
 	size_type num_texts;
 	std::vector<node> data;
 	std::vector<symbol> labels;
+
+	virtual constexpr std::uint8_t container_type() const;
 
 	template<typename container>
 	static integer container_size(const container& c);
@@ -117,12 +122,17 @@ struct map_compact<text, item, integer>::node
 	integer next: bit_width<integer>() - 2;
 	integer ref;
 	symbol label;
-	item value;
+	[[no_unique_address]] item value;
 };
 #pragma pack()
 
 
 // constructors
+
+template<typename text, typename item, typename integer>
+map_compact<text, item, integer>::map_compact(integer min_binary_search):
+	min_binary_search(min_binary_search), num_texts(0)
+{}
 
 template<typename text, typename item, typename integer>
 template<typename random_access_iterator>
@@ -143,7 +153,8 @@ map_compact<text, item, integer>::map_compact(random_access_iterator begin, rand
 template<typename text, typename item, typename integer>
 template<typename random_access_container>
 map_compact<text, item, integer>::map_compact(const random_access_container& texts, integer min_binary_search):
-	min_binary_search(min_binary_search), num_texts(std::size(texts))
+	min_binary_search(min_binary_search),
+	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
 	if(std::begin(texts) < std::end(texts)){
 		if((*std::begin(texts)).size() == 0)
@@ -292,7 +303,7 @@ void map_compact<text, item, integer>::save(output_stream& os) const
 		sizeof(file_header),
 		constants::current_major_version,
 		constants::current_minor_version,
-		constants::container_type_map,
+		this->container_type(),
 		constants::index_type_compact,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
@@ -343,7 +354,13 @@ integer map_compact<text, item, integer>::load(const std::string path)
 }
 
 
-// private functions
+// protected functions
+
+template<typename text, typename item, typename integer>
+constexpr std::uint8_t map_compact<text, item, integer>::container_type() const
+{
+	return constants::container_type_map;
+}
 
 template<typename text, typename item, typename integer>
 template<typename container>
