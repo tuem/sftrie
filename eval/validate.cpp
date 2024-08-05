@@ -38,7 +38,7 @@ using integer = std::uint32_t;
 using item = std::uint32_t;
 
 template<typename text, typename set>
-std::map<std::string, size_t> validate_set_exact_match(const set& index,
+std::map<std::string, size_t> validate_set_exact_match(set& index,
 	const std::vector<text>& positive_queries, const std::vector<text>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
@@ -56,7 +56,7 @@ std::map<std::string, size_t> validate_set_exact_match(const set& index,
 }
 
 template<typename text, typename set>
-std::map<std::string, size_t> validate_set_prefix_search(const set& index,
+std::map<std::string, size_t> validate_set_prefix_search(set& index,
 	const std::vector<text>& queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
@@ -81,7 +81,7 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 				break;
 			}
 			else{
-				if(result != *a)
+				if(result.key() != *a)
 					++fp;
 				else
 					++found;
@@ -99,7 +99,7 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 }
 
 template<typename text, typename set>
-std::map<std::string, size_t> validate_set_predictive_search(const set& index,
+std::map<std::string, size_t> validate_set_predictive_search(set& index,
 	const std::vector<text>& positive_queries,
 	const std::vector<integer>& predictive_search_borders,
 	const std::vector<text>& negative_queries)
@@ -111,7 +111,7 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 		bool correct = true;
 		size_t j = answer_start, count = 0;
 		for(const auto& result: searcher.predict(positive_queries[answer_start])){
-			if(result != positive_queries[j]){
+			if(result.key() != positive_queries[j]){
 				correct = false;
 				break;
 			}
@@ -129,7 +129,7 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	for(const auto& query: negative_queries){
 		bool correct = true;
 		for(const auto& result: searcher.predict(query)){
-			if(result == query){
+			if(result.key() == query){
 				correct = false;
 				break;
 			}
