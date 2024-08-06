@@ -44,6 +44,7 @@ protected:
 public:
 	using symbol_type = symbol;
 	using text_type = text;
+	using item_type = item;
 	using integer_type = integer;
 	using value_type = typename trie_value<item, integer>::actual;
 	using size_type = std::size_t;
