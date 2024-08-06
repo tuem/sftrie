@@ -39,7 +39,7 @@ using integer = std::uint32_t;
 using item = std::uint32_t;
 
 template<typename text, typename set>
-size_t benchmark_set_exact_match(set& index,
+size_t benchmark_set_exact_match(const set& index,
 	const std::vector<text>& queries)
 {
 	size_t found = 0;
@@ -50,7 +50,7 @@ size_t benchmark_set_exact_match(set& index,
 }
 
 template<typename text, typename set>
-size_t benchmark_set_prefix_search(set& index,
+size_t benchmark_set_prefix_search(const set& index,
 	const std::vector<text>& queries, size_t max_result = 0)
 {
 	size_t found = 0;
@@ -68,7 +68,7 @@ size_t benchmark_set_prefix_search(set& index,
 }
 
 template<typename text, typename set>
-size_t benchmark_set_predictive_search(set& index,
+size_t benchmark_set_predictive_search(const set& index,
 	const std::vector<text>& queries, size_t max_result = 0)
 {
 	size_t found = 0;
@@ -86,7 +86,7 @@ size_t benchmark_set_predictive_search(set& index,
 }
 
 template<typename text, typename map>
-size_t benchmark_map_exact_match(map& dict,
+size_t benchmark_map_exact_match(const map& dict,
 	const std::vector<text>& queries)
 {
 	size_t found = 0;
@@ -97,7 +97,7 @@ size_t benchmark_map_exact_match(map& dict,
 }
 
 template<typename text, typename map>
-size_t benchmark_map_prefix_search(map& index,
+size_t benchmark_map_prefix_search(const map& index,
 	const std::vector<text>& queries, size_t max_result = 0)
 {
 	size_t found = 0;
@@ -115,7 +115,7 @@ size_t benchmark_map_prefix_search(map& index,
 }
 
 template<typename text, typename map>
-size_t benchmark_map_predictive_search(map& index,
+size_t benchmark_map_predictive_search(const map& index,
 	const std::vector<text>& queries, size_t max_result = 0)
 {
 	size_t found = 0;
@@ -133,7 +133,7 @@ size_t benchmark_map_predictive_search(map& index,
 }
 
 template<typename set, typename text>
-void benchmark_set(History& history, set& index,
+void benchmark_set(History& history, const set& index,
 	const std::vector<text>& queries, const std::vector<text>& shuffled_queries,
 	size_t max_result)
 {
@@ -175,7 +175,7 @@ void benchmark_set(History& history, set& index,
 }
 
 template<typename map, typename text>
-void benchmark_map(History& history, map& index,
+void benchmark_map(History& history, const map& index,
 	const std::vector<text>& queries, const std::vector<text>& shuffled_queries,
 	size_t max_result)
 {
