@@ -82,10 +82,10 @@ public:
 	// search operations
 	bool exists(const text& pattern) const;
 	node_type find(const text& pattern) const;
-	common_searcher searcher();
+	common_searcher searcher() const;
 
 	// tree operations
-	node_type root();
+	node_type root() const;
 	const std::vector<node>& raw_data() const;
 	const std::vector<symbol>& raw_labels() const;
 
@@ -249,7 +249,7 @@ map_compact<text, item, integer>::find(const text& pattern) const
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 typename map_compact<text, item, integer>::common_searcher
-map_compact<text, item, integer>::searcher()
+map_compact<text, item, integer>::searcher() const
 {
 	return common_searcher(*this);
 }
@@ -278,7 +278,7 @@ item& map_compact<text, item, integer>::operator[](const text& key)
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-typename map_compact<text, item, integer>::node_type map_compact<text, item, integer>::root()
+typename map_compact<text, item, integer>::node_type map_compact<text, item, integer>::root() const
 {
 	return {*this, static_cast<integer>(0), 0};
 }
@@ -467,7 +467,7 @@ struct map_compact<text, item, integer>::virtual_node
 		return trie.data[id].leaf && trie.data[id].ref + depth == trie.data[id + 1].ref;
 	}
 
-	const typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(trie.data[id].value, id);
 	}
@@ -606,7 +606,7 @@ struct map_compact<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	const typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}
@@ -704,7 +704,7 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return this->current != i.current;
 	}
 
-	const prefix_iterator& operator*() const
+	prefix_iterator& operator*()
 	{
 		return *this;
 	}
@@ -746,7 +746,7 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	const typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}

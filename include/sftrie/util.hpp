@@ -217,10 +217,10 @@ struct trie_value
 template<typename integer>
 struct trie_value<empty, integer>
 {
-	using base_type = integer;
+	using base_type = const integer;
 	using const_type = const integer;
-	using ref = integer;
-	using const_ref = integer;
+	using ref = const integer;
+	using const_ref = const integer;
 };
 
 template<typename integer>

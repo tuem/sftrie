@@ -432,7 +432,7 @@ struct map_original<text, item, integer>::virtual_node
 		return trie.data[id].leaf;
 	}
 
-	const typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(trie.data[id].value, id);
 	}
@@ -556,7 +556,7 @@ struct map_original<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	const typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}
@@ -675,7 +675,7 @@ struct map_original<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	const typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}
