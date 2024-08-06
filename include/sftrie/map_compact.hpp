@@ -45,7 +45,7 @@ public:
 	using symbol_type = symbol;
 	using text_type = text;
 	using integer_type = integer;
-	using value_type = item;
+	using value_type = typename trie_value<item, integer>::base_type;
 	using size_type = std::size_t;
 
 	struct node;
@@ -467,9 +467,9 @@ struct map_compact<text, item, integer>::virtual_node
 		return trie.data[id].leaf && trie.data[id].ref + depth == trie.data[id + 1].ref;
 	}
 
-	const item& value() const
+	const typename trie_value<item, integer>::const_ref value() const
 	{
-		return trie.data[id].value;
+		return value_util<integer>::template const_ref<item>(trie.data[id].value, id);
 	}
 
 	child_iterator children() const
@@ -606,9 +606,9 @@ struct map_compact<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	const item& value() const
+	const typename trie_value<item, integer>::const_ref value() const
 	{
-		return searcher.trie.data[current].value;
+		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}
 
 	map_compact<text, item, integer>::virtual_node node() const
@@ -746,9 +746,9 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	const item& value() const
+	const typename trie_value<item, integer>::const_ref value() const
 	{
-		return searcher.trie.data[current].value;
+		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}
 
 	map_compact<text, item, integer>::virtual_node node() const
