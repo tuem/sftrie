@@ -211,68 +211,30 @@ cast_text_item_pairs(const std::vector<std::pair<src_type, item>>& texts)
 template<typename item, typename integer>
 struct trie_value
 {
-	using base_type = item;
-	using const_type = const item;
-	using ref = item&;
-	using const_ref = item const&;
+	using original_const_ref = item const&;
+	using actual = item;
+	using actual_const_ref = item const&;
 };
 
 template<typename integer>
 struct trie_value<empty, integer>
 {
-	using base_type = const integer;
-	using const_type = const integer;
-	using ref = const integer;
-	using const_ref = const integer;
+	using original_const_ref = const empty;
+	using actual = const integer;
+	using actual_const_ref = const integer;
 };
 
 template<typename integer>
 struct value_util
 {
 	template<typename item>
-	static typename trie_value<item, integer>::base_type get(typename trie_value<item, integer>::base_type value, integer)
+	static typename trie_value<item, integer>::actual_const_ref const_ref(typename trie_value<item, integer>::original_const_ref value, integer)
 	{
 		return value;
 	}
 
 	template<>
-	static typename trie_value<empty, integer>::base_type get<empty>(typename trie_value<empty, integer>::base_type, integer id)
-	{
-		return id;
-	}
-
-	template<typename item>
-	static typename trie_value<item, integer>::const_type const_get(typename trie_value<item, integer>::const_type value, integer)
-	{
-		return value;
-	}
-
-	template<>
-	static typename trie_value<empty, integer>::const_type const_get<empty>(typename trie_value<empty, integer>::const_type, integer id)
-	{
-		return id;
-	}
-
-	template<typename item>
-	static typename trie_value<item, integer>::ref ref(typename trie_value<item, integer>::ref value, integer)
-	{
-		return value;
-	}
-
-	template<>
-	static typename trie_value<empty, integer>::ref ref<empty>(typename trie_value<empty, integer>::ref, integer id)
-	{
-		return id;
-	}
-
-	template<typename item>
-	static typename trie_value<item, integer>::const_ref const_ref(typename trie_value<item, integer>::const_ref value, integer)
-	{
-		return value;
-	}
-
-	template<>
-	static typename trie_value<empty, integer>::const_ref const_ref<empty>(typename trie_value<empty, integer>::const_ref, integer id)
+	static typename trie_value<empty, integer>::actual_const_ref const_ref<empty>(typename trie_value<empty, integer>::original_const_ref, integer id)
 	{
 		return id;
 	}

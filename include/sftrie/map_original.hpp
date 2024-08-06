@@ -46,7 +46,7 @@ public:
 	using symbol_type = symbol;
 	using text_type = text;
 	using integer_type = integer;
-	using value_type = typename trie_value<item, integer>::base_type;
+	using value_type = typename trie_value<item, integer>::actual;
 	using size_type = std::size_t;
 
 	struct node;
@@ -432,7 +432,7 @@ struct map_original<text, item, integer>::virtual_node
 		return trie.data[id].leaf;
 	}
 
-	typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::actual_const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(trie.data[id].value, id);
 	}
@@ -556,7 +556,7 @@ struct map_original<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::actual_const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}
@@ -675,7 +675,7 @@ struct map_original<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	typename trie_value<item, integer>::const_ref value() const
+	typename trie_value<item, integer>::actual_const_ref value() const
 	{
 		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
 	}
