@@ -51,7 +51,8 @@ void exec(index_type& index)
 			// exact match
 			if(searcher.exists(query)){
 				++count;
-				std::cout << query << ": found" << std::endl;
+				auto n = searcher.find(query);
+				std::cout << query << ": found, id=" << n.value() << std::endl;
 			}
 		}
 		else{
