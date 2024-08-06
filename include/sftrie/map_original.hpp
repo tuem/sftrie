@@ -475,6 +475,11 @@ struct map_original<text, item, integer>::child_iterator
 		return child_iterator(current.trie, last, last);
 	}
 
+	bool incrementable() const
+	{
+		return current.id < last - 1;
+	}
+
 	bool operator==(const child_iterator& i) const
 	{
 		return current.id == i.current.id;

@@ -512,6 +512,11 @@ struct map_compact<text, item, integer>::child_iterator
 		return child_iterator(current.trie, last, 0, last);
 	}
 
+	bool incrementable() const
+	{
+		return current.depth == 0 && last > 0 && current.id < last - 1;
+	}
+
 	bool operator==(const child_iterator& i) const
 	{
 		return
