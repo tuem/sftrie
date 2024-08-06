@@ -49,9 +49,9 @@ void exec(index_type& index)
 		size_t count = 0;
 		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match
-			if(searcher.exists(query)){
+			auto n = searcher.find(query);
+			if(n.match()){
 				++count;
-				auto n = searcher.find(query);
 				std::cout << query << ": found, id=" << n.value() << std::endl;
 			}
 		}

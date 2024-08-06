@@ -117,6 +117,7 @@ protected:
 	void construct(iterator begin, iterator end, integer depth, integer current);
 };
 
+
 #pragma pack(1)
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 struct map_compact<text, item, integer>::node

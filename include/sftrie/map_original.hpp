@@ -35,7 +35,6 @@ limitations under the License.
 
 namespace sftrie{
 
-
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 class map_original
 {
@@ -117,6 +116,7 @@ protected:
 
 	integer search(const text& pattern) const;
 };
+
 
 #pragma pack(1)
 template<lexicographically_comparable text, default_constructible item, std::integral integer>

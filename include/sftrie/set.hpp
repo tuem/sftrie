@@ -35,8 +35,10 @@ limitations under the License.
 #endif
 
 namespace sftrie{
+
 	template<typename text = std::string, typename integer = std::uint32_t>
 	using set = SFTRIE_SET_TYPE<text, integer>;
+
 }
 
 #undef SFTRIE_SET_TYPE
