@@ -590,6 +590,7 @@ struct map_original<text, item, integer>::subtree_iterator
 	{
 		do{
 			if(!searcher.trie.data[searcher.path.back()].leaf){
+				// first child
 				integer child = searcher.trie.data[searcher.path.back()].next;
 				searcher.path.push_back(child);
 				searcher.result.push_back(searcher.trie.data[child].label);
@@ -597,13 +598,18 @@ struct map_original<text, item, integer>::subtree_iterator
 			else{
 				while(searcher.path.size() > 1 && searcher.path.back() + 1 ==
 						searcher.trie.data[searcher.trie.data[searcher.path[searcher.path.size() - 2]].next].next){
+					// parent
 					searcher.path.pop_back();
 					searcher.result.pop_back();
 				}
-				if(searcher.path.size() > 1)
+				if(searcher.path.size() > 1){
+					// next sibling
 					searcher.result.back() = searcher.trie.data[++searcher.path.back()].label;
-				else
-					searcher.path.pop_back();
+				}
+				else{
+					// done
+					searcher.path.clear();
+				}
 			}
 		}while(!searcher.path.empty() && !searcher.trie.data[searcher.path.back()].match);
 		current = !searcher.path.empty() ? searcher.path.back() : searcher.trie.data.size() - 1;

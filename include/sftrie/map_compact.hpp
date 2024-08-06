@@ -631,7 +631,7 @@ struct map_compact<text, item, integer>::subtree_iterator
 		return this->current != i.current;
 	}
 
-	subtree_iterator& operator*()
+	const subtree_iterator& operator*() const
 	{
 		return *this;
 	}
@@ -661,6 +661,7 @@ struct map_compact<text, item, integer>::subtree_iterator
 					std::copy(searcher.trie.labels.begin() + searcher.trie.data[n].ref, searcher.trie.labels.begin() + searcher.trie.data[n + 1].ref, std::back_inserter(searcher.result));
 				}
 				else{
+					// done
 					searcher.path.clear();
 				}
 			}
