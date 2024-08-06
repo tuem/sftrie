@@ -23,9 +23,9 @@ auto searcher = index.searcher();
 // exact matching
 std::cout << searcher.exists(pattern) ? "found" : "not found" << std::endl;
 // common-prefix search
-for(const auto& entry: searcher.prefix(pattern))
-	std::cout << entry << std::endl;
+for(const auto& result: searcher.prefix(pattern))
+	std::cout << result.key() << std::endl;
 // predictive search
-for(const auto& entry: searcher.predict(pattern))
-	std::cout << entry << std::endl;
+for(const auto& result: searcher.predict(pattern))
+	std::cout << result.key() << std::endl;
 ```
