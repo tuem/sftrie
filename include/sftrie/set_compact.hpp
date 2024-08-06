@@ -29,7 +29,6 @@ limitations under the License.
 #include "constants.hpp"
 #include "file_header.hpp"
 #include "util.hpp"
-#include "empty.hpp"
 #include "map_compact.hpp"
 
 namespace sftrie{

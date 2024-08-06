@@ -26,9 +26,12 @@ limitations under the License.
 #include <codecvt>
 #include <vector>
 
-#include "empty.hpp"
-
 namespace sftrie{
+
+// empty value for sets
+
+struct empty{};
+
 
 // general utilities
 
