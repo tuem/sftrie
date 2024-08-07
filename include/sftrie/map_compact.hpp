@@ -93,7 +93,7 @@ public:
 	// value operations
 	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
-	item& operator[](const text& key);
+	typename trie_value<item, integer>::actual_ref operator[](const text& key);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -273,10 +273,11 @@ bool map_compact<text, item, integer>::update(const text& key, const item& value
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-item& map_compact<text, item, integer>::operator[](const text& key)
+typename trie_value<item, integer>::actual_ref map_compact<text, item, integer>::operator[](const text& key)
 {
 	auto n = find(key);
-	return data[n.match() ? n.id : data.size() - 1].value;
+	auto id = n.match() ? n.id : data.size() - 1;
+	return value_util<integer>::template ref<item>(data[id].value, id);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>

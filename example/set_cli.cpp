@@ -61,12 +61,12 @@ void exec(index_type& index)
 			if(back == '*'){
 				// predictive search
 				for(const auto& t: searcher.predict(query))
-					std::cout << std::setw(4) << ++count << ": " << t.key() << std::endl;
+					std::cout << std::setw(4) << ++count << ": " << t.key() << ", id=" << index[t.key()] << std::endl;
 			}
 			else{
 				// common-prefix search
 				for(const auto& t: searcher.prefix(query))
-					std::cout << std::setw(4) << ++count << ": " << t.key() << std::endl;
+					std::cout << std::setw(4) << ++count << ": " << t.key() << ", id=" << index[t.key()] << std::endl;
 			}
 		}
 		if(count == 0)
