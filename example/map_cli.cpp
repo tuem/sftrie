@@ -92,10 +92,15 @@ int main(int argc, char* argv[])
 	bool load_index = argc > 2 && std::string(argv[2]) == "true";
 
 	if(load_index){
-		std::cerr << "loadinag index...";
-		index_type index(input_path);
-		std::cerr << "done." << std::endl;
-		exec(index);
+		try{
+			std::cerr << "loadinag index...";
+			index_type index(input_path);
+			std::cerr << "done." << std::endl;
+			exec(index);
+		}
+		catch(std::exception& e){
+			std::cerr << "failed: " << e.what() << std::endl;
+		}
 	}
 	else{
 		std::cerr << "loading texts...";

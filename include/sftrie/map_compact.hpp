@@ -309,14 +309,17 @@ void map_compact<text, item, integer>::save(output_stream& os) const
 		sizeof(file_header),
 		constants::current_major_version,
 		constants::current_minor_version,
+
 		this->container_type(),
 		constants::index_type_compact,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
+
 		constants::integer_type<integer>(),
 		sizeof(node),
 		constants::value_type<item>(),
 		sizeof(item),
+
 		data.size(),
 		labels.size(),
 	};
@@ -340,6 +343,32 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 {
 	file_header header;
 	is.read(reinterpret_cast<char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
+
+	for(size_t i = 0; i < sizeof(constants::signature); ++i)
+		if(header.signature[i] != constants::signature[i])
+			throw std::runtime_error("invalid signature");
+	if(header.major_version != constants::current_major_version)
+		throw std::runtime_error("invalid major version");
+	if(header.minor_version != constants::current_minor_version)
+		throw std::runtime_error("invalid minor version");
+
+	if(header.container_type != this->container_type())
+		throw std::runtime_error("invalid container type");
+	if(header.index_type != constants::index_type_compact)
+		throw std::runtime_error("invalid index type");
+	if(header.text_charset != constants::text_charset<text>())
+		throw std::runtime_error("invalid text charset");
+	if(header.text_encoding != constants::text_encoding<text>())
+		throw std::runtime_error("invalid text encoding");
+
+	if(header.integer_type!= constants::integer_type<integer>())
+		throw std::runtime_error("invalid integer type");
+	if(header.node_size != sizeof(node))
+		throw std::runtime_error("invalid node size");
+	if(header.value_type != constants::value_type<item>())
+		throw std::runtime_error("invalid value type");
+	if(header.value_size != sizeof(item))
+		throw std::runtime_error("invalid value size");
 
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
