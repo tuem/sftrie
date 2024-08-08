@@ -344,9 +344,8 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 	file_header header;
 	is.read(reinterpret_cast<char*>(&header), static_cast<std::streamsize>(sizeof(sftrie::file_header)));
 
-	for(size_t i = 0; i < sizeof(constants::signature); ++i)
-		if(header.signature[i] != constants::signature[i])
-			throw std::runtime_error("invalid signature");
+	if(!std::equal(std::begin(header.signature), std::end(header.signature), std::begin(constants::signature), std::end(constants::signature)))
+		throw std::runtime_error("invalid signature");
 	if(header.major_version != constants::current_major_version)
 		throw std::runtime_error("invalid major version");
 	if(header.minor_version != constants::current_minor_version)
