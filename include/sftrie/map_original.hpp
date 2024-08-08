@@ -112,6 +112,8 @@ protected:
 	static integer container_size(const container& c);
 
 	template<typename iterator>
+	void construct(iterator begin, iterator end);
+	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 
 	integer search(const text& pattern) const;
@@ -145,13 +147,7 @@ map_original<text, item, integer>::map_original(random_access_iterator begin, ra
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, {}, {}})
 {
-	if(begin < end){
-		if((*begin).first.size() == 0)
-			data[0].value = (*begin).second;
-		construct(begin, end, 0, 0);
-	}
-	data.push_back({false, false, container_size(data), {}, {}});
-	data.shrink_to_fit();
+	construct(begin, end);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -160,13 +156,7 @@ map_original<text, item, integer>::map_original(const random_access_container& t
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
-	if(std::begin(texts) < std::end(texts)){
-		if((*std::begin(texts)).size() == 0)
-			data[0].value = (*std::begin(texts)).second;
-		construct(std::begin(texts), std::end(texts), 0, 0);
-	}
-	data.push_back({false, false, container_size(data), {}, {}});
-	data.shrink_to_fit();
+	construct(std::begin(texts), std::end(texts));
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -367,6 +357,19 @@ typename map_original<text, item, integer>::integer_type
 map_original<text, item, integer>::container_size(const container& c)
 {
 	return static_cast<integer>(c.size());
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+void map_original<text, item, integer>::construct(iterator begin, iterator end)
+{
+	if(begin < end){
+		if((*begin).first.size() == 0)
+			data[0].value = (*begin).second;
+		construct(begin, end, 0, 0);
+	}
+	data.push_back({false, false, container_size(data), {}, {}});
+	data.shrink_to_fit();
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
