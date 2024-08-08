@@ -21,6 +21,7 @@ limitations under the License.
 #define SFTRIE_MAP_ORIGINAL
 
 #include <cstdint>
+#include <concepts>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -32,6 +33,7 @@ limitations under the License.
 #include "util.hpp"
 #include "lexicographically_comparable.hpp"
 #include "default_constructible.hpp"
+#include "random_access_container.hpp"
 
 namespace sftrie{
 
@@ -63,11 +65,11 @@ protected:
 	map_original(
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 public:
-	template<typename random_access_iterator>
-	map_original(random_access_iterator begin, random_access_iterator end,
+	template<std::random_access_iterator iterator>
+	map_original(iterator begin, iterator end,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-	template<typename random_access_container>
-	map_original(const random_access_container& texts,
+	template<random_access_container container>
+	map_original(const container& texts,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_original(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -141,8 +143,8 @@ map_original<text, item, integer>::map_original(integer min_binary_search):
 {}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-template<typename random_access_iterator>
-map_original<text, item, integer>::map_original(random_access_iterator begin, random_access_iterator end,
+template<std::random_access_iterator iterator>
+map_original<text, item, integer>::map_original(iterator begin, iterator end,
 		integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, {}, {}})
@@ -151,8 +153,8 @@ map_original<text, item, integer>::map_original(random_access_iterator begin, ra
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-template<typename random_access_container>
-map_original<text, item, integer>::map_original(const random_access_container& texts, integer min_binary_search):
+template<random_access_container container>
+map_original<text, item, integer>::map_original(const container& texts, integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
