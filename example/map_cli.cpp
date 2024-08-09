@@ -48,7 +48,6 @@ void exec(index_type& index)
 			continue;
 		}
 
-
 		size_t count = 0;
 		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match

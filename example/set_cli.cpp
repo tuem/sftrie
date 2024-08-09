@@ -84,7 +84,6 @@ int main(int argc, char* argv[])
 	std::string input_path = argv[1];
 	bool load_index = argc > 2 && std::string(argv[2]) == "true";
 
-	std::shared_ptr<index_type> index;
 	if(load_index){
 		try{
 			std::cerr << "loadinag index...";
