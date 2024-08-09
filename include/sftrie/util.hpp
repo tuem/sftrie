@@ -228,29 +228,29 @@ struct trie_value<empty, integer>
 	using actual_const_ref = const integer;
 };
 
-template<typename integer>
+template<typename item, typename integer>
 struct value_util
 {
-	template<typename item>
 	static typename trie_value<item, integer>::actual_ref ref(typename trie_value<item, integer>::original_ref value, integer)
 	{
 		return value;
 	}
 
-	template<>
-	static typename trie_value<empty, integer>::actual_ref ref<empty>(typename trie_value<empty, integer>::original_ref, integer id)
-	{
-		return id;
-	}
-
-	template<typename item>
 	static typename trie_value<item, integer>::actual_const_ref const_ref(typename trie_value<item, integer>::original_const_ref value, integer)
 	{
 		return value;
 	}
+};
 
-	template<>
-	static typename trie_value<empty, integer>::actual_const_ref const_ref<empty>(typename trie_value<empty, integer>::original_const_ref, integer id)
+template<typename integer>
+struct value_util<empty, integer>
+{
+	static typename trie_value<empty, integer>::actual_ref ref(typename trie_value<empty, integer>::original_ref, integer id)
+	{
+		return id;
+	}
+
+	static typename trie_value<empty, integer>::actual_const_ref const_ref(typename trie_value<empty, integer>::original_const_ref, integer id)
 	{
 		return id;
 	}

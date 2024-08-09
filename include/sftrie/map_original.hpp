@@ -256,7 +256,7 @@ typename trie_value<item, integer>::actual_ref map_original<text, item, integer>
 	auto id = search(key);
 	if(!data[id].match)
 		id = data.size() - 1;
-	return value_util<integer>::template ref<item>(data[id].value, id);
+	return value_util<item, integer>::ref(data[id].value, id);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -473,7 +473,7 @@ struct map_original<text, item, integer>::virtual_node
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<integer>::template const_ref<item>(trie.data[id].value, id);
+		return value_util<item, integer>::const_ref(trie.data[id].value, id);
 	}
 
 	child_iterator children() const
@@ -602,7 +602,7 @@ struct map_original<text, item, integer>::subtree_iterator
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
+		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const
@@ -727,7 +727,7 @@ struct map_original<text, item, integer>::prefix_iterator
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<integer>::template const_ref<item>(searcher.trie.data[current].value, current);
+		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const
