@@ -39,8 +39,8 @@ struct file_header
 
 	std::uint8_t integer_type;
 	std::uint8_t node_size;
-	std::uint8_t value_size;
 	std::uint8_t value_type;
+	std::uint8_t value_size;
 
 	std::uint64_t node_count;
 	std::uint64_t label_count;

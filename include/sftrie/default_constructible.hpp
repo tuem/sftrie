@@ -17,30 +17,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_SET
-#define SFTRIE_SET
+#ifndef SFTRIE_DEFAULT_CONSTRUCTIBLE
+#define SFTRIE_DEFAULT_CONSTRUCTIBLE
 
-#include <cstdint>
-#include <string>
-
-#include "set_original.hpp"
-#include "set_compact.hpp"
-
-#if defined SFTRIE_SET_USE_ORIGINAL
-	#define SFTRIE_SET_TYPE set_original
-#elif defined SFTRIE_SET_USE_COMACT
-	#define SFTRIE_SET_TYPE set_compact
-#else
-	#define SFTRIE_SET_TYPE set_compact
-#endif
+#include <type_traits>
 
 namespace sftrie{
 
-template<typename text = std::string, typename integer = std::uint32_t>
-using set = SFTRIE_SET_TYPE<text, integer>;
+template<typename item>
+concept default_constructible = std::is_default_constructible_v<item>;
 
 }
-
-#undef SFTRIE_SET_TYPE
 
 #endif

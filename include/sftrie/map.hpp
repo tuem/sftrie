@@ -35,9 +35,11 @@ limitations under the License.
 #endif
 
 namespace sftrie{
-	template<typename text = std::string, typename item = std::uint32_t,
-		typename integer = std::uint32_t>
-	using map = SFTRIE_MAP_TYPE<text, item, integer>;
+
+template<typename text = std::string, typename item = std::uint32_t,
+	typename integer = std::uint32_t>
+using map = SFTRIE_MAP_TYPE<text, item, integer>;
+
 }
 
 #undef SFTRIE_MAP_TYPE

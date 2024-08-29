@@ -17,30 +17,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_SET
-#define SFTRIE_SET
+#ifndef SFTRIE_LEXICOGRAPHICALLY_COMPARABLE
+#define SFTRIE_LEXICOGRAPHICALLY_COMPARABLE
 
-#include <cstdint>
-#include <string>
-
-#include "set_original.hpp"
-#include "set_compact.hpp"
-
-#if defined SFTRIE_SET_USE_ORIGINAL
-	#define SFTRIE_SET_TYPE set_original
-#elif defined SFTRIE_SET_USE_COMACT
-	#define SFTRIE_SET_TYPE set_compact
-#else
-	#define SFTRIE_SET_TYPE set_compact
-#endif
+#include <iterator>
 
 namespace sftrie{
 
-template<typename text = std::string, typename integer = std::uint32_t>
-using set = SFTRIE_SET_TYPE<text, integer>;
+template<typename text>
+concept lexicographically_comparable = requires(text& t, text& s)
+{
+	typename text::value_type;
+	std::size(t);
+	std::empty(t);
+	std::begin(t) != std::end(t);
+	t[0] == s[0];
+	t[0] < s[0];
+	t == s;
+	t < s;
+};
 
 }
-
-#undef SFTRIE_SET_TYPE
 
 #endif

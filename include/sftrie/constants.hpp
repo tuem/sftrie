@@ -22,6 +22,8 @@ limitations under the License.
 
 #include <cstdint>
 
+#include "util.hpp"
+
 namespace sftrie{
 
 namespace constants{
@@ -66,14 +68,15 @@ inline constexpr std::uint8_t integer_type_uint64 = 6;
 inline constexpr std::uint8_t integer_type_int64 = 7;
 inline constexpr std::uint8_t integer_type_user_defined = 0xff;
 
-inline constexpr std::uint8_t value_type_uint8 = 0;
-inline constexpr std::uint8_t value_type_int8 = 1;
-inline constexpr std::uint8_t value_type_uint16 = 2;
-inline constexpr std::uint8_t value_type_int16 = 3;
-inline constexpr std::uint8_t value_type_uint32 = 4;
-inline constexpr std::uint8_t value_type_int32 = 5;
-inline constexpr std::uint8_t value_type_uint64 = 6;
-inline constexpr std::uint8_t value_type_int64 = 7;
+inline constexpr std::uint8_t value_type_empty = 0;
+inline constexpr std::uint8_t value_type_uint8 = 1;
+inline constexpr std::uint8_t value_type_int8 = 2;
+inline constexpr std::uint8_t value_type_uint16 = 3;
+inline constexpr std::uint8_t value_type_int16 = 4;
+inline constexpr std::uint8_t value_type_uint32 = 5;
+inline constexpr std::uint8_t value_type_int32 = 6;
+inline constexpr std::uint8_t value_type_uint64 = 7;
+inline constexpr std::uint8_t value_type_int64 = 8;
 inline constexpr std::uint8_t value_type_user_defined = 0xff;
 
 
@@ -105,6 +108,7 @@ template<> inline constexpr std::uint8_t integer_type<std::uint64_t>(){ return i
 
 template<typename value> constexpr std::uint8_t value_type(){ return value_type_user_defined; }
 
+template<> inline constexpr std::uint8_t value_type<empty>(){ return value_type_empty; }
 template<> inline constexpr std::uint8_t value_type<std::int8_t>(){ return value_type_int8; }
 template<> inline constexpr std::uint8_t value_type<std::uint8_t>(){ return value_type_uint8; }
 template<> inline constexpr std::uint8_t value_type<std::int16_t>(){ return value_type_int16; }

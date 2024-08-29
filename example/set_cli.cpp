@@ -23,12 +23,13 @@ limitations under the License.
 #include <fstream>
 
 #include <sftrie/set.hpp>
+#include <sftrie/util.hpp>
 
 using text = std::string;
 using index_type = sftrie::set<text>;
 
 template<typename index_type>
-void exec(const index_type& index)
+void exec(index_type& index)
 {
 	auto searcher = index.searcher();
 	while(true){
@@ -48,9 +49,10 @@ void exec(const index_type& index)
 		size_t count = 0;
 		if(query.empty() || (query.back() != '*' && query.back() != '<')){
 			// exact match
-			if(searcher.exists(query)){
+			auto n = searcher.find(query);
+			if(n.match()){
 				++count;
-				std::cout << query << ": found" << std::endl;
+				std::cout << query << ": found, id=" << n.value() << std::endl;
 			}
 		}
 		else{
@@ -59,12 +61,12 @@ void exec(const index_type& index)
 			if(back == '*'){
 				// predictive search
 				for(const auto& t: searcher.predict(query))
-					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
+					std::cout << std::setw(4) << ++count << ": " << t.key() << ", id=" << index[t.key()] << std::endl;
 			}
 			else{
 				// common-prefix search
 				for(const auto& t: searcher.prefix(query))
-					std::cout << std::setw(4) << ++count << ": " << t << std::endl;
+					std::cout << std::setw(4) << ++count << ": " << t.key() << ", id=" << index[t.key()] << std::endl;
 			}
 		}
 		if(count == 0)
@@ -82,12 +84,16 @@ int main(int argc, char* argv[])
 	std::string input_path = argv[1];
 	bool load_index = argc > 2 && std::string(argv[2]) == "true";
 
-	std::shared_ptr<index_type> index;
 	if(load_index){
-		std::cerr << "loadinag index...";
-		index_type index(input_path);
-		std::cerr << "done." << std::endl;
-		exec(index);
+		try{
+			std::cerr << "loadinag index...";
+			index_type index(input_path);
+			std::cerr << "done." << std::endl;
+			exec(index);
+		}
+		catch(std::exception& e){
+			std::cerr << "failed: " << e.what() << std::endl;
+		}
 	}
 	else{
 		std::cerr << "loading texts...";

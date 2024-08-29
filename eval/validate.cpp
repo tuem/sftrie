@@ -31,6 +31,7 @@ limitations under the License.
 
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
+#include <sftrie/util.hpp>
 #include <paramset.hpp>
 
 using integer = std::uint32_t;
@@ -80,7 +81,7 @@ std::map<std::string, size_t> validate_set_prefix_search(const set& index,
 				break;
 			}
 			else{
-				if(result != *a)
+				if(result.key() != *a)
 					++fp;
 				else
 					++found;
@@ -110,7 +111,7 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 		bool correct = true;
 		size_t j = answer_start, count = 0;
 		for(const auto& result: searcher.predict(positive_queries[answer_start])){
-			if(result != positive_queries[j]){
+			if(result.key() != positive_queries[j]){
 				correct = false;
 				break;
 			}
@@ -128,7 +129,7 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 	for(const auto& query: negative_queries){
 		bool correct = true;
 		for(const auto& result: searcher.predict(query)){
-			if(result == query){
+			if(result.key() == query){
 				correct = false;
 				break;
 			}
@@ -143,7 +144,7 @@ std::map<std::string, size_t> validate_set_predictive_search(const set& index,
 }
 
 template<typename text_item_pair, typename map>
-std::map<std::string, size_t> validate_map_exact_match(map& index,
+std::map<std::string, size_t> validate_map_exact_match(const map& index,
 	const std::vector<text_item_pair>& positive_queries, const std::vector<text_item_pair>& negative_queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
@@ -165,7 +166,7 @@ std::map<std::string, size_t> validate_map_exact_match(map& index,
 }
 
 template<typename text, typename map>
-std::map<std::string, size_t> validate_map_prefix_search(map& index,
+std::map<std::string, size_t> validate_map_prefix_search(const map& index,
 	const std::vector<text>& queries)
 {
 	size_t tp = 0, tn = 0, fp = 0, fn = 0;
@@ -208,7 +209,7 @@ std::map<std::string, size_t> validate_map_prefix_search(map& index,
 }
 
 template<typename text, typename item, typename map>
-std::map<std::string, size_t> validate_map_predictive_search(map& index,
+std::map<std::string, size_t> validate_map_predictive_search(const map& index,
 	const std::vector<std::pair<text, item>>& positive_queries,
 	const std::vector<integer>& predictive_search_borders,
 	const std::vector<std::pair<text, item>>& negative_queries)

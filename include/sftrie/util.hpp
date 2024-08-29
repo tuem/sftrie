@@ -28,6 +28,11 @@ limitations under the License.
 
 namespace sftrie{
 
+// empty value for sets
+
+struct empty{};
+
+
 // general utilities
 
 template<typename integer>
@@ -199,6 +204,57 @@ cast_text_item_pairs(const std::vector<std::pair<src_type, item>>& texts)
 		results.push_back({cast_text<dest_type>(i.first), i.second});
 	return results;
 }
+
+
+// trie
+
+template<typename item, typename integer>
+struct trie_value
+{
+	using original_ref = item&;
+	using original_const_ref = item const&;
+	using actual = item;
+	using actual_ref = item&;
+	using actual_const_ref = item const&;
+};
+
+template<typename integer>
+struct trie_value<empty, integer>
+{
+	using original_ref = const empty;
+	using original_const_ref = const empty;
+	using actual = const integer;
+	using actual_ref = const integer;
+	using actual_const_ref = const integer;
+};
+
+template<typename item, typename integer>
+struct value_util
+{
+	static typename trie_value<item, integer>::actual_ref ref(typename trie_value<item, integer>::original_ref value, integer)
+	{
+		return value;
+	}
+
+	static typename trie_value<item, integer>::actual_const_ref const_ref(typename trie_value<item, integer>::original_const_ref value, integer)
+	{
+		return value;
+	}
+};
+
+template<typename integer>
+struct value_util<empty, integer>
+{
+	static typename trie_value<empty, integer>::actual_ref ref(typename trie_value<empty, integer>::original_ref, integer id)
+	{
+		return id;
+	}
+
+	static typename trie_value<empty, integer>::actual_const_ref const_ref(typename trie_value<empty, integer>::original_const_ref, integer id)
+	{
+		return id;
+	}
+};
 
 }
 

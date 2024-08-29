@@ -25,6 +25,7 @@ limitations under the License.
 
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
+#include <sftrie/util.hpp>
 
 #include "util.hpp"
 

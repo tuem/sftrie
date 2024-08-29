@@ -25,6 +25,7 @@ limitations under the License.
 
 #include <sftrie/set.hpp>
 #include <sftrie/map.hpp>
+#include <sftrie/util.hpp>
 
 #include "util.hpp"
 
@@ -45,7 +46,7 @@ void test_set_predictive_search(
 	for(const auto& i: patterns){
 		std::vector<typename set::text_type> results;
 		for(const auto& p: searcher.predict(i.first)){
-			results.push_back(p);
+			results.push_back(p.key());
 		}
 		CHECK(results == i.second);
 	}

@@ -24,6 +24,7 @@ limitations under the License.
 #include <fstream>
 
 #include <sftrie/map.hpp>
+#include <sftrie/util.hpp>
 
 using text = std::string;
 using item = std::uint32_t;
@@ -46,7 +47,6 @@ void exec(index_type& index)
 			std::cout << "index saved to " << output_path << std::endl;
 			continue;
 		}
-
 
 		size_t count = 0;
 		if(query.empty() || (query.back() != '*' && query.back() != '<')){
@@ -91,10 +91,15 @@ int main(int argc, char* argv[])
 	bool load_index = argc > 2 && std::string(argv[2]) == "true";
 
 	if(load_index){
-		std::cerr << "loadinag index...";
-		index_type index(input_path);
-		std::cerr << "done." << std::endl;
-		exec(index);
+		try{
+			std::cerr << "loadinag index...";
+			index_type index(input_path);
+			std::cerr << "done." << std::endl;
+			exec(index);
+		}
+		catch(std::exception& e){
+			std::cerr << "failed: " << e.what() << std::endl;
+		}
 	}
 	else{
 		std::cerr << "loading texts...";
