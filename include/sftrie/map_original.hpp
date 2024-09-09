@@ -114,6 +114,11 @@ protected:
 	static integer container_size(const container& c);
 
 	template<typename iterator>
+	integer estimate(iterator begin, iterator end);
+	template<typename iterator>
+	integer estimate(iterator begin, iterator end, integer depth);
+
+	template<typename iterator>
 	void construct(iterator begin, iterator end);
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -363,15 +368,43 @@ map_original<text, item, integer>::container_size(const container& c)
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
+integer map_original<text, item, integer>::estimate(iterator begin, iterator end)
+{
+	integer count = 0;
+	count += estimate(begin, end, 0);
+	return count + 1; // sentinel
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+integer map_original<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
+{
+	integer count = 1;
+
+	if(begin < end && depth == container_size((*begin).first))
+		++begin;
+
+	if(begin < end){
+		for(iterator i = begin; i < end; begin = i){
+			for(symbol c = (*i).first[depth]; i < end && (*i).first[depth] == c; ++i);
+			count += estimate(begin, i, depth + 1);
+		}
+	}
+
+	return count;
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end)
 {
+	data.reserve(estimate(begin, end));
 	if(begin < end){
 		if((*begin).first.size() == 0)
 			data[0].value = (*begin).second;
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), {}, {}});
-	data.shrink_to_fit();
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
