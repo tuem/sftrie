@@ -67,6 +67,13 @@ protected:
 	std::uint8_t container_type() const override;
 
 	template<typename iterator>
+	integer estimate(iterator begin, iterator end);
+	template<typename iterator>
+	integer estimate(iterator begin, iterator end, integer depth);
+
+	template<typename iterator>
+	void construct(iterator begin, iterator end);
+	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 };
 
@@ -79,12 +86,7 @@ set_original<text, integer>::set_original(random_access_iterator begin, random_a
 		integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
 {
-	this->num_texts = end - begin;
-	this->data.push_back({false, false, 1, {}, {}});
-	if(begin < end)
-		construct(begin, end, 0, 0);
-	this->data.push_back({false, false, this->container_size(this->data), {}, {}});
-	this->data.shrink_to_fit();
+	construct(begin, end);
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -92,12 +94,7 @@ template<typename random_access_container>
 set_original<text, integer>::set_original(const random_access_container& texts, integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
 {
-	this->num_texts = std::size(texts);
-	this->data.push_back({false, false, 1, {}, {}});
-	if(std::begin(texts) < std::end(texts))
-		construct(std::begin(texts), std::end(texts), 0, 0);
-	this->data.push_back({false, false, this->container_size(this->data), {}, {}});
-	this->data.shrink_to_fit();
+	construct(std::begin(texts), std::end(texts));
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -123,6 +120,46 @@ template<lexicographically_comparable text, std::integral integer>
 std::uint8_t set_original<text, integer>::container_type() const
 {
 	return constants::container_type_set;
+}
+
+template<lexicographically_comparable text, std::integral integer>
+template<typename iterator>
+integer set_original<text, integer>::estimate(iterator begin, iterator end)
+{
+	integer count = 0;
+	count += estimate(begin, end, 0);
+	return count + 1; // sentinel
+}
+
+template<lexicographically_comparable text, std::integral integer>
+template<typename iterator>
+integer set_original<text, integer>::estimate(iterator begin, iterator end, integer depth)
+{
+	integer count = 1;
+
+	if(begin < end && depth == this->container_size(*begin))
+		++begin;
+
+	if(begin < end){
+		for(iterator i = begin; i < end; begin = i){
+			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
+			count += estimate(begin, i, depth + 1);
+		}
+	}
+
+	return count;
+}
+
+template<lexicographically_comparable text, std::integral integer>
+template<typename random_access_iterator>
+void set_original<text, integer>::construct(random_access_iterator begin, random_access_iterator end)
+{
+	this->num_texts = end - begin;
+	this->data.reserve(estimate(begin, end));
+	this->data.push_back({false, false, 1, {}, {}});
+	if(begin < end)
+		construct(begin, end, 0, 0);
+	this->data.push_back({false, false, this->container_size(this->data), {}, {}});
 }
 
 template<lexicographically_comparable text, std::integral integer>
