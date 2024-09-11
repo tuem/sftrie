@@ -116,6 +116,11 @@ protected:
 	static integer container_size(const container& c);
 
 	template<typename iterator>
+	std::pair<integer, integer> estimate(iterator begin, iterator end);
+	template<typename iterator>
+	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth);
+
+	template<typename iterator>
 	void construct(iterator begin, iterator end);
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -398,15 +403,51 @@ map_compact<text, item, integer>::container_size(const container& c)
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end)
+{
+	auto [node_count, label_count] = estimate(begin, end, 0);
+	return {node_count + 1, label_count}; // sentinel
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
+{
+	integer node_count = 1, label_count = 0;
+
+	if(begin < end && depth == container_size((*begin).first))
+		++begin;
+
+	if(begin < end){
+		for(iterator i = begin; i < end; begin = i){
+			for(symbol c = (*i).first[depth]; i < end && (*i).first[depth] == c; ++i);
+			integer d = depth + 1;
+			while(d < container_size((*begin).first) && (*begin).first[d] == (*(i - 1)).first[d]){
+				++d;
+				++label_count;
+			}
+			auto [n, l] = estimate(begin, i, d);
+			node_count += n;
+			label_count += l;
+		}
+	}
+
+	return {node_count, label_count};
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
 void map_compact<text, item, integer>::construct(iterator begin, iterator end)
 {
+	auto [node_count, label_count] = estimate(begin, end, 0);
+	data.reserve(node_count);
+	labels.reserve(label_count);
 	if(begin < end){
 		if((*begin).first.size() == 0)
 			data[0].value = (*begin).second;
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), container_size(labels), {}, {}});
-	data.shrink_to_fit();
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
