@@ -67,6 +67,13 @@ protected:
 	std::uint8_t container_type() const override;
 
 	template<typename iterator>
+	std::pair<integer, integer> estimate(iterator begin, iterator end);
+	template<typename iterator>
+	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth);
+
+	template<typename iterator>
+	void construct(iterator begin, iterator end);
+	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 };
 
@@ -79,13 +86,7 @@ set_compact<text, integer>::set_compact(random_access_iterator begin, random_acc
 		integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
 {
-	this->num_texts = end - begin;
-	this->data.push_back({false, false, 1, 0, {}, {}});
-	if(begin < end)
-		construct(begin, end, 0, 0);
-	this->data.push_back({false, false, this->container_size(this->data), this->container_size(this->labels), {}, {}});
-	this->data.shrink_to_fit();
-	this->labels.shrink_to_fit();
+	construct(begin, end);
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -93,13 +94,7 @@ template<typename random_access_container>
 set_compact<text, integer>::set_compact(const random_access_container& texts, integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
 {
-	this->num_texts = std::size(texts);
-	this->data.push_back({false, false, 1, 0, {}, {}});
-	if(std::begin(texts) < std::end(texts))
-		construct(std::begin(texts), std::end(texts), 0, 0);
-	this->data.push_back({false, false, this->container_size(this->data), this->container_size(this->labels), {}, {}});
-	this->data.shrink_to_fit();
-	this->labels.shrink_to_fit();
+	construct(std::begin(texts), std::end(texts));
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -125,6 +120,52 @@ template<lexicographically_comparable text, std::integral integer>
 std::uint8_t set_compact<text, integer>::container_type() const
 {
 	return constants::container_type_set;
+}
+
+template<lexicographically_comparable text, std::integral integer>
+template<typename iterator>
+std::pair<integer, integer> set_compact<text, integer>::estimate(iterator begin, iterator end)
+{
+	auto [node_count, label_count] = estimate(begin, end, 0);
+	return {node_count + 1, label_count}; // sentinel
+}
+
+template<lexicographically_comparable text, std::integral integer>
+template<typename iterator>
+std::pair<integer, integer> set_compact<text, integer>::estimate(iterator begin, iterator end, integer depth)
+{
+	integer node_count = 1, label_count = 0;
+
+	if(begin < end && depth == this->container_size(*begin))
+		++begin;
+
+	if(begin < end){
+		for(iterator i = begin; i < end; begin = i){
+			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
+			integer d = depth + 1;
+			while(d < this->container_size(*begin) && (*begin)[d] == (*(i - 1))[d]){
+				++d;
+				++label_count;
+			}
+			auto [n, l] = estimate(begin, i, d);
+			node_count += n;
+			label_count += l;
+		}
+	}
+
+	return {node_count, label_count};
+}
+
+template<lexicographically_comparable text, std::integral integer>
+template<typename iterator>
+void set_compact<text, integer>::construct(iterator begin, iterator end)
+{
+	auto [node_count, label_count] = estimate(begin, end, 0);
+	this->data.reserve(node_count);
+	this->labels.reserve(label_count);
+	if(begin < end)
+		construct(begin, end, 0, 0);
+	this->data.push_back({false, false, this->container_size(this->data), this->container_size(this->labels), {}, {}});
 }
 
 template<lexicographically_comparable text, std::integral integer>
