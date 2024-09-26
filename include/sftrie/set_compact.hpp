@@ -67,11 +67,6 @@ protected:
 	std::uint8_t container_type() const override;
 
 	template<typename iterator>
-	std::pair<integer, integer> estimate(iterator begin, iterator end);
-	template<typename iterator>
-	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth);
-
-	template<typename iterator>
 	void construct(iterator begin, iterator end);
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
@@ -124,43 +119,9 @@ std::uint8_t set_compact<text, integer>::container_type() const
 
 template<lexicographically_comparable text, std::integral integer>
 template<typename iterator>
-std::pair<integer, integer> set_compact<text, integer>::estimate(iterator begin, iterator end)
-{
-	auto [node_count, label_count] = estimate(begin, end, 0);
-	return {node_count + 1, label_count}; // sentinel
-}
-
-template<lexicographically_comparable text, std::integral integer>
-template<typename iterator>
-std::pair<integer, integer> set_compact<text, integer>::estimate(iterator begin, iterator end, integer depth)
-{
-	integer node_count = 1, label_count = 0;
-
-	if(begin < end && depth == this->container_size(*begin))
-		++begin;
-
-	if(begin < end){
-		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
-			integer d = depth + 1;
-			while(d < this->container_size(*begin) && (*begin)[d] == (*(i - 1))[d]){
-				++d;
-				++label_count;
-			}
-			auto [n, l] = estimate(begin, i, d);
-			node_count += n;
-			label_count += l;
-		}
-	}
-
-	return {node_count, label_count};
-}
-
-template<lexicographically_comparable text, std::integral integer>
-template<typename iterator>
 void set_compact<text, integer>::construct(iterator begin, iterator end)
 {
-	auto [node_count, label_count] = estimate(begin, end, 0);
+	auto [node_count, label_count] = this->estimate(begin, end);
 	this->data.reserve(node_count);
 	this->labels.reserve(label_count);
 	if(begin < end)

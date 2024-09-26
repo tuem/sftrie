@@ -256,6 +256,36 @@ struct value_util<empty, integer>
 	}
 };
 
+template<typename item>
+struct list_item
+{
+	using key_type = item;
+};
+
+template<typename key, typename value>
+struct list_item<std::pair<key, value>>
+{
+	using key_type = key;
+};
+
+template<typename item_type>
+struct key_extractor
+{
+	static typename list_item<item_type>::key_type get_key(const item_type& item)
+	{
+		return item;
+	}
+};
+
+template<typename key, typename value>
+struct key_extractor<std::pair<key, value>>
+{
+	static typename list_item<std::pair<key, value>>::key_type get_key(const std::pair<key, value>& item)
+	{
+		return item.first;
+	}
+};
+
 }
 
 #endif

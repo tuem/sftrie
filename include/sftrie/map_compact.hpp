@@ -145,7 +145,7 @@ struct map_compact<text, item, integer>::node
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_compact<text, item, integer>::map_compact(integer min_binary_search):
-	min_binary_search(min_binary_search), num_texts(0)
+	min_binary_search(min_binary_search), num_texts(0), data(1, {false, false, 1, 0, {}, {}})
 {}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -415,17 +415,21 @@ std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator 
 {
 	integer node_count = 1, label_count = 0;
 
-	if(begin < end && depth == container_size((*begin).first))
+	if(begin < end && depth == container_size(key_extractor<typename iterator::value_type>::get_key(*begin)))
 		++begin;
 
 	if(begin < end){
 		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = (*i).first[depth]; i < end && (*i).first[depth] == c; ++i);
+			for(symbol c = key_extractor<typename iterator::value_type>::get_key(*i)[depth]; i < end &&
+				key_extractor<typename iterator::value_type>::get_key(*i)[depth] == c; ++i);
+
 			integer d = depth + 1;
-			while(d < container_size((*begin).first) && (*begin).first[d] == (*(i - 1)).first[d]){
+			while(d < container_size(key_extractor<typename iterator::value_type>::get_key(*begin)) &&
+					key_extractor<typename iterator::value_type>::get_key(*begin)[d] == key_extractor<typename iterator::value_type>::get_key(*(i - 1))[d]){
 				++d;
 				++label_count;
 			}
+
 			auto [n, l] = estimate(begin, i, d);
 			node_count += n;
 			label_count += l;
@@ -439,7 +443,7 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 void map_compact<text, item, integer>::construct(iterator begin, iterator end)
 {
-	auto [node_count, label_count] = estimate(begin, end, 0);
+	auto [node_count, label_count] = estimate(begin, end);
 	data.reserve(node_count);
 	labels.reserve(label_count);
 	if(begin < end){

@@ -144,7 +144,7 @@ struct map_original<text, item, integer>::node
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_original<text, item, integer>::map_original(integer min_binary_search):
-	min_binary_search(min_binary_search), num_texts(0)
+	min_binary_search(min_binary_search), num_texts(0), data(1, {false, false, 1, {}, {}})
 {}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -381,12 +381,13 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 {
 	integer count = 1;
 
-	if(begin < end && depth == container_size((*begin).first))
+	if(begin < end && depth == container_size(key_extractor<typename iterator::value_type>::get_key(*begin)))
 		++begin;
 
 	if(begin < end){
 		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = (*i).first[depth]; i < end && (*i).first[depth] == c; ++i);
+			for(symbol c = key_extractor<typename iterator::value_type>::get_key(*i)[depth];
+				i < end && key_extractor<typename iterator::value_type>::get_key(*i)[depth] == c; ++i);
 			count += estimate(begin, i, depth + 1);
 		}
 	}
