@@ -113,8 +113,10 @@ int main(int argc, char* argv[])
 		}
 
 		sftrie::sort_texts(std::begin(texts), std::end(texts));
+		std::cerr << "building index...";
 		index_type index(texts.begin(), texts.end());
-		std::cerr << "done, " << texts.size() << " texts" << std::endl;
+		std::cerr << "done, " << index.trie_size() << " nodes" << std::endl;
+
 		exec(index);
 	}
 
