@@ -229,7 +229,7 @@ struct trie_value<empty, integer>
 };
 
 template<typename item, typename integer>
-struct value_util
+struct value_picker
 {
 	static typename trie_value<item, integer>::actual_ref ref(typename trie_value<item, integer>::original_ref value, integer)
 	{
@@ -243,7 +243,7 @@ struct value_util
 };
 
 template<typename integer>
-struct value_util<empty, integer>
+struct value_picker<empty, integer>
 {
 	static typename trie_value<empty, integer>::actual_ref ref(typename trie_value<empty, integer>::original_ref, integer id)
 	{
@@ -258,30 +258,30 @@ struct value_util<empty, integer>
 
 
 template<typename item>
-struct list_item
+struct trie_item
 {
 	using key_type = item;
 };
 
 template<typename key, typename value>
-struct list_item<std::pair<key, value>>
+struct trie_item<std::pair<key, value>>
 {
 	using key_type = key;
 };
 
 template<typename item_type>
-struct key_extractor
+struct key_picker
 {
-	static const typename list_item<item_type>::key_type& get_key(const item_type& item)
+	static const typename trie_item<item_type>::key_type& get(const item_type& item)
 	{
 		return item;
 	}
 };
 
 template<typename key, typename value>
-struct key_extractor<std::pair<key, value>>
+struct key_picker<std::pair<key, value>>
 {
-	static const typename list_item<std::pair<key, value>>::key_type& get_key(const std::pair<key, value>& item)
+	static const typename trie_item<std::pair<key, value>>::key_type& get(const std::pair<key, value>& item)
 	{
 		return item.first;
 	}

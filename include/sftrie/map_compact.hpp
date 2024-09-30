@@ -274,7 +274,7 @@ typename trie_value<item, integer>::actual_ref map_compact<text, item, integer>:
 {
 	auto n = find(key);
 	auto id = n.match() ? n.id : data.size() - 1;
-	return value_util<item, integer>::ref(data[id].value, id);
+	return value_picker<item, integer>::ref(data[id].value, id);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -415,17 +415,17 @@ std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator 
 {
 	integer node_count = 1, label_count = 0;
 
-	if(begin < end && depth == container_size(key_extractor<typename iterator::value_type>::get_key(*begin)))
+	if(begin < end && depth == container_size(key_picker<typename iterator::value_type>::get(*begin)))
 		++begin;
 
 	if(begin < end){
 		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = key_extractor<typename iterator::value_type>::get_key(*i)[depth]; i < end &&
-				key_extractor<typename iterator::value_type>::get_key(*i)[depth] == c; ++i);
+			for(symbol c = key_picker<typename iterator::value_type>::get(*i)[depth]; i < end &&
+				key_picker<typename iterator::value_type>::get(*i)[depth] == c; ++i);
 
 			integer d = depth + 1;
-			while(d < container_size(key_extractor<typename iterator::value_type>::get_key(*begin)) &&
-					key_extractor<typename iterator::value_type>::get_key(*begin)[d] == key_extractor<typename iterator::value_type>::get_key(*(i - 1))[d]){
+			while(d < container_size(key_picker<typename iterator::value_type>::get(*begin)) &&
+					key_picker<typename iterator::value_type>::get(*begin)[d] == key_picker<typename iterator::value_type>::get(*(i - 1))[d]){
 				++d;
 				++label_count;
 			}
@@ -550,7 +550,7 @@ struct map_compact<text, item, integer>::virtual_node
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<item, integer>::const_ref(trie.data[id].value, id);
+		return value_picker<item, integer>::const_ref(trie.data[id].value, id);
 	}
 
 	child_iterator children() const
@@ -694,7 +694,7 @@ struct map_compact<text, item, integer>::subtree_iterator
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return value_picker<item, integer>::const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_compact<text, item, integer>::virtual_node node() const
@@ -835,7 +835,7 @@ struct map_compact<text, item, integer>::prefix_iterator
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return value_picker<item, integer>::const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_compact<text, item, integer>::virtual_node node() const

@@ -261,7 +261,7 @@ typename trie_value<item, integer>::actual_ref map_original<text, item, integer>
 	auto id = search(key);
 	if(!data[id].match)
 		id = data.size() - 1;
-	return value_util<item, integer>::ref(data[id].value, id);
+	return value_picker<item, integer>::ref(data[id].value, id);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -381,13 +381,13 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 {
 	integer count = 1;
 
-	if(begin < end && depth == container_size(key_extractor<typename iterator::value_type>::get_key(*begin)))
+	if(begin < end && depth == container_size(key_picker<typename iterator::value_type>::get(*begin)))
 		++begin;
 
 	if(begin < end){
 		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = key_extractor<typename iterator::value_type>::get_key(*i)[depth];
-				i < end && key_extractor<typename iterator::value_type>::get_key(*i)[depth] == c; ++i);
+			for(symbol c = key_picker<typename iterator::value_type>::get(*i)[depth];
+				i < end && key_picker<typename iterator::value_type>::get(*i)[depth] == c; ++i);
 			count += estimate(begin, i, depth + 1);
 		}
 	}
@@ -507,7 +507,7 @@ struct map_original<text, item, integer>::virtual_node
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<item, integer>::const_ref(trie.data[id].value, id);
+		return value_picker<item, integer>::const_ref(trie.data[id].value, id);
 	}
 
 	child_iterator children() const
@@ -636,7 +636,7 @@ struct map_original<text, item, integer>::subtree_iterator
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return value_picker<item, integer>::const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const
@@ -761,7 +761,7 @@ struct map_original<text, item, integer>::prefix_iterator
 
 	typename trie_value<item, integer>::actual_const_ref value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return value_picker<item, integer>::const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const
