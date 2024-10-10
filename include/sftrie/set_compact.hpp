@@ -65,9 +65,6 @@ public:
 
 protected:
 	std::uint8_t container_type() const override;
-
-	template<typename iterator>
-	void construct(iterator begin, iterator end, integer depth, integer current);
 };
 
 
@@ -79,13 +76,7 @@ set_compact<text, integer>::set_compact(random_access_iterator begin, random_acc
 		integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
 {
-	this->num_texts = end - begin;
-	this->data.push_back({false, false, 1, 0, {}, {}});
-	if(begin < end)
-		construct(begin, end, 0, 0);
-	this->data.push_back({false, false, this->container_size(this->data), this->container_size(this->labels), {}, {}});
-	this->data.shrink_to_fit();
-	this->labels.shrink_to_fit();
+	this->construct(begin, end);
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -93,13 +84,7 @@ template<typename random_access_container>
 set_compact<text, integer>::set_compact(const random_access_container& texts, integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
 {
-	this->num_texts = std::size(texts);
-	this->data.push_back({false, false, 1, 0, {}, {}});
-	if(std::begin(texts) < std::end(texts))
-		construct(std::begin(texts), std::end(texts), 0, 0);
-	this->data.push_back({false, false, this->container_size(this->data), this->container_size(this->labels), {}, {}});
-	this->data.shrink_to_fit();
-	this->labels.shrink_to_fit();
+	this->construct(std::begin(texts), std::end(texts));
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -125,39 +110,6 @@ template<lexicographically_comparable text, std::integral integer>
 std::uint8_t set_compact<text, integer>::container_type() const
 {
 	return constants::container_type_set;
-}
-
-template<lexicographically_comparable text, std::integral integer>
-template<typename iterator>
-void set_compact<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
-{
-	// set flags
-	if((this->data[current].match = (depth == this->container_size(*begin))))
-		if((this->data[current].leaf = (++begin == end)))
-			return;
-
-	// reserve children
-	std::vector<iterator> head{begin};
-	for(iterator i = begin; i < end; head.push_back(i)){
-		this->data.push_back({false, false, 0, 0, (*i)[depth], {}});
-		for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
-	}
-
-	// compress single paths
-	std::vector<integer> depths;
-	for(integer i = 0; i < this->container_size(head) - 1; ++i){
-		this->data[this->data[current].next + i].ref = this->container_size(this->labels);
-		integer d = depth + 1;
-		while(d < this->container_size(*head[i]) && (*head[i])[d] == (*(head[i + 1] - 1))[d])
-			this->labels.push_back((*head[i])[d++]);
-		depths.push_back(d);
-	}
-
-	// recursively construct subtries
-	for(integer i = 0; i < this->container_size(head) - 1; ++i){
-		this->data[this->data[current].next + i].next = this->container_size(this->data);
-		construct(head[i], head[i + 1], depths[i], this->data[current].next + i);
-	}
 }
 
 }
