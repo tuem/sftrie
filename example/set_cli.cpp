@@ -111,6 +111,7 @@ int main(int argc, char* argv[])
 				break;
 			texts.push_back(line);
 		}
+		std::cerr << "done, " << texts.size() << " texts" << std::endl;
 
 		sftrie::sort_texts(std::begin(texts), std::end(texts));
 		std::cerr << "building index...";
