@@ -206,84 +206,92 @@ cast_text_item_pairs(const std::vector<std::pair<src_type, item>>& texts)
 }
 
 
-// trie
+// type traits and key/value selectors
 
-template<typename item, typename integer>
-struct trie_value
+template<typename text, typename item, typename integer>
+struct trie_traits
 {
-	using original_ref = item&;
-	using original_const_ref = item const&;
-	using actual = item;
-	using actual_ref = item&;
-	using actual_const_ref = item const&;
+	using original_type = item;
+	using original_ref_type = item&;
+	using original_const_ref_type = item const&;
+
+	using value_type = item;
+	using value_ref_type = item&;
+	using value_const_ref_type = item const&;
+
+	using list_element_type = std::pair<text, item>;
 };
 
-template<typename integer>
-struct trie_value<empty, integer>
+template<typename text, typename integer>
+struct trie_traits<text, empty, integer>
 {
-	using original_ref = const empty;
-	using original_const_ref = const empty;
-	using actual = const integer;
-	using actual_ref = const integer;
-	using actual_const_ref = const integer;
+	using original_type = empty;
+	using original_ref_type = empty;
+	using original_const_ref_type = empty;
+
+	using value_type = const integer;
+	using value_ref_type = const integer;
+	using value_const_ref_type = const integer;
+
+	using list_element_type = text;
 };
 
-template<typename item, typename integer>
-struct value_picker
+
+template<typename text, typename item, typename integer>
+struct trie_element_util
 {
-	static typename trie_value<item, integer>::actual_ref ref(typename trie_value<item, integer>::original_ref value, integer)
+	static text& get_key(typename trie_traits<text, item, integer>::list_element_type& list_element)
+	{
+		return list_element.first;
+	}
+
+	static typename trie_traits<text, item, integer>::original_const_ref_type get_value(typename trie_traits<text, item, integer>::list_element_type& list_element)
+	{
+		return list_element.second;
+	}
+
+	static typename trie_traits<text, item, integer>::value_type get_value(item value, integer)
 	{
 		return value;
 	}
 
-	static typename trie_value<item, integer>::actual_const_ref const_ref(typename trie_value<item, integer>::original_const_ref value, integer)
+	static typename trie_traits<text, item, integer>::value_ref_type get_value_ref(item& value, integer)
+	{
+		return value;
+	}
+
+	static typename trie_traits<text, item, integer>::value_const_ref_type get_value_const_ref(const item& value, integer)
 	{
 		return value;
 	}
 };
 
-template<typename integer>
-struct value_picker<empty, integer>
+template<typename text, typename integer>
+struct trie_element_util<text, empty, integer>
 {
-	static typename trie_value<empty, integer>::actual_ref ref(typename trie_value<empty, integer>::original_ref, integer id)
+	static text& get_key(typename trie_traits<text, empty, integer>::list_element_type& list_element)
+	{
+		return list_element;
+	}
+
+	static typename trie_traits<text, empty, integer>::original_const_ref_type get_value(typename trie_traits<text, empty, integer>::list_element_type&)
+	{
+		return {};
+	}
+
+	static typename trie_traits<text, empty, integer>::value_type get_value(empty, integer id)
 	{
 		return id;
 	}
 
-	static typename trie_value<empty, integer>::actual_const_ref const_ref(typename trie_value<empty, integer>::original_const_ref, integer id)
+	static typename trie_traits<text, empty, integer>::value_ref_type get_value_ref(empty, integer id)
 	{
 		return id;
 	}
-};
 
-
-template<typename item>
-struct trie_item
-{
-	using key_type = item;
-};
-
-template<typename key, typename value>
-struct trie_item<std::pair<key, value>>
-{
-	using key_type = key;
-};
-
-template<typename item_type>
-struct key_picker
-{
-	static const typename trie_item<item_type>::key_type& get(const item_type& item)
+	static typename trie_traits<text, empty, integer>::value_const_ref_type get_value_const_ref(empty, integer id)
 	{
-		return item;
-	}
-};
-
-template<typename key, typename value>
-struct key_picker<std::pair<key, value>>
-{
-	static const typename trie_item<std::pair<key, value>>::key_type& get(const std::pair<key, value>& item)
-	{
-		return item.first;
+		return id;
 	}
 };
 

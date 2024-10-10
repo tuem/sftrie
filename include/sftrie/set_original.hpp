@@ -65,11 +65,6 @@ public:
 
 protected:
 	std::uint8_t container_type() const override;
-
-	template<typename iterator>
-	void construct(iterator begin, iterator end);
-	template<typename iterator>
-	void construct(iterator begin, iterator end, integer depth, integer current);
 };
 
 
@@ -81,7 +76,7 @@ set_original<text, integer>::set_original(random_access_iterator begin, random_a
 		integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
 {
-	construct(begin, end);
+	this->construct(begin, end);
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -89,7 +84,7 @@ template<typename random_access_container>
 set_original<text, integer>::set_original(const random_access_container& texts, integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
 {
-	construct(std::begin(texts), std::end(texts));
+	this->construct(std::begin(texts), std::end(texts));
 }
 
 template<lexicographically_comparable text, std::integral integer>
@@ -115,42 +110,6 @@ template<lexicographically_comparable text, std::integral integer>
 std::uint8_t set_original<text, integer>::container_type() const
 {
 	return constants::container_type_set;
-}
-
-template<lexicographically_comparable text, std::integral integer>
-template<typename random_access_iterator>
-void set_original<text, integer>::construct(random_access_iterator begin, random_access_iterator end)
-{
-	this->num_texts = end - begin;
-	this->data.reserve(this->estimate(begin, end));
-	this->data.push_back({false, false, 1, {}, {}});
-	if(begin < end)
-		construct(begin, end, 0, 0);
-	this->data.push_back({false, false, this->container_size(this->data), {}, {}});
-}
-
-template<lexicographically_comparable text, std::integral integer>
-template<typename iterator>
-void set_original<text, integer>::construct(iterator begin, iterator end, integer depth, integer current)
-{
-	// set flags
-	if((this->data[current].match = (depth == this->container_size(*begin))))
-		if((this->data[current].leaf = (++begin == end)))
-			return;
-
-	// reserve children
-	std::vector<iterator> head{begin};
-	for(iterator i = begin; i < end; head.push_back(i)){
-		this->data.push_back({false, false, 0, (*i)[depth], {}});
-		for(symbol c = (*i)[depth]; i < end && (*i)[depth] == c; ++i);
-	}
-
-	// recursively construct subtries
-	for(integer i = 0; i < this->container_size(head) - 1; ++i){
-		integer child = this->data[current].next + i;
-		this->data[child].next = this->container_size(this->data);
-		construct(head[i], head[i + 1], depth + 1, child);
-	}
 }
 
 }
