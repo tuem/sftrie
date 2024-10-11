@@ -38,10 +38,11 @@ using item = std::uint32_t;
 template<typename set>
 void test_set_construction(
 	const std::vector<typename set::text_type>& texts,
+	bool two_pass,
 	const std::vector<size_t>& expected_sizes
 )
 {
-	set index(texts.begin(), texts.end());
+	set index(texts.begin(), texts.end(), two_pass);
 	SECTION("# of texts"){
 		CHECK(index.size() == texts.size());
 	}
@@ -72,12 +73,20 @@ void test_set_construction_all_classes(
 	const std::vector<size_t>& expected_sizes_compact
 )
 {
-	SECTION("set_original"){
-		test_set_construction<sftrie::set_original<text, integer>>(texts, expected_sizes_original);
+	SECTION("set_original / 1-pass"){
+		test_set_construction<sftrie::set_original<text, integer>>(texts, false, expected_sizes_original);
 	}
 
-	SECTION("set_compact"){
-		test_set_construction<sftrie::set_compact<text, integer>>(texts, expected_sizes_compact);
+	SECTION("set_original / 2-pass"){
+		test_set_construction<sftrie::set_original<text, integer>>(texts, true, expected_sizes_original);
+	}
+
+	SECTION("set_compact / 1-pass"){
+		test_set_construction<sftrie::set_compact<text, integer>>(texts, false, expected_sizes_compact);
+	}
+
+	SECTION("set_compact / 2-pass"){
+		test_set_construction<sftrie::set_compact<text, integer>>(texts, true, expected_sizes_compact);
 	}
 }
 
@@ -109,10 +118,11 @@ void test_set_construction_all(
 template<typename map>
 void test_map_construction(
 	const std::vector<std::pair<typename map::text_type, typename map::value_type>>& texts,
+	bool two_pass,
 	const std::vector<size_t>& expected_sizes
 )
 {
-	map index(texts.begin(), texts.end());
+	map index(texts.begin(), texts.end(), two_pass);
 	SECTION("# of texts"){
 		CHECK(index.size() == texts.size());
 	}
@@ -143,12 +153,20 @@ void test_map_construction_all_classes(
 	const std::vector<size_t>& expected_sizes_compact
 )
 {
-	SECTION("map_original"){
-		test_map_construction<sftrie::map_original<text, item, integer>>(texts, expected_sizes_original);
+	SECTION("map_original / 1-pass"){
+		test_map_construction<sftrie::map_original<text, item, integer>>(texts, false, expected_sizes_original);
 	}
 
-	SECTION("map_compact"){
-		test_map_construction<sftrie::map_compact<text, item, integer>>(texts, expected_sizes_compact);
+	SECTION("map_original / 2-pass"){
+		test_map_construction<sftrie::map_original<text, item, integer>>(texts, true, expected_sizes_original);
+	}
+
+	SECTION("map_compact / 1-pass"){
+		test_map_construction<sftrie::map_compact<text, item, integer>>(texts, false, expected_sizes_compact);
+	}
+
+	SECTION("map_compact / 2-pass"){
+		test_map_construction<sftrie::map_compact<text, item, integer>>(texts, true, expected_sizes_compact);
 	}
 }
 
