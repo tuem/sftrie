@@ -238,58 +238,58 @@ struct trie_traits<text, empty, integer>
 
 
 template<typename text, typename item, typename integer>
-struct trie_element_util
+struct key_value_selector
 {
-	static text& get_key(typename trie_traits<text, item, integer>::list_element_type& list_element)
+	static text& key(typename trie_traits<text, item, integer>::list_element_type& list_element)
 	{
 		return list_element.first;
 	}
 
-	static typename trie_traits<text, item, integer>::original_const_ref_type get_value(typename trie_traits<text, item, integer>::list_element_type& list_element)
+	static typename trie_traits<text, item, integer>::original_const_ref_type value(typename trie_traits<text, item, integer>::list_element_type& list_element)
 	{
 		return list_element.second;
 	}
 
-	static typename trie_traits<text, item, integer>::value_type get_value(item value, integer)
+	static typename trie_traits<text, item, integer>::value_type value(item value, integer)
 	{
 		return value;
 	}
 
-	static typename trie_traits<text, item, integer>::value_ref_type get_value_ref(item& value, integer)
+	static typename trie_traits<text, item, integer>::value_ref_type value_ref(item& value, integer)
 	{
 		return value;
 	}
 
-	static typename trie_traits<text, item, integer>::value_const_ref_type get_value_const_ref(const item& value, integer)
+	static typename trie_traits<text, item, integer>::value_const_ref_type value_const_ref(const item& value, integer)
 	{
 		return value;
 	}
 };
 
 template<typename text, typename integer>
-struct trie_element_util<text, empty, integer>
+struct key_value_selector<text, empty, integer>
 {
-	static text& get_key(typename trie_traits<text, empty, integer>::list_element_type& list_element)
+	static text& key(typename trie_traits<text, empty, integer>::list_element_type& list_element)
 	{
 		return list_element;
 	}
 
-	static typename trie_traits<text, empty, integer>::original_const_ref_type get_value(typename trie_traits<text, empty, integer>::list_element_type&)
+	static typename trie_traits<text, empty, integer>::original_const_ref_type value(typename trie_traits<text, empty, integer>::list_element_type&)
 	{
 		return {};
 	}
 
-	static typename trie_traits<text, empty, integer>::value_type get_value(empty, integer id)
+	static typename trie_traits<text, empty, integer>::value_type value(empty, integer id)
 	{
 		return id;
 	}
 
-	static typename trie_traits<text, empty, integer>::value_ref_type get_value_ref(empty, integer id)
+	static typename trie_traits<text, empty, integer>::value_ref_type value_ref(empty, integer id)
 	{
 		return id;
 	}
 
-	static typename trie_traits<text, empty, integer>::value_const_ref_type get_value_const_ref(empty, integer id)
+	static typename trie_traits<text, empty, integer>::value_const_ref_type value_const_ref(empty, integer id)
 	{
 		return id;
 	}

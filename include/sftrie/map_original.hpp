@@ -42,7 +42,7 @@ class map_original
 {
 protected:
 	using symbol = typename text::value_type;
-	using value_picker = trie_element_util<text, item, integer>;
+	using selector = key_value_selector<text, item, integer>;
 
 public:
 	using symbol_type = symbol;
@@ -262,7 +262,7 @@ typename trie_traits<text, item, integer>::value_ref_type map_original<text, ite
 	auto id = search(key);
 	if(!data[id].match)
 		id = data.size() - 1;
-	return value_picker::get_value_ref(data[id].value, id);
+	return selector::value_ref(data[id].value, id);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -382,13 +382,13 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 {
 	integer count = 1;
 
-	if(begin < end && depth == container_size(value_picker::get_key(*begin)))
+	if(begin < end && depth == container_size(selector::key(*begin)))
 		++begin;
 
 	if(begin < end){
 		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = value_picker::get_key(*i)[depth];
-				i < end && value_picker::get_key(*i)[depth] == c; ++i);
+			for(symbol c = selector::key(*i)[depth];
+				i < end && selector::key(*i)[depth] == c; ++i);
 			count += estimate(begin, i, depth + 1);
 		}
 	}
@@ -402,8 +402,8 @@ void map_original<text, item, integer>::construct(iterator begin, iterator end)
 {
 	data.reserve(estimate(begin, end));
 	if(begin < end){
-		if(value_picker::get_key(*begin).size() == 0)
-			data[0].value = value_picker::get_value(*begin);
+		if(selector::key(*begin).size() == 0)
+			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), {}, {}});
@@ -414,15 +414,15 @@ template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
 	// set flags
-	if((data[current].match = (depth == container_size(value_picker::get_key(*begin)))))
+	if((data[current].match = (depth == container_size(selector::key(*begin)))))
 		if((data[current].leaf = (++begin == end)))
 			return;
 
 	// reserve children
 	std::vector<iterator> head{begin};
 	for(iterator i = begin; i < end; head.push_back(i)){
-		data.push_back({false, false, 0, value_picker::get_key(*i)[depth], value_picker::get_value(*i)});
-		for(symbol c = value_picker::get_key(*i)[depth]; i < end && value_picker::get_key(*i)[depth] == c; ++i);
+		data.push_back({false, false, 0, selector::key(*i)[depth], selector::value(*i)});
+		for(symbol c = selector::key(*i)[depth]; i < end && selector::key(*i)[depth] == c; ++i);
 	}
 
 	// recursively construct subtries
@@ -508,7 +508,7 @@ struct map_original<text, item, integer>::virtual_node
 
 	typename trie_traits<text, item, integer>::value_const_ref_type value() const
 	{
-		return value_picker::get_value_const_ref(trie.data[id].value, id);
+		return selector::value_const_ref(trie.data[id].value, id);
 	}
 
 	child_iterator children() const
@@ -637,7 +637,7 @@ struct map_original<text, item, integer>::subtree_iterator
 
 	typename trie_traits<text, item, integer>::value_const_ref_type value() const
 	{
-		return value_picker::get_value_const_ref(searcher.trie.data[current].value, current);
+		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const
@@ -762,7 +762,7 @@ struct map_original<text, item, integer>::prefix_iterator
 
 	typename trie_traits<text, item, integer>::value_const_ref_type value() const
 	{
-		return value_picker::get_value_const_ref(searcher.trie.data[current].value, current);
+		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const
