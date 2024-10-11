@@ -22,9 +22,9 @@ limitations under the License.
 
 #include <cstdint>
 
-#include "util.hpp"
-
 namespace sftrie{
+
+struct empty; // defined in util.hpp
 
 namespace constants{
 

@@ -62,9 +62,6 @@ public:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	set_compact(const std::string path,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-
-protected:
-	std::uint8_t container_type() const override;
 };
 
 
@@ -103,15 +100,6 @@ set_compact<text, integer>::set_compact(const std::string path, integer min_bina
 {
 	std::ifstream ifs(path);
 	this->num_texts = this->load(ifs);
-}
-
-
-// protected functions
-
-template<lexicographically_comparable text, std::integral integer>
-std::uint8_t set_compact<text, integer>::container_type() const
-{
-	return constants::container_type_set;
 }
 
 }

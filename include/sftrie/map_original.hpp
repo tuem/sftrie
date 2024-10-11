@@ -42,6 +42,7 @@ class map_original
 {
 protected:
 	using symbol = typename text::value_type;
+	using traits = trie_traits<text, item, integer>;
 	using selector = key_value_selector<text, item, integer>;
 
 public:
@@ -49,7 +50,7 @@ public:
 	using text_type = text;
 	using item_type = item;
 	using integer_type = integer;
-	using value_type = typename trie_traits<text, item, integer>::value_type;
+	using value_type = typename traits::value_type;
 	using size_type = std::size_t;
 
 	struct node;
@@ -95,7 +96,7 @@ public:
 	// value operations
 	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
-	typename trie_traits<text, item, integer>::value_ref_type operator[](const text& key);
+	typename traits::value_ref_type operator[](const text& key);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -108,8 +109,6 @@ protected:
 
 	size_type num_texts;
 	std::vector<node> data;
-
-	virtual std::uint8_t container_type() const;
 
 	template<typename container>
 	static integer container_size(const container& c);
@@ -275,7 +274,7 @@ void map_original<text, item, integer>::save(output_stream& os) const
 		constants::current_major_version,
 		constants::current_minor_version,
 
-		this->container_type(),
+		traits::container_type(),
 		constants::index_type_original,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
@@ -314,7 +313,7 @@ integer map_original<text, item, integer>::load(input_stream& is)
 	if(header.minor_version != constants::current_minor_version)
 		throw std::runtime_error("invalid minor version");
 
-	if(header.container_type != this->container_type())
+	if(header.container_type != traits::container_type())
 		throw std::runtime_error("invalid container type");
 	if(header.index_type != constants::index_type_original)
 		throw std::runtime_error("invalid index type");
@@ -352,12 +351,6 @@ integer map_original<text, item, integer>::load(const std::string path)
 
 
 // protected functions
-
-template<lexicographically_comparable text, default_constructible item, std::integral integer>
-std::uint8_t map_original<text, item, integer>::container_type() const
-{
-	return constants::container_type_map;
-}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename container>
@@ -506,7 +499,7 @@ struct map_original<text, item, integer>::virtual_node
 		return trie.data[id].leaf;
 	}
 
-	typename trie_traits<text, item, integer>::value_const_ref_type value() const
+	typename traits::value_const_ref_type value() const
 	{
 		return selector::value_const_ref(trie.data[id].value, id);
 	}
@@ -635,7 +628,7 @@ struct map_original<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	typename trie_traits<text, item, integer>::value_const_ref_type value() const
+	typename traits::value_const_ref_type value() const
 	{
 		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}
@@ -760,7 +753,7 @@ struct map_original<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	typename trie_traits<text, item, integer>::value_const_ref_type value() const
+	typename traits::value_const_ref_type value() const
 	{
 		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}

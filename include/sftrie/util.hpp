@@ -26,6 +26,8 @@ limitations under the License.
 #include <codecvt>
 #include <vector>
 
+#include "constants.hpp"
+
 namespace sftrie{
 
 // empty value for sets
@@ -220,6 +222,11 @@ struct trie_traits
 	using value_const_ref_type = item const&;
 
 	using list_element_type = std::pair<text, item>;
+
+	static std::uint8_t container_type()
+	{
+		return constants::container_type_map;
+	}
 };
 
 template<typename text, typename integer>
@@ -234,6 +241,11 @@ struct trie_traits<text, empty, integer>
 	using value_const_ref_type = const integer;
 
 	using list_element_type = text;
+
+	static std::uint8_t container_type()
+	{
+		return constants::container_type_set;
+	}
 };
 
 
