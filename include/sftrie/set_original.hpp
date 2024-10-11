@@ -76,6 +76,7 @@ set_original<text, integer>::set_original(random_access_iterator begin, random_a
 		integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
 {
+	this->num_texts = end - begin;
 	this->construct(begin, end);
 }
 
@@ -84,6 +85,7 @@ template<typename random_access_container>
 set_original<text, integer>::set_original(const random_access_container& texts, integer min_binary_search):
 	map_original<text, empty, integer>(min_binary_search)
 {
+	this->num_texts = std::size(texts);
 	this->construct(std::begin(texts), std::end(texts));
 }
 

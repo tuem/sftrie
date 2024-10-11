@@ -76,6 +76,7 @@ set_compact<text, integer>::set_compact(random_access_iterator begin, random_acc
 		integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
 {
+	this->num_texts = end - begin;
 	this->construct(begin, end);
 }
 
@@ -84,6 +85,7 @@ template<typename random_access_container>
 set_compact<text, integer>::set_compact(const random_access_container& texts, integer min_binary_search):
 	map_compact<text, empty, integer>(min_binary_search)
 {
+	this->num_texts = std::size(texts);
 	this->construct(std::begin(texts), std::end(texts));
 }
 
