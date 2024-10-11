@@ -68,10 +68,10 @@ protected:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 public:
 	template<std::random_access_iterator iterator>
-	map_original(iterator begin, iterator end,
+	map_original(iterator begin, iterator end, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<random_access_container container>
-	map_original(const container& texts,
+	map_original(const container& texts, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_original(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -119,7 +119,7 @@ protected:
 	integer estimate(iterator begin, iterator end, integer depth);
 
 	template<typename iterator>
-	void construct(iterator begin, iterator end);
+	void construct(iterator begin, iterator end, bool two_pass);
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 
@@ -149,21 +149,21 @@ map_original<text, item, integer>::map_original(integer min_binary_search):
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<std::random_access_iterator iterator>
-map_original<text, item, integer>::map_original(iterator begin, iterator end,
+map_original<text, item, integer>::map_original(iterator begin, iterator end, bool two_pass,
 		integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, {}, {}})
 {
-	construct(begin, end);
+	construct(begin, end, two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<random_access_container container>
-map_original<text, item, integer>::map_original(const container& texts, integer min_binary_search):
+map_original<text, item, integer>::map_original(const container& texts, bool two_pass, integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
-	construct(std::begin(texts), std::end(texts));
+	construct(std::begin(texts), std::end(texts), two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -391,15 +391,18 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-void map_original<text, item, integer>::construct(iterator begin, iterator end)
+void map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	data.reserve(estimate(begin, end));
+	if(two_pass)
+		data.reserve(estimate(begin, end));
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), {}, {}});
+	if(!two_pass)
+		data.shrink_to_fit();
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>

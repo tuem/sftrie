@@ -223,7 +223,7 @@ struct trie_traits
 
 	using list_element_type = std::pair<text, item>;
 
-	static std::uint8_t container_type()
+	static constexpr std::uint8_t container_type()
 	{
 		return constants::container_type_map;
 	}
@@ -242,7 +242,7 @@ struct trie_traits<text, empty, integer>
 
 	using list_element_type = text;
 
-	static std::uint8_t container_type()
+	static constexpr std::uint8_t container_type()
 	{
 		return constants::container_type_set;
 	}
@@ -252,27 +252,27 @@ struct trie_traits<text, empty, integer>
 template<typename text, typename item, typename integer>
 struct key_value_selector
 {
-	static const text& key(const typename trie_traits<text, item, integer>::list_element_type& list_element)
+	static inline const text& key(const typename trie_traits<text, item, integer>::list_element_type& list_element)
 	{
 		return list_element.first;
 	}
 
-	static typename trie_traits<text, item, integer>::original_const_ref_type value(const typename trie_traits<text, item, integer>::list_element_type& list_element)
+	static inline typename trie_traits<text, item, integer>::original_const_ref_type value(const typename trie_traits<text, item, integer>::list_element_type& list_element)
 	{
 		return list_element.second;
 	}
 
-	static typename trie_traits<text, item, integer>::value_type value(item value, integer)
+	static inline typename trie_traits<text, item, integer>::value_type value(item value, integer)
 	{
 		return value;
 	}
 
-	static typename trie_traits<text, item, integer>::value_ref_type value_ref(item& value, integer)
+	static inline typename trie_traits<text, item, integer>::value_ref_type value_ref(item& value, integer)
 	{
 		return value;
 	}
 
-	static typename trie_traits<text, item, integer>::value_const_ref_type value_const_ref(const item& value, integer)
+	static inline typename trie_traits<text, item, integer>::value_const_ref_type value_const_ref(const item& value, integer)
 	{
 		return value;
 	}
@@ -281,27 +281,27 @@ struct key_value_selector
 template<typename text, typename integer>
 struct key_value_selector<text, empty, integer>
 {
-	static const text& key(const typename trie_traits<text, empty, integer>::list_element_type& list_element)
+	static inline const text& key(const typename trie_traits<text, empty, integer>::list_element_type& list_element)
 	{
 		return list_element;
 	}
 
-	static typename trie_traits<text, empty, integer>::original_const_ref_type value(const typename trie_traits<text, empty, integer>::list_element_type&)
+	static inline constexpr typename trie_traits<text, empty, integer>::original_const_ref_type value(const typename trie_traits<text, empty, integer>::list_element_type&)
 	{
 		return {};
 	}
 
-	static typename trie_traits<text, empty, integer>::value_type value(empty, integer id)
+	static inline typename trie_traits<text, empty, integer>::value_type value(empty, integer id)
 	{
 		return id;
 	}
 
-	static typename trie_traits<text, empty, integer>::value_ref_type value_ref(empty, integer id)
+	static inline typename trie_traits<text, empty, integer>::value_ref_type value_ref(empty, integer id)
 	{
 		return id;
 	}
 
-	static typename trie_traits<text, empty, integer>::value_const_ref_type value_const_ref(empty, integer id)
+	static inline typename trie_traits<text, empty, integer>::value_const_ref_type value_const_ref(empty, integer id)
 	{
 		return id;
 	}
