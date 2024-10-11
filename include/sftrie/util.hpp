@@ -240,12 +240,12 @@ struct trie_traits<text, empty, integer>
 template<typename text, typename item, typename integer>
 struct key_value_selector
 {
-	static text& key(typename trie_traits<text, item, integer>::list_element_type& list_element)
+	static const text& key(const typename trie_traits<text, item, integer>::list_element_type& list_element)
 	{
 		return list_element.first;
 	}
 
-	static typename trie_traits<text, item, integer>::original_const_ref_type value(typename trie_traits<text, item, integer>::list_element_type& list_element)
+	static typename trie_traits<text, item, integer>::original_const_ref_type value(const typename trie_traits<text, item, integer>::list_element_type& list_element)
 	{
 		return list_element.second;
 	}
@@ -269,12 +269,12 @@ struct key_value_selector
 template<typename text, typename integer>
 struct key_value_selector<text, empty, integer>
 {
-	static text& key(typename trie_traits<text, empty, integer>::list_element_type& list_element)
+	static const text& key(const typename trie_traits<text, empty, integer>::list_element_type& list_element)
 	{
 		return list_element;
 	}
 
-	static typename trie_traits<text, empty, integer>::original_const_ref_type value(typename trie_traits<text, empty, integer>::list_element_type&)
+	static typename trie_traits<text, empty, integer>::original_const_ref_type value(const typename trie_traits<text, empty, integer>::list_element_type&)
 	{
 		return {};
 	}
