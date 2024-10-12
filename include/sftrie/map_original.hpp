@@ -42,13 +42,15 @@ class map_original
 {
 protected:
 	using symbol = typename text::value_type;
+	using traits = trie_traits<text, item, integer>;
+	using selector = key_value_selector<text, item, integer>;
 
 public:
 	using symbol_type = symbol;
 	using text_type = text;
 	using item_type = item;
 	using integer_type = integer;
-	using value_type = typename trie_value<item, integer>::actual;
+	using value_type = typename traits::value_type;
 	using size_type = std::size_t;
 
 	struct node;
@@ -66,10 +68,10 @@ protected:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 public:
 	template<std::random_access_iterator iterator>
-	map_original(iterator begin, iterator end,
+	map_original(iterator begin, iterator end, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<random_access_container container>
-	map_original(const container& texts,
+	map_original(const container& texts, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_original(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -94,7 +96,7 @@ public:
 	// value operations
 	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
-	typename trie_value<item, integer>::actual_ref operator[](const text& key);
+	typename traits::value_ref_type operator[](const text& key);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -108,13 +110,16 @@ protected:
 	size_type num_texts;
 	std::vector<node> data;
 
-	virtual std::uint8_t container_type() const;
-
 	template<typename container>
 	static integer container_size(const container& c);
 
 	template<typename iterator>
-	void construct(iterator begin, iterator end);
+	integer estimate(iterator begin, iterator end);
+	template<typename iterator>
+	integer estimate(iterator begin, iterator end, integer depth);
+
+	template<typename iterator>
+	void construct(iterator begin, iterator end, bool two_pass);
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 
@@ -139,26 +144,26 @@ struct map_original<text, item, integer>::node
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_original<text, item, integer>::map_original(integer min_binary_search):
-	min_binary_search(min_binary_search), num_texts(0)
+	min_binary_search(min_binary_search), num_texts(0), data(1, {false, false, 1, {}, {}})
 {}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<std::random_access_iterator iterator>
-map_original<text, item, integer>::map_original(iterator begin, iterator end,
+map_original<text, item, integer>::map_original(iterator begin, iterator end, bool two_pass,
 		integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, {}, {}})
 {
-	construct(begin, end);
+	construct(begin, end, two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<random_access_container container>
-map_original<text, item, integer>::map_original(const container& texts, integer min_binary_search):
+map_original<text, item, integer>::map_original(const container& texts, bool two_pass, integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
-	construct(std::begin(texts), std::end(texts));
+	construct(std::begin(texts), std::end(texts), two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -251,12 +256,12 @@ bool map_original<text, item, integer>::update(const text& key, const item& valu
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-typename trie_value<item, integer>::actual_ref map_original<text, item, integer>::operator[](const text& key)
+typename trie_traits<text, item, integer>::value_ref_type map_original<text, item, integer>::operator[](const text& key)
 {
 	auto id = search(key);
 	if(!data[id].match)
 		id = data.size() - 1;
-	return value_util<item, integer>::ref(data[id].value, id);
+	return selector::value_ref(data[id].value, id);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -269,7 +274,7 @@ void map_original<text, item, integer>::save(output_stream& os) const
 		constants::current_major_version,
 		constants::current_minor_version,
 
-		this->container_type(),
+		traits::container_type(),
 		constants::index_type_original,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
@@ -308,7 +313,7 @@ integer map_original<text, item, integer>::load(input_stream& is)
 	if(header.minor_version != constants::current_minor_version)
 		throw std::runtime_error("invalid minor version");
 
-	if(header.container_type != this->container_type())
+	if(header.container_type != traits::container_type())
 		throw std::runtime_error("invalid container type");
 	if(header.index_type != constants::index_type_original)
 		throw std::runtime_error("invalid index type");
@@ -348,12 +353,6 @@ integer map_original<text, item, integer>::load(const std::string path)
 // protected functions
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-std::uint8_t map_original<text, item, integer>::container_type() const
-{
-	return constants::container_type_map;
-}
-
-template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename container>
 typename map_original<text, item, integer>::integer_type
 map_original<text, item, integer>::container_size(const container& c)
@@ -363,15 +362,47 @@ map_original<text, item, integer>::container_size(const container& c)
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-void map_original<text, item, integer>::construct(iterator begin, iterator end)
+integer map_original<text, item, integer>::estimate(iterator begin, iterator end)
 {
+	integer count = 0;
+	count += estimate(begin, end, 0);
+	return count + 1; // sentinel
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+integer map_original<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
+{
+	integer count = 1;
+
+	if(begin < end && depth == container_size(selector::key(*begin)))
+		++begin;
+
 	if(begin < end){
-		if((*begin).first.size() == 0)
-			data[0].value = (*begin).second;
+		for(iterator i = begin; i < end; begin = i){
+			for(symbol c = selector::key(*i)[depth];
+				i < end && selector::key(*i)[depth] == c; ++i);
+			count += estimate(begin, i, depth + 1);
+		}
+	}
+
+	return count;
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+void map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
+{
+	if(two_pass)
+		data.reserve(estimate(begin, end));
+	if(begin < end){
+		if(selector::key(*begin).size() == 0)
+			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), {}, {}});
-	data.shrink_to_fit();
+	if(!two_pass)
+		data.shrink_to_fit();
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -379,15 +410,15 @@ template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
 	// set flags
-	if((data[current].match = (depth == container_size((*begin).first))))
+	if((data[current].match = (depth == container_size(selector::key(*begin)))))
 		if((data[current].leaf = (++begin == end)))
 			return;
 
 	// reserve children
 	std::vector<iterator> head{begin};
 	for(iterator i = begin; i < end; head.push_back(i)){
-		data.push_back({false, false, 0, (*i).first[depth], (*i).second});
-		for(symbol c = (*i).first[depth]; i < end && (*i).first[depth] == c; ++i);
+		data.push_back({false, false, 0, selector::key(*i)[depth], selector::value(*i)});
+		for(symbol c = selector::key(*i)[depth]; i < end && selector::key(*i)[depth] == c; ++i);
 	}
 
 	// recursively construct subtries
@@ -471,9 +502,9 @@ struct map_original<text, item, integer>::virtual_node
 		return trie.data[id].leaf;
 	}
 
-	typename trie_value<item, integer>::actual_const_ref value() const
+	typename traits::value_const_ref_type value() const
 	{
-		return value_util<item, integer>::const_ref(trie.data[id].value, id);
+		return selector::value_const_ref(trie.data[id].value, id);
 	}
 
 	child_iterator children() const
@@ -600,9 +631,9 @@ struct map_original<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	typename trie_value<item, integer>::actual_const_ref value() const
+	typename traits::value_const_ref_type value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const
@@ -725,9 +756,9 @@ struct map_original<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	typename trie_value<item, integer>::actual_const_ref value() const
+	typename traits::value_const_ref_type value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_original<text, item, integer>::virtual_node node() const

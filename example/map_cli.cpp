@@ -117,11 +117,12 @@ int main(int argc, char* argv[])
 				break;
 			texts.push_back(std::make_pair(line, 0));
 		}
+		std::cerr << "done, " << texts.size() << " texts" << std::endl;
 
 		sftrie::sort_text_item_pairs(texts.begin(), texts.end());
 		std::cerr << "building index...";
 		index_type index(texts.begin(), texts.end());
-		std::cerr << "done, " << texts.size() << " texts" << std::endl;
+		std::cerr << "done, " << index.trie_size() << " nodes" << std::endl;
 		exec(index);
 	}
 

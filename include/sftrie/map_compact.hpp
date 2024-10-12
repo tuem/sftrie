@@ -42,13 +42,15 @@ class map_compact
 {
 protected:
 	using symbol = typename text::value_type;
+	using traits = trie_traits<text, item, integer>;
+	using selector = key_value_selector<text, item, integer>;
 
 public:
 	using symbol_type = symbol;
 	using text_type = text;
 	using item_type = item;
 	using integer_type = integer;
-	using value_type = typename trie_value<item, integer>::actual;
+	using value_type = typename traits::value_type;
 	using size_type = std::size_t;
 
 	struct node;
@@ -66,10 +68,10 @@ protected:
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 public:
 	template<std::random_access_iterator iterator>
-	map_compact(iterator begin, iterator end,
+	map_compact(iterator begin, iterator end, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<random_access_container container>
-	map_compact(const container& texts,
+	map_compact(const container& texts, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_compact(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -95,7 +97,7 @@ public:
 	// value operations
 	bool update(const node_type& n, const item& value);
 	bool update(const text& key, const item& value);
-	typename trie_value<item, integer>::actual_ref operator[](const text& key);
+	typename traits::value_ref_type operator[](const text& key);
 
 	// file I/O
 	template<typename output_stream> void save(output_stream& os) const;
@@ -110,13 +112,16 @@ protected:
 	std::vector<node> data;
 	std::vector<symbol> labels;
 
-	virtual std::uint8_t container_type() const;
-
 	template<typename container>
 	static integer container_size(const container& c);
 
 	template<typename iterator>
-	void construct(iterator begin, iterator end);
+	std::pair<integer, integer> estimate(iterator begin, iterator end);
+	template<typename iterator>
+	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth);
+
+	template<typename iterator>
+	void construct(iterator begin, iterator end, bool two_pass);
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 };
@@ -140,26 +145,26 @@ struct map_compact<text, item, integer>::node
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_compact<text, item, integer>::map_compact(integer min_binary_search):
-	min_binary_search(min_binary_search), num_texts(0)
+	min_binary_search(min_binary_search), num_texts(0), data(1, {false, false, 1, 0, {}, {}})
 {}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<std::random_access_iterator iterator>
-map_compact<text, item, integer>::map_compact(iterator begin, iterator end,
+map_compact<text, item, integer>::map_compact(iterator begin, iterator end, bool two_pass,
 		integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}})
 {
-	construct(begin, end);
+	construct(begin, end, two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<random_access_container container>
-map_compact<text, item, integer>::map_compact(const container& texts, integer min_binary_search):
+map_compact<text, item, integer>::map_compact(const container& texts, bool two_pass, integer min_binary_search):
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
-	construct(std::begin(texts), std::end(texts));
+	construct(std::begin(texts), std::end(texts), two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -265,11 +270,11 @@ bool map_compact<text, item, integer>::update(const text& key, const item& value
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-typename trie_value<item, integer>::actual_ref map_compact<text, item, integer>::operator[](const text& key)
+typename trie_traits<text, item, integer>::value_ref_type map_compact<text, item, integer>::operator[](const text& key)
 {
 	auto n = find(key);
 	auto id = n.match() ? n.id : data.size() - 1;
-	return value_util<item, integer>::ref(data[id].value, id);
+	return selector::value_ref(data[id].value, id);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -302,7 +307,7 @@ void map_compact<text, item, integer>::save(output_stream& os) const
 		constants::current_major_version,
 		constants::current_minor_version,
 
-		this->container_type(),
+		traits::container_type(),
 		constants::index_type_compact,
 		constants::text_charset<text>(),
 		constants::text_encoding<text>(),
@@ -343,7 +348,7 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 	if(header.minor_version != constants::current_minor_version)
 		throw std::runtime_error("invalid minor version");
 
-	if(header.container_type != this->container_type())
+	if(header.container_type != traits::container_type())
 		throw std::runtime_error("invalid container type");
 	if(header.index_type != constants::index_type_compact)
 		throw std::runtime_error("invalid index type");
@@ -383,12 +388,6 @@ integer map_compact<text, item, integer>::load(const std::string path)
 // protected functions
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-std::uint8_t map_compact<text, item, integer>::container_type() const
-{
-	return constants::container_type_map;
-}
-
-template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename container>
 typename map_compact<text, item, integer>::integer_type
 map_compact<text, item, integer>::container_size(const container& c)
@@ -398,15 +397,61 @@ map_compact<text, item, integer>::container_size(const container& c)
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-void map_compact<text, item, integer>::construct(iterator begin, iterator end)
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end)
 {
+	auto [node_count, label_count] = estimate(begin, end, 0);
+	return {node_count + 1, label_count}; // sentinel
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
+{
+	integer node_count = 1, label_count = 0;
+
+	if(begin < end && depth == container_size(selector::key(*begin)))
+		++begin;
+
 	if(begin < end){
-		if((*begin).first.size() == 0)
-			data[0].value = (*begin).second;
+		for(iterator i = begin; i < end; begin = i){
+			for(symbol c = selector::key(*i)[depth]; i < end &&
+				selector::key(*i)[depth] == c; ++i);
+
+			integer d = depth + 1;
+			while(d < container_size(selector::key(*begin)) &&
+					selector::key(*begin)[d] == selector::key(*(i - 1))[d]){
+				++d;
+				++label_count;
+			}
+
+			auto [n, l] = estimate(begin, i, d);
+			node_count += n;
+			label_count += l;
+		}
+	}
+
+	return {node_count, label_count};
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+void map_compact<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
+{
+	if(two_pass){
+		auto [node_count, label_count] = estimate(begin, end);
+		data.reserve(node_count);
+		labels.reserve(label_count);
+	}
+	if(begin < end){
+		if(selector::key(*begin).size() == 0)
+			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), container_size(labels), {}, {}});
-	data.shrink_to_fit();
+	if(!two_pass){
+		data.shrink_to_fit();
+		labels.shrink_to_fit();
+	}
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -414,15 +459,15 @@ template<typename iterator>
 void map_compact<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current)
 {
 	// set flags
-	if((data[current].match = (depth == container_size((*begin).first))))
+	if((data[current].match = (depth == container_size((selector::key(*begin))))))
 		if((data[current].leaf = (++begin == end)))
 			return;
 
 	// reserve children
 	std::vector<iterator> head{begin};
 	for(iterator i = begin; i < end; head.push_back(i)){
-		data.push_back({false, false, 0, 0, (*i).first[depth], (*i).second});
-		for(symbol c = (*i).first[depth]; i < end && (*i).first[depth] == c; ++i);
+		data.push_back({false, false, 0, 0, selector::key(*i)[depth], selector::value(*i)});
+		for(symbol c = selector::key(*i)[depth]; i < end && selector::key(*i)[depth] == c; ++i);
 	}
 
 	// compress single paths
@@ -430,8 +475,8 @@ void map_compact<text, item, integer>::construct(iterator begin, iterator end, i
 	for(integer i = 0; i < container_size(head) - 1; ++i){
 		data[data[current].next + i].ref = container_size(labels);
 		integer d = depth + 1;
-		while(d < container_size((*head[i]).first) && (*head[i]).first[d] == (*(head[i + 1] - 1)).first[d])
-			labels.push_back((*head[i]).first[d++]);
+		while(d < container_size(selector::key(*head[i])) && selector::key(*head[i])[d] == selector::key(*(head[i + 1] - 1))[d])
+			labels.push_back(selector::key(*head[i])[d++]);
 		depths.push_back(d);
 	}
 
@@ -503,9 +548,9 @@ struct map_compact<text, item, integer>::virtual_node
 		return trie.data[id].leaf && trie.data[id].ref + depth == trie.data[id + 1].ref;
 	}
 
-	typename trie_value<item, integer>::actual_const_ref value() const
+	typename traits::value_const_ref_type value() const
 	{
-		return value_util<item, integer>::const_ref(trie.data[id].value, id);
+		return selector::value_const_ref(trie.data[id].value, id);
 	}
 
 	child_iterator children() const
@@ -647,9 +692,9 @@ struct map_compact<text, item, integer>::subtree_iterator
 		return searcher.result;
 	}
 
-	typename trie_value<item, integer>::actual_const_ref value() const
+	typename traits::value_const_ref_type value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_compact<text, item, integer>::virtual_node node() const
@@ -788,9 +833,9 @@ struct map_compact<text, item, integer>::prefix_iterator
 		return searcher.result;
 	}
 
-	typename trie_value<item, integer>::actual_const_ref value() const
+	typename traits::value_const_ref_type value() const
 	{
-		return value_util<item, integer>::const_ref(searcher.trie.data[current].value, current);
+		return selector::value_const_ref(searcher.trie.data[current].value, current);
 	}
 
 	map_compact<text, item, integer>::virtual_node node() const
