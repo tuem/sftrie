@@ -23,8 +23,8 @@ limitations under the License.
 #include <cstdint>
 #include <string>
 
-#include "set_original.hpp"
-#include "set_compact.hpp"
+#include "util.hpp"
+#include "map.hpp"
 
 #if defined SFTRIE_SET_USE_ORIGINAL
 	#define SFTRIE_SET_TYPE set_original
@@ -35,6 +35,12 @@ limitations under the License.
 #endif
 
 namespace sftrie{
+
+template<typename text = std::string, typename integer = std::uint32_t>
+using set_original = map_original<text, empty, integer>;
+
+template<typename text = std::string, typename integer = std::uint32_t>
+using set_compact = map_compact<text, empty, integer>;
 
 template<typename text = std::string, typename integer = std::uint32_t>
 using set = SFTRIE_SET_TYPE<text, integer>;

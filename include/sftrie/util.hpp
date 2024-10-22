@@ -26,6 +26,8 @@ limitations under the License.
 #include <codecvt>
 #include <vector>
 
+#include "constants.hpp"
+
 namespace sftrie{
 
 // empty value for sets
@@ -206,51 +208,100 @@ cast_text_item_pairs(const std::vector<std::pair<src_type, item>>& texts)
 }
 
 
-// trie
+// type traits and key/value selectors
 
-template<typename item, typename integer>
-struct trie_value
+template<typename text, typename item, typename integer>
+struct trie_traits
 {
-	using original_ref = item&;
-	using original_const_ref = item const&;
-	using actual = item;
-	using actual_ref = item&;
-	using actual_const_ref = item const&;
+	using original_type = item;
+	using original_ref_type = item&;
+	using original_const_ref_type = item const&;
+
+	using value_type = item;
+	using value_ref_type = item&;
+	using value_const_ref_type = item const&;
+
+	using list_element_type = std::pair<text, item>;
+
+	static constexpr std::uint8_t container_type()
+	{
+		return constants::container_type_map;
+	}
 };
 
-template<typename integer>
-struct trie_value<empty, integer>
+template<typename text, typename integer>
+struct trie_traits<text, empty, integer>
 {
-	using original_ref = const empty;
-	using original_const_ref = const empty;
-	using actual = const integer;
-	using actual_ref = const integer;
-	using actual_const_ref = const integer;
+	using original_type = empty;
+	using original_ref_type = empty;
+	using original_const_ref_type = empty;
+
+	using value_type = const integer;
+	using value_ref_type = const integer;
+	using value_const_ref_type = const integer;
+
+	using list_element_type = text;
+
+	static constexpr std::uint8_t container_type()
+	{
+		return constants::container_type_set;
+	}
 };
 
-template<typename item, typename integer>
-struct value_util
+
+template<typename text, typename item, typename integer>
+struct key_value_selector
 {
-	static typename trie_value<item, integer>::actual_ref ref(typename trie_value<item, integer>::original_ref value, integer)
+	static inline const text& key(const typename trie_traits<text, item, integer>::list_element_type& list_element)
+	{
+		return list_element.first;
+	}
+
+	static inline typename trie_traits<text, item, integer>::original_const_ref_type value(const typename trie_traits<text, item, integer>::list_element_type& list_element)
+	{
+		return list_element.second;
+	}
+
+	static inline typename trie_traits<text, item, integer>::value_type value(item value, integer)
 	{
 		return value;
 	}
 
-	static typename trie_value<item, integer>::actual_const_ref const_ref(typename trie_value<item, integer>::original_const_ref value, integer)
+	static inline typename trie_traits<text, item, integer>::value_ref_type value_ref(item& value, integer)
+	{
+		return value;
+	}
+
+	static inline typename trie_traits<text, item, integer>::value_const_ref_type value_const_ref(const item& value, integer)
 	{
 		return value;
 	}
 };
 
-template<typename integer>
-struct value_util<empty, integer>
+template<typename text, typename integer>
+struct key_value_selector<text, empty, integer>
 {
-	static typename trie_value<empty, integer>::actual_ref ref(typename trie_value<empty, integer>::original_ref, integer id)
+	static inline const text& key(const typename trie_traits<text, empty, integer>::list_element_type& list_element)
+	{
+		return list_element;
+	}
+
+	static inline constexpr typename trie_traits<text, empty, integer>::original_const_ref_type value(const typename trie_traits<text, empty, integer>::list_element_type&)
+	{
+		return {};
+	}
+
+	static inline typename trie_traits<text, empty, integer>::value_type value(empty, integer id)
 	{
 		return id;
 	}
 
-	static typename trie_value<empty, integer>::actual_const_ref const_ref(typename trie_value<empty, integer>::original_const_ref, integer id)
+	static inline typename trie_traits<text, empty, integer>::value_ref_type value_ref(empty, integer id)
+	{
+		return id;
+	}
+
+	static inline typename trie_traits<text, empty, integer>::value_const_ref_type value_const_ref(empty, integer id)
 	{
 		return id;
 	}
