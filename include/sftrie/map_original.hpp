@@ -84,6 +84,12 @@ public:
 	size_type trie_size() const;
 	size_type total_space() const;
 
+	// construction
+	template<typename iterator>
+	void construct(iterator begin, iterator end, bool two_pass);
+	template<random_access_container container>
+	void construct(const container& texts, bool two_pass);
+
 	// search operations
 	bool exists(const text& pattern) const;
 	node_type find(const text& pattern) const;
@@ -117,9 +123,6 @@ protected:
 	integer estimate(iterator begin, iterator end);
 	template<typename iterator>
 	integer estimate(iterator begin, iterator end, integer depth);
-
-	template<typename iterator>
-	void construct(iterator begin, iterator end, bool two_pass);
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 
@@ -390,16 +393,30 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
+	data.clear();
+
 	if(two_pass)
 		data.reserve(estimate(begin, end));
+
+	data.push_back({false, false, 1, {}, {}});
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), {}, {}});
+
 	if(!two_pass)
 		data.shrink_to_fit();
+
+	num_texts = end - begin;
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<random_access_container container>
+void map_original<text, item, integer>::construct(const container& texts, bool two_pass)
+{
+	construct(std::begin(texts), std::end(texts), two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
