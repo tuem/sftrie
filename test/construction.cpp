@@ -65,7 +65,6 @@ void test_set_construction(
 			CHECK(index.exists(pattern));
 	}
 
-/*
 	SECTION("reconstruction"){
 		index.construct(texts, two_pass);
 		CHECK(index.size() == texts.size());
@@ -77,7 +76,6 @@ void test_set_construction(
 		for(const auto& pattern: texts)
 			CHECK(index.exists(pattern));
 	}
-*/
 }
 
 template<typename text, typename integer>
@@ -159,7 +157,6 @@ void test_map_construction(
 			CHECK(index[pattern] == expected_value);
 	}
 
-/*
 	SECTION("reconstruction"){
 		index.construct(texts, two_pass);
 		CHECK(index.size() == texts.size());
@@ -171,7 +168,6 @@ void test_map_construction(
 		for(const auto& [pattern, expected_value]: texts)
 			CHECK(index[pattern] == expected_value);
 	}
-*/
 }
 
 template<typename text, typename integer>

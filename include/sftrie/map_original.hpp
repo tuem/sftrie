@@ -86,9 +86,9 @@ public:
 
 	// construction
 	template<typename iterator>
-	void construct(iterator begin, iterator end, bool two_pass);
+	void construct(iterator begin, iterator end, bool two_pass = true);
 	template<random_access_container container>
-	void construct(const container& texts, bool two_pass);
+	void construct(const container& texts, bool two_pass = true);
 
 	// search operations
 	bool exists(const text& pattern) const;
@@ -405,8 +405,7 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	if(two_pass)
-		reset(two_pass ? estimate(begin, end) : 0);
+	reset(two_pass ? estimate(begin, end) : 0);
 
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)

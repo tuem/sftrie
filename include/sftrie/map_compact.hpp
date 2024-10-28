@@ -86,9 +86,9 @@ public:
 
 	// construction
 	template<typename iterator>
-	void construct(iterator begin, iterator end, bool two_pass);
+	void construct(iterator begin, iterator end, bool two_pass = true);
 	template<random_access_container container>
-	void construct(const container& texts, bool two_pass);
+	void construct(const container& texts, bool two_pass = true);
 
 	// search operations
 	bool exists(const text& pattern) const;
