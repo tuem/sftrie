@@ -121,6 +121,7 @@ protected:
 	template<typename container>
 	static integer container_size(const container& c);
 
+	void reset(integer node_count = static_cast<integer>(0), integer label_count = static_cast<integer>(0));
 	template<typename iterator>
 	std::pair<integer, integer> estimate(iterator begin, iterator end);
 	template<typename iterator>
@@ -370,15 +371,17 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 	if(header.value_size != sizeof(item))
 		throw std::runtime_error("invalid value size");
 
+	reset(header.node_count, header.label_count);
+
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
 
 	labels.resize(header.label_count);
 	is.read(reinterpret_cast<char*>(labels.data()), static_cast<std::streamsize>(sizeof(symbol) * header.label_count));
 
-	return std::count_if(data.begin(), data.end(), [](const auto& n){
+	return (num_texts = std::count_if(data.begin(), data.end(), [](const auto& n){
 		return n.match;
-	});
+	}));
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -397,6 +400,19 @@ typename map_compact<text, item, integer>::integer_type
 map_compact<text, item, integer>::container_size(const container& c)
 {
 	return static_cast<integer>(c.size());
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+void map_compact<text, item, integer>::reset(integer node_count, integer label_count)
+{
+	data.clear();
+	if(node_count != 0)
+		data.reserve(node_count);
+	data.push_back({false, false, 1, 0, {}, {}});
+
+	labels.clear();
+	if(label_count != 0)
+		labels.reserve(label_count);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -439,16 +455,14 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 void map_compact<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	data.clear();
-	labels.clear();
-
 	if(two_pass){
 		auto [node_count, label_count] = estimate(begin, end);
-		data.reserve(node_count);
-		labels.reserve(label_count);
+		reset(node_count, label_count);
+	}
+	else{
+		reset();
 	}
 
-	data.push_back({false, false, 1, 0, {}, {}});
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);

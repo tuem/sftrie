@@ -119,6 +119,7 @@ protected:
 	template<typename container>
 	static integer container_size(const container& c);
 
+	void reset(integer node_count = static_cast<integer>(0));
 	template<typename iterator>
 	integer estimate(iterator begin, iterator end);
 	template<typename iterator>
@@ -337,6 +338,8 @@ integer map_original<text, item, integer>::load(input_stream& is)
 	if(header.label_count != 0)
 		throw std::runtime_error("invalid label count");
 
+	reset(header.node_count);
+
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
 
@@ -361,6 +364,15 @@ typename map_original<text, item, integer>::integer_type
 map_original<text, item, integer>::container_size(const container& c)
 {
 	return static_cast<integer>(c.size());
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+void map_original<text, item, integer>::reset(integer node_count)
+{
+	data.clear();
+	if(node_count != 0)
+		data.reserve(node_count);
+	data.push_back({false, false, 1, {}, {}});
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -393,12 +405,9 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 void map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	data.clear();
-
 	if(two_pass)
-		data.reserve(estimate(begin, end));
+		reset(two_pass ? estimate(begin, end) : 0);
 
-	data.push_back({false, false, 1, {}, {}});
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);
