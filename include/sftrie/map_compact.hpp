@@ -400,7 +400,7 @@ template<typename iterator>
 std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end)
 {
 	auto [node_count, label_count] = estimate(begin, end, 0);
-	return {node_count + 1, label_count}; // sentinel
+	return {node_count + 1, label_count};
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -412,22 +412,20 @@ std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator 
 	if(begin < end && depth == container_size(selector::key(*begin)))
 		++begin;
 
-	if(begin < end){
-		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = selector::key(*i)[depth]; i < end &&
-				selector::key(*i)[depth] == c; ++i);
+	for(iterator i = begin; i < end; begin = i){
+		for(symbol c = selector::key(*i)[depth]; i < end &&
+			selector::key(*i)[depth] == c; ++i);
 
-			integer d = depth + 1;
-			while(d < container_size(selector::key(*begin)) &&
-					selector::key(*begin)[d] == selector::key(*(i - 1))[d]){
-				++d;
-				++label_count;
-			}
-
-			auto [n, l] = estimate(begin, i, d);
-			node_count += n;
-			label_count += l;
+		integer d = depth + 1;
+		while(d < container_size(selector::key(*begin)) &&
+				selector::key(*begin)[d] == selector::key(*(i - 1))[d]){
+			++d;
+			++label_count;
 		}
+
+		auto [n, l] = estimate(begin, i, d);
+		node_count += n;
+		label_count += l;
 	}
 
 	return {node_count, label_count};

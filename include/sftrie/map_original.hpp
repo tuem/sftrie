@@ -364,8 +364,7 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 integer map_original<text, item, integer>::estimate(iterator begin, iterator end)
 {
-	integer count = 0;
-	count += estimate(begin, end, 0);
+	integer count = estimate(begin, end, 0);
 	return count + 1; // sentinel
 }
 
@@ -378,12 +377,10 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 	if(begin < end && depth == container_size(selector::key(*begin)))
 		++begin;
 
-	if(begin < end){
-		for(iterator i = begin; i < end; begin = i){
-			for(symbol c = selector::key(*i)[depth];
-				i < end && selector::key(*i)[depth] == c; ++i);
-			count += estimate(begin, i, depth + 1);
-		}
+	for(iterator i = begin; i < end; begin = i){
+		for(symbol c = selector::key(*i)[depth];
+			i < end && selector::key(*i)[depth] == c; ++i);
+		count += estimate(begin, i, depth + 1);
 	}
 
 	return count;
