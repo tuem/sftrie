@@ -64,6 +64,20 @@ void test_set_construction(
 		for(const auto& pattern: texts)
 			CHECK(index.exists(pattern));
 	}
+
+/*
+	SECTION("reconstruction"){
+		index.construct(texts, two_pass);
+		CHECK(index.size() == texts.size());
+		CHECK(index.node_size() == sizeof(typename set::node));
+		if(expected_sizes[0] > 0)
+			CHECK(index.trie_size() == expected_sizes[0]);
+		if(expected_sizes[1] > 0)
+			CHECK(index.total_space() == expected_sizes[1]);
+		for(const auto& pattern: texts)
+			CHECK(index.exists(pattern));
+	}
+*/
 }
 
 template<typename text, typename integer>
@@ -144,6 +158,20 @@ void test_map_construction(
 		for(const auto& [pattern, expected_value]: texts)
 			CHECK(index[pattern] == expected_value);
 	}
+
+/*
+	SECTION("reconstruction"){
+		index.construct(texts, two_pass);
+		CHECK(index.size() == texts.size());
+		CHECK(index.node_size() == sizeof(typename map::node));
+		if(expected_sizes[0] > 0)
+			CHECK(index.trie_size() == expected_sizes[0]);
+		if(expected_sizes[1] > 0)
+			CHECK(index.total_space() == expected_sizes[1]);
+		for(const auto& [pattern, expected_value]: texts)
+			CHECK(index[pattern] == expected_value);
+	}
+*/
 }
 
 template<typename text, typename integer>
