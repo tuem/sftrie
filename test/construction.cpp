@@ -66,8 +66,7 @@ void test_set_construction(
 	}
 
 	SECTION("reconstruction"){
-		index.construct(texts, two_pass);
-		CHECK(index.size() == texts.size());
+		CHECK(index.construct(texts, two_pass) == texts.size());
 		CHECK(index.node_size() == sizeof(typename set::node));
 		if(expected_sizes[0] > 0)
 			CHECK(index.trie_size() == expected_sizes[0]);
@@ -158,8 +157,7 @@ void test_map_construction(
 	}
 
 	SECTION("reconstruction"){
-		index.construct(texts, two_pass);
-		CHECK(index.size() == texts.size());
+		CHECK(index.construct(texts, two_pass) == texts.size());
 		CHECK(index.node_size() == sizeof(typename map::node));
 		if(expected_sizes[0] > 0)
 			CHECK(index.trie_size() == expected_sizes[0]);

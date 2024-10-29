@@ -86,9 +86,9 @@ public:
 
 	// construction
 	template<typename iterator>
-	void construct(iterator begin, iterator end, bool two_pass = true);
+	integer construct(iterator begin, iterator end, bool two_pass = true);
 	template<random_access_container container>
-	void construct(const container& texts, bool two_pass = true);
+	integer construct(const container& texts, bool two_pass = true);
 
 	// search operations
 	bool exists(const text& pattern) const;
@@ -403,7 +403,7 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-void map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
+integer map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
 	reset(two_pass ? estimate(begin, end) : 0);
 
@@ -417,14 +417,14 @@ void map_original<text, item, integer>::construct(iterator begin, iterator end, 
 	if(!two_pass)
 		data.shrink_to_fit();
 
-	num_texts = end - begin;
+	return (num_texts = end - begin);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<random_access_container container>
-void map_original<text, item, integer>::construct(const container& texts, bool two_pass)
+integer map_original<text, item, integer>::construct(const container& texts, bool two_pass)
 {
-	construct(std::begin(texts), std::end(texts), two_pass);
+	return construct(std::begin(texts), std::end(texts), two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
