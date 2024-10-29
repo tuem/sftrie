@@ -379,15 +379,16 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 integer map_original<text, item, integer>::estimate(iterator begin, iterator end)
 {
-	integer count = estimate(begin, end, 0);
-	return count + 1; // sentinel
+	integer node_count = estimate(begin, end, 0);
+	reset(node_count + 1); // sentinel
+	return node_count + 1;
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
 integer map_original<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
 {
-	integer count = 1;
+	integer node_count = 1;
 
 	if(begin < end && depth == container_size(selector::key(*begin)))
 		++begin;
@@ -395,17 +396,20 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 	for(iterator i = begin; i < end; begin = i){
 		for(symbol c = selector::key(*i)[depth];
 			i < end && selector::key(*i)[depth] == c; ++i);
-		count += estimate(begin, i, depth + 1);
+		node_count += estimate(begin, i, depth + 1);
 	}
 
-	return count;
+	return node_count;
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
 integer map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	reset(two_pass ? estimate(begin, end) : 0);
+	if(two_pass)
+		estimate(begin, end);
+	else
+		reset();
 
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)

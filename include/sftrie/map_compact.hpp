@@ -420,6 +420,7 @@ template<typename iterator>
 std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end)
 {
 	auto [node_count, label_count] = estimate(begin, end, 0);
+	reset(node_count + 1, label_count);
 	return {node_count + 1, label_count};
 }
 
@@ -455,13 +456,10 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 integer map_compact<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	if(two_pass){
-		auto [node_count, label_count] = estimate(begin, end);
-		reset(node_count, label_count);
-	}
-	else{
+	if(two_pass)
+		estimate(begin, end);
+	else
 		reset();
-	}
 
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
