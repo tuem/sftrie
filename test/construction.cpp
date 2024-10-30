@@ -35,6 +35,40 @@ using integer = std::uint32_t;
 using item = std::uint32_t;
 
 
+template<typename index_type>
+void test_default_constructor()
+{
+	index_type index;
+	SECTION("# of texts"){
+		CHECK(index.size() == 0);
+	}
+	SECTION("node size"){
+		CHECK(index.trie_size() == 1);
+	}
+	SECTION("search (should be failed)"){
+		typename index_type::text_type t0;
+		CHECK_FALSE(index.exists(t0));
+		typename index_type::text_type t1(1, static_cast<typename index_type::symbol_type>(0));
+		CHECK_FALSE(index.exists(t1));
+	}
+}
+
+TEST_CASE("construction/default constructor", "[construction]"){
+	test_default_constructor<sftrie::set_original<std::string, integer>>();
+	test_default_constructor<sftrie::set_original<std::u16string, integer>>();
+	test_default_constructor<sftrie::set_original<std::u32string, integer>>();
+	test_default_constructor<sftrie::set_compact<std::string, integer>>();
+	test_default_constructor<sftrie::set_compact<std::u16string, integer>>();
+	test_default_constructor<sftrie::set_compact<std::u32string, integer>>();
+	test_default_constructor<sftrie::map_original<std::string, item, integer>>();
+	test_default_constructor<sftrie::map_original<std::u16string, item, integer>>();
+	test_default_constructor<sftrie::map_original<std::u32string, item, integer>>();
+	test_default_constructor<sftrie::map_compact<std::string, item, integer>>();
+	test_default_constructor<sftrie::map_compact<std::u16string, item, integer>>();
+	test_default_constructor<sftrie::map_compact<std::u32string, item, integer>>();
+}
+
+
 template<typename set>
 void test_set_construction(
 	const std::vector<typename set::text_type>& texts,
