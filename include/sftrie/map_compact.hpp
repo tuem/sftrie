@@ -148,7 +148,7 @@ struct map_compact<text, item, integer>::node
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_compact<text, item, integer>::map_compact(integer min_binary_search):
-	min_binary_search(min_binary_search), num_texts(0), data(1, {false, false, 1, 0, {}, {}})
+	min_binary_search(min_binary_search), num_texts(0), data(1, {false, true, 1, 0, {}, {}})
 {}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
