@@ -123,10 +123,9 @@ protected:
 
 	void reset(integer node_count = static_cast<integer>(0), integer label_count = static_cast<integer>(0));
 	template<typename iterator>
-	std::pair<integer, integer> estimate(iterator begin, iterator end);
+	std::pair<integer, integer> estimate(iterator begin, iterator end) const;
 	template<typename iterator>
-	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth);
-
+	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth) const;
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 };
@@ -417,16 +416,15 @@ void map_compact<text, item, integer>::reset(integer node_count, integer label_c
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end)
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end) const
 {
 	auto [node_count, label_count] = estimate(begin, end, 0);
-	reset(node_count + 1, label_count);
 	return {node_count + 1, label_count};
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end, integer depth) const
 {
 	integer node_count = 1, label_count = 0;
 
@@ -456,10 +454,13 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 integer map_compact<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	if(two_pass)
-		estimate(begin, end);
-	else
+	if(two_pass){
+		auto [node_count, label_count] = estimate(begin, end);
+		reset(node_count, label_count);
+	}
+	else{
 		reset();
+	}
 
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
