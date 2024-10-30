@@ -62,11 +62,10 @@ public:
 
 	using node_type = virtual_node;
 
+public:
 	// constructors
-protected:
 	map_compact(
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-public:
 	template<std::random_access_iterator iterator>
 	map_compact(iterator begin, iterator end, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -83,6 +82,12 @@ public:
 	size_type node_size() const;
 	size_type trie_size() const;
 	size_type total_space() const;
+
+	// construction
+	template<typename iterator>
+	integer construct(iterator begin, iterator end, bool two_pass = true);
+	template<random_access_container container>
+	integer construct(const container& texts, bool two_pass = true);
 
 	// search operations
 	bool exists(const text& pattern) const;
@@ -115,13 +120,11 @@ protected:
 	template<typename container>
 	static integer container_size(const container& c);
 
+	void reset(integer node_count = static_cast<integer>(0), integer label_count = static_cast<integer>(0));
 	template<typename iterator>
-	std::pair<integer, integer> estimate(iterator begin, iterator end);
+	std::pair<integer, integer> estimate(iterator begin, iterator end) const;
 	template<typename iterator>
-	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth);
-
-	template<typename iterator>
-	void construct(iterator begin, iterator end, bool two_pass);
+	std::pair<integer, integer> estimate(iterator begin, iterator end, integer depth) const;
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 };
@@ -366,15 +369,17 @@ integer map_compact<text, item, integer>::load(input_stream& is)
 	if(header.value_size != sizeof(item))
 		throw std::runtime_error("invalid value size");
 
+	reset(header.node_count, header.label_count);
+
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
 
 	labels.resize(header.label_count);
 	is.read(reinterpret_cast<char*>(labels.data()), static_cast<std::streamsize>(sizeof(symbol) * header.label_count));
 
-	return std::count_if(data.begin(), data.end(), [](const auto& n){
+	return (num_texts = std::count_if(data.begin(), data.end(), [](const auto& n){
 		return n.match;
-	});
+	}));
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -396,8 +401,21 @@ map_compact<text, item, integer>::container_size(const container& c)
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
+void map_compact<text, item, integer>::reset(integer node_count, integer label_count)
+{
+	data.clear();
+	if(node_count != 0)
+		data.reserve(node_count);
+	data.push_back({false, false, 1, 0, {}, {}});
+
+	labels.clear();
+	if(label_count != 0)
+		labels.reserve(label_count);
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end)
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end) const
 {
 	auto [node_count, label_count] = estimate(begin, end, 0);
 	return {node_count + 1, label_count};
@@ -405,7 +423,7 @@ std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator 
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
+std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator begin, iterator end, integer depth) const
 {
 	integer node_count = 1, label_count = 0;
 
@@ -433,23 +451,36 @@ std::pair<integer, integer> map_compact<text, item, integer>::estimate(iterator 
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-void map_compact<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
+integer map_compact<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
 	if(two_pass){
 		auto [node_count, label_count] = estimate(begin, end);
-		data.reserve(node_count);
-		labels.reserve(label_count);
+		reset(node_count, label_count);
 	}
+	else{
+		reset();
+	}
+
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), container_size(labels), {}, {}});
+
 	if(!two_pass){
 		data.shrink_to_fit();
 		labels.shrink_to_fit();
 	}
+
+	return (num_texts = end - begin);
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<random_access_container container>
+integer map_compact<text, item, integer>::construct(const container& texts, bool two_pass)
+{
+	return construct(std::begin(texts), std::end(texts), two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>

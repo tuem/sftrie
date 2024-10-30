@@ -62,11 +62,10 @@ public:
 
 	using node_type = virtual_node;
 
+public:
 	// constructors
-protected:
 	map_original(
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-public:
 	template<std::random_access_iterator iterator>
 	map_original(iterator begin, iterator end, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -83,6 +82,12 @@ public:
 	size_type node_size() const;
 	size_type trie_size() const;
 	size_type total_space() const;
+
+	// construction
+	template<typename iterator>
+	integer construct(iterator begin, iterator end, bool two_pass = true);
+	template<random_access_container container>
+	integer construct(const container& texts, bool two_pass = true);
 
 	// search operations
 	bool exists(const text& pattern) const;
@@ -113,13 +118,11 @@ protected:
 	template<typename container>
 	static integer container_size(const container& c);
 
+	void reset(integer node_count = static_cast<integer>(0));
 	template<typename iterator>
-	integer estimate(iterator begin, iterator end);
+	integer estimate(iterator begin, iterator end) const;
 	template<typename iterator>
-	integer estimate(iterator begin, iterator end, integer depth);
-
-	template<typename iterator>
-	void construct(iterator begin, iterator end, bool two_pass);
+	integer estimate(iterator begin, iterator end, integer depth) const;
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current);
 
@@ -334,6 +337,8 @@ integer map_original<text, item, integer>::load(input_stream& is)
 	if(header.label_count != 0)
 		throw std::runtime_error("invalid label count");
 
+	reset(header.node_count);
+
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
 
@@ -361,18 +366,26 @@ map_original<text, item, integer>::container_size(const container& c)
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
-template<typename iterator>
-integer map_original<text, item, integer>::estimate(iterator begin, iterator end)
+void map_original<text, item, integer>::reset(integer node_count)
 {
-	integer count = estimate(begin, end, 0);
-	return count + 1; // sentinel
+	data.clear();
+	if(node_count != 0)
+		data.reserve(node_count);
+	data.push_back({false, false, 1, {}, {}});
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-integer map_original<text, item, integer>::estimate(iterator begin, iterator end, integer depth)
+integer map_original<text, item, integer>::estimate(iterator begin, iterator end) const
 {
-	integer count = 1;
+	return estimate(begin, end, 0) + 1; // sentinel
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<typename iterator>
+integer map_original<text, item, integer>::estimate(iterator begin, iterator end, integer depth) const
+{
+	integer node_count = 1;
 
 	if(begin < end && depth == container_size(selector::key(*begin)))
 		++begin;
@@ -380,26 +393,36 @@ integer map_original<text, item, integer>::estimate(iterator begin, iterator end
 	for(iterator i = begin; i < end; begin = i){
 		for(symbol c = selector::key(*i)[depth];
 			i < end && selector::key(*i)[depth] == c; ++i);
-		count += estimate(begin, i, depth + 1);
+		node_count += estimate(begin, i, depth + 1);
 	}
 
-	return count;
+	return node_count;
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
-void map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
+integer map_original<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
-	if(two_pass)
-		data.reserve(estimate(begin, end));
+	reset(two_pass ? estimate(begin, end) : 0);
+
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0);
 	}
 	data.push_back({false, false, container_size(data), {}, {}});
+
 	if(!two_pass)
 		data.shrink_to_fit();
+
+	return (num_texts = end - begin);
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+template<random_access_container container>
+integer map_original<text, item, integer>::construct(const container& texts, bool two_pass)
+{
+	return construct(std::begin(texts), std::end(texts), two_pass);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>

@@ -56,6 +56,12 @@ void test_set_save_load(
 		for(const auto& pattern: texts)
 			CHECK(index1.exists(pattern));
 	}
+
+	SECTION("reload"){
+		ss.seekg(0);
+		index0.load(ss);
+		CHECK(index0.trie_size() == expected_size);
+	}
 }
 
 template<typename text>
@@ -118,6 +124,12 @@ void test_map_save_load(
 	SECTION("search patterns in texts"){
 		for(const auto& [pattern, expected_value]: texts)
 			CHECK(index1[pattern] == expected_value);
+	}
+
+	SECTION("reload"){
+		ss.seekg(0);
+		index0.load(ss);
+		CHECK(index0.trie_size() == expected_size);
 	}
 }
 
