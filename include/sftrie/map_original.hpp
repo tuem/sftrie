@@ -62,11 +62,10 @@ public:
 
 	using node_type = virtual_node;
 
+public:
 	// constructors
-protected:
 	map_original(
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
-public:
 	template<std::random_access_iterator iterator>
 	map_original(iterator begin, iterator end, bool two_pass = true,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
