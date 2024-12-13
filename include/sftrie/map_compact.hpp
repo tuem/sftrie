@@ -386,7 +386,7 @@ template<lexicographically_comparable text, default_constructible item, std::int
 integer map_compact<text, item, integer>::load(const std::string path)
 {
 	std::ifstream ifs(path);
-	return load(path);
+	return load(ifs);
 }
 
 
