@@ -67,6 +67,11 @@ void test_set_exact_match_all_classes(
 		test_set_exact_match<sftrie::set_compact<text, integer>>(
 			texts, patterns_not_in_texts);
 	}
+
+	SECTION("set_fast"){
+		test_set_exact_match<sftrie::set_fast<text, integer>>(
+			texts, patterns_not_in_texts);
+	}
 }
 
 void test_set_exact_match_all(
@@ -134,6 +139,11 @@ void test_map_exact_match_all_classes(
 
 	SECTION("map_compact"){
 		test_map_exact_match<sftrie::map_compact<text, item, integer>>(
+			texts, patterns_not_in_texts);
+	}
+
+	SECTION("map_fast"){
+		test_map_exact_match<sftrie::map_fast<text, item, integer>>(
 			texts, patterns_not_in_texts);
 	}
 }

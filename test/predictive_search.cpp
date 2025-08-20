@@ -61,8 +61,13 @@ void test_set_predictive_search_all_classes(
 	SECTION("set_original"){
 		test_set_predictive_search<sftrie::set_original<text, integer>>(texts, patterns);
 	}
+
 	SECTION("set_compact"){
 		test_set_predictive_search<sftrie::set_compact<text, integer>>(texts, patterns);
+	}
+
+	SECTION("set_fast"){
+		test_set_predictive_search<sftrie::set_fast<text, integer>>(texts, patterns);
 	}
 }
 
@@ -129,6 +134,10 @@ void test_map_predictive_search_all_classes(
 
 	SECTION("map_compact"){
 		test_map_predictive_search<sftrie::map_compact<text, item, integer>>(texts, patterns);
+	}
+
+	SECTION("map_fast"){
+		test_map_predictive_search<sftrie::map_fast<text, item, integer>>(texts, patterns);
 	}
 }
 

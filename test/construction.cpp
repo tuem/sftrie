@@ -60,12 +60,18 @@ TEST_CASE("construction/default constructor", "[construction]"){
 	test_default_constructor<sftrie::set_compact<std::string, integer>>();
 	test_default_constructor<sftrie::set_compact<std::u16string, integer>>();
 	test_default_constructor<sftrie::set_compact<std::u32string, integer>>();
+	test_default_constructor<sftrie::set_fast<std::string, integer>>();
+	test_default_constructor<sftrie::set_fast<std::u16string, integer>>();
+	test_default_constructor<sftrie::set_fast<std::u32string, integer>>();
 	test_default_constructor<sftrie::map_original<std::string, item, integer>>();
 	test_default_constructor<sftrie::map_original<std::u16string, item, integer>>();
 	test_default_constructor<sftrie::map_original<std::u32string, item, integer>>();
 	test_default_constructor<sftrie::map_compact<std::string, item, integer>>();
 	test_default_constructor<sftrie::map_compact<std::u16string, item, integer>>();
 	test_default_constructor<sftrie::map_compact<std::u32string, item, integer>>();
+	test_default_constructor<sftrie::map_fast<std::string, item, integer>>();
+	test_default_constructor<sftrie::map_fast<std::u16string, item, integer>>();
+	test_default_constructor<sftrie::map_fast<std::u32string, item, integer>>();
 }
 
 
@@ -115,7 +121,8 @@ template<typename text, typename integer>
 void test_set_construction_all_classes(
 	const std::vector<text>& texts,
 	const std::vector<size_t>& expected_sizes_original,
-	const std::vector<size_t>& expected_sizes_compact
+	const std::vector<size_t>& expected_sizes_compact,
+	const std::vector<size_t>& expected_sizes_fast
 )
 {
 	SECTION("set_original / 1-pass"){
@@ -133,6 +140,14 @@ void test_set_construction_all_classes(
 	SECTION("set_compact / 2-pass"){
 		test_set_construction<sftrie::set_compact<text, integer>>(texts, true, expected_sizes_compact);
 	}
+
+	SECTION("set_fast / 1-pass"){
+		test_set_construction<sftrie::set_fast<text, integer>>(texts, false, expected_sizes_fast);
+	}
+
+	SECTION("set_fast / 2-pass"){
+		test_set_construction<sftrie::set_fast<text, integer>>(texts, true, expected_sizes_fast);
+	}
 }
 
 template<typename integer>
@@ -143,19 +158,25 @@ void test_set_construction_all(
 {
 	SECTION("char"){
 		test_set_construction_all_classes<std::string, integer>(texts,
-			expected_sizes["set/original/char"], expected_sizes["set/compact/char"]);
+			expected_sizes["set/original/char"],
+			expected_sizes["set/compact/char"],
+			expected_sizes["set/fast/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto texts_u16 = sftrie::cast_texts<std::u16string>(texts);
 		test_set_construction_all_classes<std::u16string, integer>(texts_u16,
-			expected_sizes["set/original/char16_t"], expected_sizes["set/compact/char16_t"]);
+			expected_sizes["set/original/char16_t"],
+			expected_sizes["set/compact/char16_t"],
+			expected_sizes["set/fast/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto texts_u32 = sftrie::cast_texts<std::u32string>(texts);
 		test_set_construction_all_classes<std::u32string, integer>(texts_u32,
-			expected_sizes["set/original/char32_t"], expected_sizes["set/compact/char32_t"]);
+			expected_sizes["set/original/char32_t"],
+			expected_sizes["set/compact/char32_t"],
+			expected_sizes["set/fast/char32_t"]);
 	}
 }
 
@@ -206,7 +227,8 @@ template<typename text, typename integer>
 void test_map_construction_all_classes(
 	const std::vector<std::pair<text, item>>& texts,
 	const std::vector<size_t>& expected_sizes_original,
-	const std::vector<size_t>& expected_sizes_compact
+	const std::vector<size_t>& expected_sizes_compact,
+	const std::vector<size_t>& expected_sizes_fast
 )
 {
 	SECTION("map_original / 1-pass"){
@@ -224,6 +246,14 @@ void test_map_construction_all_classes(
 	SECTION("map_compact / 2-pass"){
 		test_map_construction<sftrie::map_compact<text, item, integer>>(texts, true, expected_sizes_compact);
 	}
+
+	SECTION("map_fast / 1-pass"){
+		test_map_construction<sftrie::map_fast<text, item, integer>>(texts, false, expected_sizes_fast);
+	}
+
+	SECTION("map_fast / 2-pass"){
+		test_map_construction<sftrie::map_fast<text, item, integer>>(texts, true, expected_sizes_fast);
+	}
 }
 
 template<typename integer>
@@ -236,19 +266,25 @@ void test_map_construction_all(
 
 	SECTION("char"){
 		test_map_construction_all_classes<std::string, integer>(text_ids,
-			expected_sizes["map/original/char"], expected_sizes["map/compact/char"]);
+			expected_sizes["map/original/char"],
+			expected_sizes["map/compact/char"],
+			expected_sizes["map/fast/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto text_ids_u16 = sftrie::cast_text_item_pairs<std::u16string>(text_ids);
 		test_map_construction_all_classes<std::u16string, integer>(text_ids_u16,
-			expected_sizes["map/original/char16_t"], expected_sizes["map/compact/char16_t"]);
+			expected_sizes["map/original/char16_t"],
+			expected_sizes["map/compact/char16_t"],
+			expected_sizes["map/fast/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto text_ids_u32 = sftrie::cast_text_item_pairs<std::u32string>(text_ids);
 		test_map_construction_all_classes<std::u32string, integer>(text_ids_u32,
-			expected_sizes["map/original/char32_t"], expected_sizes["map/compact/char32_t"]);
+			expected_sizes["map/original/char32_t"],
+			expected_sizes["map/compact/char32_t"],
+			expected_sizes["map/fast/char32_t"]);
 	}
 }
 
@@ -282,6 +318,12 @@ TEST_CASE("construction/empty set", "[construction]"){
 		{"map/compact/char",      {2, 2 * (3 * sizeof(integer) + sizeof(char))}},
 		{"map/compact/char16_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char16_t))}},
 		{"map/compact/char32_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char32_t))}},
+		{"set/fast/char",      {2, 2 * (2 * sizeof(integer) + sizeof(char))}},
+		{"set/fast/char16_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"set/fast/char32_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/fast/char",      {2, 2 * (3 * sizeof(integer) + sizeof(char))}},
+		{"map/fast/char16_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/fast/char32_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char32_t))}},
 	};
 
 	test_construction_all<integer>(texts, expected_sizes);
@@ -306,6 +348,12 @@ TEST_CASE("construction/set of an empty text", "[construction]"){
 		{"map/compact/char",      {2, 2 * (3 * sizeof(integer) + sizeof(char))}},
 		{"map/compact/char16_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char16_t))}},
 		{"map/compact/char32_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char32_t))}},
+		{"set/fast/char",      {2, 2 * (2 * sizeof(integer) + sizeof(char))}},
+		{"set/fast/char16_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"set/fast/char32_t",  {2, 2 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/fast/char",      {2, 2 * (3 * sizeof(integer) + sizeof(char))}},
+		{"map/fast/char16_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char16_t))}},
+		{"map/fast/char32_t",  {2, 2 * (3 * sizeof(integer) + sizeof(char32_t))}},
 	};
 
 	test_construction_all<integer>(texts, expected_sizes);
@@ -330,6 +378,12 @@ TEST_CASE("construction/set of a text with a single symbol", "[construction]"){
 		{"map/compact/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char) + sizeof(item))}},
 		{"map/compact/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item))}},
 		{"map/compact/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item))}},
+		{"set/fast/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char))}},
+		{"set/fast/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t))}},
+		{"set/fast/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t))}},
+		{"map/fast/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char) + sizeof(item))}},
+		{"map/fast/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item))}},
+		{"map/fast/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item))}},
 	};
 
 	test_construction_all<integer>(texts, expected_sizes);
@@ -354,6 +408,12 @@ TEST_CASE("construction/set of a text", "[construction]"){
 		{"map/compact/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char) + sizeof(item)) + sizeof(char) * 2}},
 		{"map/compact/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item)) + sizeof(char16_t) * 2}},
 		{"map/compact/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item)) + sizeof(char32_t) * 2}},
+		{"set/fast/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char)) + sizeof(char) * 2}},
+		{"set/fast/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * 2}},
+		{"set/fast/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * 2}},
+		{"map/fast/char",      {3, 3 * (2 * sizeof(integer) + sizeof(char) + sizeof(item)) + sizeof(char) * 2}},
+		{"map/fast/char16_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item)) + sizeof(char16_t) * 2}},
+		{"map/fast/char32_t",  {3, 3 * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item)) + sizeof(char32_t) * 2}},
 	};
 
 	test_construction_all<integer>(texts, expected_sizes);
@@ -383,6 +443,12 @@ TEST_CASE("construction/few texts", "[construction]"){
 		{"map/compact/char",      {10, 10 * (2 * sizeof(integer) + sizeof(char) + sizeof(item)) + sizeof(char) * 2}},
 		{"map/compact/char16_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item)) + sizeof(char16_t) * 2}},
 		{"map/compact/char32_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item)) + sizeof(char32_t) * 2}},
+		{"set/fast/char",      {10, 10 * (2 * sizeof(integer) + sizeof(char)) + sizeof(char) * 2}},
+		{"set/fast/char16_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * 2}},
+		{"set/fast/char32_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * 2}},
+		{"map/fast/char",      {10, 10 * (2 * sizeof(integer) + sizeof(char) + sizeof(item)) + sizeof(char) * 2}},
+		{"map/fast/char16_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item)) + sizeof(char16_t) * 2}},
+		{"map/fast/char32_t",  {10, 10 * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item)) + sizeof(char32_t) * 2}},
 	};
 
 	test_construction_all<integer>(texts, expected_sizes);
@@ -408,6 +474,12 @@ TEST_CASE("construction/a long text", "[construction]"){
 		{"map/compact/char",      {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char) + sizeof(item)) + sizeof(char) * (l - 1)}},
 		{"map/compact/char16_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item)) + sizeof(char16_t) * (l - 1)}},
 		{"map/compact/char32_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item)) + sizeof(char32_t) * (l - 1)}},
+		{"set/fast/char",      {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char)) + sizeof(char) * (l - 1)}},
+		{"set/fast/char16_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char16_t)) + sizeof(char16_t) * (l - 1)}},
+		{"set/fast/char32_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char32_t)) + sizeof(char32_t) * (l - 1)}},
+		{"map/fast/char",      {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char) + sizeof(item)) + sizeof(char) * (l - 1)}},
+		{"map/fast/char16_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char16_t) + sizeof(item)) + sizeof(char16_t) * (l - 1)}},
+		{"map/fast/char32_t",  {1 + 2, (1 + 2) * (2 * sizeof(integer) + sizeof(char32_t) + sizeof(item)) + sizeof(char32_t) * (l - 1)}},
 	};
 
 	test_construction_all<integer>(texts, expected_sizes);

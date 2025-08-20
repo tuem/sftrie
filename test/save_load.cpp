@@ -68,7 +68,8 @@ template<typename text>
 void test_set_save_load_all_classes(
 	const std::vector<text>& texts,
 	size_t expected_size_original,
-	size_t expected_size_compact
+	size_t expected_size_compact,
+	size_t expected_size_fast
 )
 {
 	SECTION("set_original"){
@@ -77,6 +78,10 @@ void test_set_save_load_all_classes(
 
 	SECTION("set_compact"){
 		test_set_save_load<sftrie::set_compact<text, integer>>(texts, expected_size_compact);
+	}
+
+	SECTION("set_fast"){
+		test_set_save_load<sftrie::set_fast<text, integer>>(texts, expected_size_fast);
 	}
 }
 
@@ -87,19 +92,19 @@ void test_set_save_load_all(
 {
 	SECTION("char"){
 		test_set_save_load_all_classes(texts,
-			expected_sizes["original/char"], expected_sizes["compact/char"]);
+			expected_sizes["original/char"], expected_sizes["compact/char"], expected_sizes["fast/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto texts_u16 = sftrie::cast_texts<std::u16string>(texts);
 		test_set_save_load_all_classes(texts_u16,
-			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
+			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"], expected_sizes["fast/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto texts_u32 = sftrie::cast_texts<std::u32string>(texts);
 		test_set_save_load_all_classes(texts_u32,
-			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
+			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"], expected_sizes["fast/char32_t"]);
 	}
 }
 
@@ -117,7 +122,7 @@ void test_map_save_load(
 	map index1(ss);
 	if(expected_size > 0){
 		SECTION("trie size"){
-			CHECK(index1.trie_size() == expected_size); // root and sentinel
+			CHECK(index1.trie_size() == expected_size);
 		}
 	}
 
@@ -137,7 +142,8 @@ template<typename text>
 void test_map_save_load_all_classes(
 	const std::vector<std::pair<text, item>>& texts,
 	size_t expected_size_original,
-	size_t expected_size_compact
+	size_t expected_size_compact,
+	size_t expected_size_fast
 )
 {
 	SECTION("map_original"){
@@ -146,6 +152,10 @@ void test_map_save_load_all_classes(
 
 	SECTION("map_compact"){
 		test_map_save_load<sftrie::map_compact<text, item, integer>>(texts, expected_size_compact);
+	}
+
+	SECTION("map_fast"){
+		test_map_save_load<sftrie::map_fast<text, item, integer>>(texts, expected_size_fast);
 	}
 }
 
@@ -158,19 +168,19 @@ void test_map_save_load_all(
 
 	SECTION("char"){
 		test_map_save_load_all_classes(text_ids,
-			expected_sizes["original/char"], expected_sizes["compact/char"]);
+			expected_sizes["original/char"], expected_sizes["compact/char"], expected_sizes["fast/char"]);
 	}
 
 	SECTION("char16_t"){
 		auto text_ids_u16 = sftrie::cast_text_item_pairs<std::u16string>(text_ids);
 		test_map_save_load_all_classes(text_ids_u16,
-			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"]);
+			expected_sizes["original/char16_t"], expected_sizes["compact/char16_t"], expected_sizes["fast/char16_t"]);
 	}
 
 	SECTION("char32_t"){
 		auto text_ids_u32 = sftrie::cast_text_item_pairs<std::u32string>(text_ids);
 		test_map_save_load_all_classes(text_ids_u32,
-			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"]);
+			expected_sizes["original/char32_t"], expected_sizes["compact/char32_t"], expected_sizes["fast/char32_t"]);
 	}
 }
 
@@ -193,10 +203,13 @@ TEST_CASE("save_load/empty set", "[save/load]"){
 	std::map<std::string, size_t> expected_sizes = {
 		{"original/char", 2},
 		{"compact/char", 2},
+		{"fast/char", 2},
 		{"original/char16_t", 2},
 		{"compact/char16_t", 2},
+		{"fast/char16_t", 2},
 		{"original/char32_t", 2},
 		{"compact/char32_t", 2},
+		{"fast/char32_t", 2},
 	};
 
 	test_save_load_all(texts, expected_sizes);
@@ -211,10 +224,13 @@ TEST_CASE("save_load/set of an empty text", "[save_load]"){
 	std::map<std::string, size_t> expected_sizes = {
 		{"original/char", 2},
 		{"compact/char", 2},
+		{"fast/char", 2},
 		{"original/char16_t", 2},
 		{"compact/char16_t", 2},
+		{"fast/char16_t", 2},
 		{"original/char32_t", 2},
 		{"compact/char32_t", 2},
+		{"fast/char32_t", 2},
 	};
 
 	test_save_load_all(texts, expected_sizes);
@@ -229,10 +245,13 @@ TEST_CASE("save_load/set of a text with a single symbol", "[save_load]"){
 	std::map<std::string, size_t> expected_sizes = {
 		{"original/char", 3},
 		{"compact/char", 3},
+		{"fast/char", 3},
 		{"original/char16_t", 3},
 		{"compact/char16_t", 3},
+		{"fast/char16_t", 3},
 		{"original/char32_t", 3},
 		{"compact/char32_t", 3},
+		{"fast/char32_t", 3},
 	};
 
 	test_save_load_all(texts, expected_sizes);
@@ -247,10 +266,13 @@ TEST_CASE("save_load/set of a text", "[save_load]"){
 	std::map<std::string, size_t> expected_sizes = {
 		{"original/char", 5},
 		{"compact/char", 3},
+		{"fast/char", 3},
 		{"original/char16_t", 5},
 		{"compact/char16_t", 3},
+		{"fast/char16_t", 3},
 		{"original/char32_t", 5},
 		{"compact/char32_t", 3},
+		{"fast/char32_t", 3},
 	};
 
 	test_save_load_all(texts, expected_sizes);
@@ -270,10 +292,13 @@ TEST_CASE("save_load/few texts", "[save_load]"){
 	std::map<std::string, size_t> expected_sizes = {
 		{"original/char", 12},
 		{"compact/char", 10},
+		{"fast/char", 10},
 		{"original/char16_t", 12},
 		{"compact/char16_t", 10},
+		{"fast/char16_t", 10},
 		{"original/char32_t", 12},
 		{"compact/char32_t", 10},
+		{"fast/char32_t", 10},
 	};
 
 	test_save_load_all(texts, expected_sizes);
@@ -289,10 +314,13 @@ TEST_CASE("save_load/a long text", "[save_load]"){
 	std::map<std::string, size_t> expected_sizes = {
 		{"original/char", l + 2},
 		{"compact/char", 3},
+		{"fast/char", 3},
 		{"original/char16_t", l + 2},
 		{"compact/char16_t", 3},
+		{"fast/char16_t", 3},
 		{"original/char32_t", l + 2},
 		{"compact/char32_t", 3},
+		{"fast/char32_t", 3},
 	};
 
 	test_save_load_all(texts, expected_sizes);

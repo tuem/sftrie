@@ -64,6 +64,10 @@ void test_set_common_prefix_search_all_classes(
 	SECTION("set_compact"){
 		test_set_common_prefix_search<sftrie::set_compact<text, integer>>(texts, patterns);
 	}
+
+	SECTION("set_fast"){
+		test_set_common_prefix_search<sftrie::set_fast<text, integer>>(texts, patterns);
+	}
 }
 
 void test_set_common_prefix_search_all(
@@ -129,6 +133,10 @@ void test_map_common_prefix_search_all_classes(
 
 	SECTION("map_compact"){
 		test_map_common_prefix_search<sftrie::map_compact<text, item, integer>>(texts, patterns);
+	}
+
+	SECTION("map_fast"){
+		test_map_common_prefix_search<sftrie::map_fast<text, item, integer>>(texts, patterns);
 	}
 }
 

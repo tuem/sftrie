@@ -75,6 +75,10 @@ void test_set_child_iterator_all_classes(
 	SECTION("set_compact"){
 		test_set_child_iterator<sftrie::set_compact<text, integer>>(texts);
 	}
+
+	SECTION("set_fast"){
+		test_set_child_iterator<sftrie::set_fast<text, integer>>(texts);
+	}
 }
 
 void test_set_child_iterator_all(
@@ -128,6 +132,10 @@ void test_map_child_iterator_all_classes(
 
 	SECTION("map_compact"){
 		test_map_child_iterator<sftrie::map_compact<text, item, integer>>(texts);
+	}
+
+	SECTION("map_fast"){
+		test_map_child_iterator<sftrie::map_fast<text, item, integer>>(texts);
 	}
 }
 
