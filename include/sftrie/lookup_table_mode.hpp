@@ -17,34 +17,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef SFTRIE_MAP
-#define SFTRIE_MAP
-
-#include <cstdint>
-#include <string>
-
-#include "map_original.hpp"
-#include "map_compact.hpp"
-#include "map_fast.hpp"
-
-#if defined SFTRIE_MAP_USE_ORIGINAL
-	#define SFTRIE_MAP_TYPE map_original
-#elif defined SFTRIE_MAP_USE_COMPACT
-	#define SFTRIE_MAP_TYPE map_compact
-#elif defined SFTRIE_MAP_USE_FAST
-	#define SFTRIE_MAP_TYPE map_fast
-#else
-	#define SFTRIE_MAP_TYPE map_fast
-#endif
+#ifndef SFTRIE_LOOKUP_TABLE_MODE
+#define SFTRIE_LOOKUP_TABLE_MODE
 
 namespace sftrie{
 
-template<typename text = std::string, typename item = std::uint32_t,
-	typename integer = std::uint32_t>
-using map = SFTRIE_MAP_TYPE<text, item, integer>;
+enum lookup_table_mode
+{
+	unknown,
+	none,
+	root_only,
+	adaptive,
+};
 
 }
-
-#undef SFTRIE_MAP_TYPE
 
 #endif

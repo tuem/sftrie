@@ -47,6 +47,7 @@ inline constexpr std::uint8_t container_type_map = 1;
 
 inline constexpr std::uint8_t index_type_original = 0;
 inline constexpr std::uint8_t index_type_compact = 1;
+inline constexpr std::uint8_t index_type_fast = 2;
 
 inline constexpr std::uint8_t text_charset_system_default = 0;
 inline constexpr std::uint8_t text_charset_unicode = 1;

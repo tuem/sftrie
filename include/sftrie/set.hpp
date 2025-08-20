@@ -30,8 +30,10 @@ limitations under the License.
 	#define SFTRIE_SET_TYPE set_original
 #elif defined SFTRIE_SET_USE_COMACT
 	#define SFTRIE_SET_TYPE set_compact
+#elif defined SFTRIE_MAP_USE_FAST
+	#define SFTRIE_SET_TYPE set_fast
 #else
-	#define SFTRIE_SET_TYPE set_compact
+	#define SFTRIE_SET_TYPE set_fast
 #endif
 
 namespace sftrie{
@@ -41,6 +43,9 @@ using set_original = map_original<text, empty, integer>;
 
 template<typename text = std::string, typename integer = std::uint32_t>
 using set_compact = map_compact<text, empty, integer>;
+
+template<typename text = std::string, typename integer = std::uint32_t>
+using set_fast = map_fast<text, empty, integer>;
 
 template<typename text = std::string, typename integer = std::uint32_t>
 using set = SFTRIE_SET_TYPE<text, integer>;
