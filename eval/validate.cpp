@@ -254,8 +254,8 @@ std::map<std::string, size_t> validate_map_predictive_search(const map& index,
 }
 
 template<typename text, typename item, typename integer>
-bool exec(const std::string& corpus_path, const std::string& index_type,
-	const std::string& optimization_mode, bool two_pass, int min_binary_search)
+bool exec(const std::string& corpus_path, const std::string& index_type, const std::string& optimization_mode,
+	bool two_pass, sftrie::lookup_table_mode lut_mode, float min_lookup_table_density, int min_binary_search)
 {
 	using symbol = typename text::value_type;
 
@@ -395,6 +395,18 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
 		std::cerr << "done." << std::endl;
 	}
+	else if(index_type == "set" && optimization_mode == "fast"){
+		std::cerr << "constructing index...";
+		sftrie::set_fast<text, integer> index(std::begin(texts), std::end(texts),
+			two_pass, lut_mode, min_lookup_table_density, min_binary_search);
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "validating...";
+		result_exact = validate_set_exact_match(index, set_positive_queries, set_negative_queries);
+		result_prefix = validate_set_prefix_search(index, all_queries);
+		result_predict = validate_set_predictive_search(index, set_predictive_search_queries, set_predictive_search_borders, set_negative_queries);
+		std::cerr << "done." << std::endl;
+	}
 	else if(index_type == "map" && optimization_mode == "original"){
 		std::cerr << "constructing index...";
 		sftrie::map_original<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs),
@@ -411,6 +423,18 @@ bool exec(const std::string& corpus_path, const std::string& index_type,
 		std::cerr << "constructing index...";
 		sftrie::map_compact<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs),
 			two_pass, min_binary_search);
+		std::cerr << "done." << std::endl;
+
+		std::cerr << "validating...";
+		result_exact = validate_map_exact_match(index, map_positive_queries, map_negative_queries);
+		result_prefix = validate_map_prefix_search(index, all_queries);
+		result_predict = validate_map_predictive_search(index, map_predictive_search_queries, map_predictive_search_borders, map_negative_queries);
+		std::cerr << "done." << std::endl;
+	}
+	else if(index_type == "map" && optimization_mode == "fast"){
+		std::cerr << "constructing index...";
+		sftrie::map_fast<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs),
+			two_pass, lut_mode, min_lookup_table_density, min_binary_search);
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "validating...";
@@ -470,8 +494,10 @@ int main(int argc, char* argv[])
 	paramset::definitions defs = {
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
 		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
-		{"optimization_mode", "compact", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original or compact)"},
+		{"optimization_mode", "compact", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original, compact or fast)"},
 		{"two_pass", false, {"sftrie", "two_pass_construction"}, "two-pass-construction", 'p', "enable 2-pass construction to save temporary memory consumption in construction (default: false)"},
+		{"lut_mode", "none", {"common", "lut_mode"}, "lut-mode", 'l', "lookup table mode (none, root-only or adaptive)"},
+		{"min_lookup_table_density", 0.75, {"sftrie", "min_lookup_table_density"}, "min-lookup-table-density", 'd', "use lookup table if (set 0 to never use lookup tables)"},
 		{"min_binary_search", 0, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value (set 0 to use default setting)"},
 		{"conf_path", "", "config", 'c', "config file path"}
 	};
@@ -488,6 +514,12 @@ int main(int argc, char* argv[])
 		std::string index_type = pm["index_type"];
 		std::string optimization_mode = pm["optimization_mode"];
 		bool two_pass = pm["two_pass"];
+		sftrie::lookup_table_mode lut_mode = sftrie::lookup_table_mode::none;
+		if(pm.get<std::string>("lut_mode") == "root-only")
+			lut_mode = sftrie::lookup_table_mode::root_only;
+		else if(pm.get<std::string>("lut_mode") == "adaptive")
+			lut_mode = sftrie::lookup_table_mode::adaptive;
+		double min_lookup_table_density = pm["min_lookup_table_density"];
 		int min_binary_search = pm["min_binary_search"];
 
 		std::cout << "[configuration]" << std::endl;
@@ -496,18 +528,23 @@ int main(int argc, char* argv[])
 		std::cout << std::setw(30) << std::left << "index_type" << index_type << std::endl;
 		std::cout << std::setw(30) << std::left << "mode" << optimization_mode << std::endl;
 		std::cout << std::setw(30) << std::left << "two_pass_construction" << (two_pass ? "true" : "false") << std::endl;
+		std::cout << std::setw(30) << std::left << "min_lookup_table_density" << min_lookup_table_density << std::endl;
 		std::cout << std::setw(30) << std::left << "min_binary_search" << min_binary_search << std::endl;
 		std::cout << std::endl;
 
 		bool passed;
 		if(symbol_type == "char")
-			passed = exec<std::string, item, integer>(corpus_path, index_type, optimization_mode, two_pass, min_binary_search);
+			passed = exec<std::string, item, integer>(corpus_path, index_type, optimization_mode,
+				two_pass, lut_mode, min_lookup_table_density, min_binary_search);
 		else if(symbol_type == "wchar_t")
-			passed = exec<std::wstring, item, integer>(corpus_path, index_type, optimization_mode, two_pass, min_binary_search);
+			passed = exec<std::wstring, item, integer>(corpus_path, index_type, optimization_mode,
+				two_pass, lut_mode, min_lookup_table_density, min_binary_search);
 		else if(symbol_type == "char16_t")
-			passed = exec<std::u16string, item, integer>(corpus_path, index_type, optimization_mode, two_pass, min_binary_search);
+			passed = exec<std::u16string, item, integer>(corpus_path, index_type, optimization_mode,
+				two_pass, lut_mode, min_lookup_table_density, min_binary_search);
 		else if(symbol_type == "char32_t")
-			passed = exec<std::u32string, item, integer>(corpus_path, index_type, optimization_mode, two_pass, min_binary_search);
+			passed = exec<std::u32string, item, integer>(corpus_path, index_type, optimization_mode,
+				two_pass, lut_mode, min_lookup_table_density, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 
