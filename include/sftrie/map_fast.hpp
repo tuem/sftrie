@@ -251,6 +251,8 @@ map_fast<text, item, integer>::find(const text& pattern) const
 	for(integer i = 0; i < pattern.size();){
 		if(data[current].leaf)
 			return {*this, container_size(data) - 1, 0};
+		else if(pattern[i] < alphabet_range.first || alphabet_range.second < pattern[i])
+			return {*this, container_size(data) - 1, 0};
 
 		// find child
 		current = data[current].next;
