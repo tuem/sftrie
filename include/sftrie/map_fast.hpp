@@ -500,6 +500,9 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename iterator>
 integer map_fast<text, item, integer>::construct(iterator begin, iterator end, bool two_pass)
 {
+	alphabet_range = actual_alphabet_range<text, item, integer>(begin, end);
+	alphabet_size = alphabet_range.second - alphabet_range.first + 1;
+
 	if(two_pass){
 		auto [node_count, label_count] = estimate(begin, end);
 		reset(node_count, label_count);
