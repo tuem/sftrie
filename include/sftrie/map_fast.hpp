@@ -91,10 +91,12 @@ public:
 	// construction
 	template<typename iterator>
 	integer construct(iterator begin, iterator end, bool two_pass = true,
-		lookup_table_mode lut_mode = lookup_table_mode::root_only);
+		lookup_table_mode lut_mode = lookup_table_mode::root_only,
+		integer min_lookup_table_children = static_cast<integer>(constants::default_min_lookup_table_children<symbol>()));
 	template<random_access_container container>
 	integer construct(const container& texts, bool two_pass = true,
-		lookup_table_mode lut_mode = lookup_table_mode::root_only);
+		lookup_table_mode lut_mode = lookup_table_mode::root_only,
+		integer min_lookup_table_children = static_cast<integer>(constants::default_min_lookup_table_children<symbol>()));
 
 	// search operations
 	bool exists(const text& pattern) const;
@@ -120,7 +122,6 @@ public:
 protected:
 	std::pair<symbol, symbol> alphabet_range;
 	integer alphabet_size;
-	integer min_lookup_table_children;
 	const integer min_binary_search;
 
 	size_type num_texts;
@@ -134,13 +135,13 @@ protected:
 		integer label_count = static_cast<integer>(0));
 	template<typename iterator>
 	std::pair<integer, integer> estimate(iterator begin, iterator end,
-		lookup_table_mode lut_mode) const;
+		lookup_table_mode lut_mode, integer min_lookup_table_children) const;
 	template<typename iterator>
 	std::pair<integer, integer> estimate(iterator begin, iterator end,
-		integer depth, lookup_table_mode lut_mode) const;
+		integer depth, lookup_table_mode lut_mode, integer min_lookup_table_children) const;
 	template<typename iterator>
 	void construct(iterator begin, iterator end, integer depth, integer current,
-		lookup_table_mode lut_mode);
+		lookup_table_mode lut_mode, integer min_lookup_table_children);
 };
 
 
@@ -162,8 +163,7 @@ struct map_fast<text, item, integer>::node
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_fast<text, item, integer>::map_fast():
-	alphabet_range({0, 0}),  alphabet_size(1),
-	min_lookup_table_children(0), min_binary_search(0),
+	alphabet_range({0, 0}),  alphabet_size(1), min_binary_search(0),
 	num_texts(0), data(1, {false, true, 1, 0, {}, {}})
 {}
 
@@ -173,11 +173,10 @@ map_fast<text, item, integer>::map_fast(iterator begin, iterator end, bool two_p
 		lookup_table_mode lut_mode, integer min_lookup_table_children, integer min_binary_search):
 	alphabet_range(actual_alphabet_range<text, item, integer>(begin, end)),
 	alphabet_size(alphabet_range.second - alphabet_range.first + 1),
-	min_lookup_table_children(min_lookup_table_children),
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}})
 {
-	construct(begin, end, two_pass, lut_mode);
+	construct(begin, end, two_pass, lut_mode, min_lookup_table_children);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -186,28 +185,23 @@ map_fast<text, item, integer>::map_fast(const container& texts, bool two_pass,
 		lookup_table_mode lut_mode, integer min_lookup_table_children, integer min_binary_search):
 	alphabet_range(actual_alphabet_range<text, item, integer>(std::begin(texts), std::end(texts))),
 	alphabet_size(alphabet_range.second - alphabet_range.first + 1),
-	min_lookup_table_children(min_lookup_table_children),
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
-	construct(std::begin(texts), std::end(texts), two_pass, lut_mode);
+	construct(std::begin(texts), std::end(texts), two_pass, lut_mode, min_lookup_table_children);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename input_stream>
 map_fast<text, item, integer>::map_fast(input_stream& is, integer min_binary_search):
-	alphabet_range({0, 0}),  alphabet_size(1),
-	min_lookup_table_children(static_cast<integer>((alphabet_range.second - alphabet_range.first) * 0.5)),
-	min_binary_search(min_binary_search)
+	alphabet_range({0, 0}),  alphabet_size(1), min_binary_search(min_binary_search)
 {
 	num_texts = load(is);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_fast<text, item, integer>::map_fast(const std::string path, integer min_binary_search):
-	alphabet_range({0, 0}),  alphabet_size(1),
-	min_lookup_table_children(static_cast<integer>((alphabet_range.second - alphabet_range.first) * 0.5)),
-	min_binary_search(min_binary_search)
+	alphabet_range({0, 0}),  alphabet_size(1), min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
 	num_texts = load(ifs);
@@ -364,7 +358,6 @@ void map_fast<text, item, integer>::save(output_stream& os) const
 	os.write(reinterpret_cast<const char*>(&alphabet_range.first), static_cast<std::streamsize>(sizeof(symbol)));
 	os.write(reinterpret_cast<const char*>(&alphabet_range.second), static_cast<std::streamsize>(sizeof(symbol)));
 	os.write(reinterpret_cast<const char*>(&alphabet_size), static_cast<std::streamsize>(sizeof(integer)));
-	os.write(reinterpret_cast<const char*>(&min_lookup_table_children), static_cast<std::streamsize>(sizeof(integer)));
 
 	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
 
@@ -415,7 +408,6 @@ integer map_fast<text, item, integer>::load(input_stream& is)
 	is.read(reinterpret_cast<char*>(&alphabet_range.first), static_cast<std::streamsize>(sizeof(symbol)));
 	is.read(reinterpret_cast<char*>(&alphabet_range.second), static_cast<std::streamsize>(sizeof(symbol)));
 	is.read(reinterpret_cast<char*>(&alphabet_size), static_cast<std::streamsize>(sizeof(integer)));
-	is.read(reinterpret_cast<char*>(&min_lookup_table_children), static_cast<std::streamsize>(sizeof(integer)));
 
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
@@ -462,16 +454,16 @@ void map_fast<text, item, integer>::reset(integer node_count, integer label_coun
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
 std::pair<integer, integer> map_fast<text, item, integer>::estimate(iterator begin, iterator end,
-	lookup_table_mode lut_mode) const
+	lookup_table_mode lut_mode, integer min_lookup_table_children) const
 {
-	auto [node_count, label_count] = estimate(begin, end, 0, lut_mode);
+	auto [node_count, label_count] = estimate(begin, end, 0, lut_mode, min_lookup_table_children);
 	return {node_count + 1, label_count};
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
 std::pair<integer, integer> map_fast<text, item, integer>::estimate(iterator begin, iterator end,
-	integer depth, lookup_table_mode lut_mode) const
+	integer depth, lookup_table_mode lut_mode, integer min_lookup_table_children) const
 {
 	integer node_count = 1, label_count = 0;
 
@@ -498,7 +490,7 @@ std::pair<integer, integer> map_fast<text, item, integer>::estimate(iterator beg
 			++label_count;
 		}
 
-		auto [n, l] = estimate(begin, i, d, lut_mode);
+		auto [n, l] = estimate(begin, i, d, lut_mode, min_lookup_table_children);
 		node_count += n;
 		label_count += l;
 	}
@@ -509,13 +501,13 @@ std::pair<integer, integer> map_fast<text, item, integer>::estimate(iterator beg
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
 integer map_fast<text, item, integer>::construct(iterator begin, iterator end,
-	bool two_pass, lookup_table_mode lut_mode)
+	bool two_pass, lookup_table_mode lut_mode, integer min_lookup_table_children)
 {
 	alphabet_range = actual_alphabet_range<text, item, integer>(begin, end);
 	alphabet_size = alphabet_range.second - alphabet_range.first + 1;
 
 	if(two_pass){
-		auto [node_count, label_count] = estimate(begin, end, lut_mode);
+		auto [node_count, label_count] = estimate(begin, end, lut_mode, min_lookup_table_children);
 		reset(node_count, label_count);
 	}
 	else{
@@ -525,7 +517,7 @@ integer map_fast<text, item, integer>::construct(iterator begin, iterator end,
 	if(begin < end){
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);
-		construct(begin, end, 0, 0, lut_mode);
+		construct(begin, end, 0, 0, lut_mode, min_lookup_table_children);
 	}
 	data.push_back({false, false, container_size(data), container_size(labels), {}, {}});
 
@@ -540,15 +532,15 @@ integer map_fast<text, item, integer>::construct(iterator begin, iterator end,
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<random_access_container container>
 integer map_fast<text, item, integer>::construct(const container& texts,
-	bool two_pass, lookup_table_mode lut_mode)
+	bool two_pass, lookup_table_mode lut_mode, integer min_lookup_table_children)
 {
-	return construct(std::begin(texts), std::end(texts), two_pass, lut_mode);
+	return construct(std::begin(texts), std::end(texts), two_pass, lut_mode, min_lookup_table_children);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename iterator>
 void map_fast<text, item, integer>::construct(iterator begin, iterator end, integer depth, integer current,
-	lookup_table_mode lut_mode)
+	lookup_table_mode lut_mode, integer min_lookup_table_children)
 {
 	// set flags
 	if((data[current].match = (depth == container_size((selector::key(*begin))))))
@@ -596,7 +588,8 @@ void map_fast<text, item, integer>::construct(iterator begin, iterator end, inte
 		for(symbol c = alphabet_range.first; true; ++c){
 			data[data[current].next + (c - alphabet_range.first)].next = container_size(data);
 			if(data[data[current].next + (c - alphabet_range.first)].label == c){
-				construct(head[i], head[i + 1], depths[i], data[current].next + (c - alphabet_range.first), lut_mode);
+				construct(head[i], head[i + 1], depths[i], data[current].next + (c - alphabet_range.first),
+					lut_mode, min_lookup_table_children);
 				++i;
 			}
 			if(c == alphabet_range.second)
@@ -621,7 +614,7 @@ void map_fast<text, item, integer>::construct(iterator begin, iterator end, inte
 		// recursively construct subtries
 		for(integer i = 0; i < container_size(head) - 1; ++i){
 			data[data[current].next + i].next = container_size(data);
-			construct(head[i], head[i + 1], depths[i], data[current].next + i, lut_mode);
+			construct(head[i], head[i + 1], depths[i], data[current].next + i, lut_mode, min_lookup_table_children);
 		}
 	}
 }
