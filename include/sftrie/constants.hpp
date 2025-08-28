@@ -80,6 +80,11 @@ inline constexpr std::uint8_t value_type_uint64 = 7;
 inline constexpr std::uint8_t value_type_int64 = 8;
 inline constexpr std::uint8_t value_type_user_defined = 0xff;
 
+inline constexpr double default_min_lookup_table_density_default = 0.2;
+inline constexpr double default_min_lookup_table_density_utf8 = 0.1;
+inline constexpr double default_min_lookup_table_density_utf16 = 0.01;
+inline constexpr double default_min_lookup_table_density_utf32 = 0.002;
+
 
 template<typename text> constexpr std::uint8_t text_charset() { return text_charset_system_default; }
 
@@ -118,6 +123,14 @@ template<> inline constexpr std::uint8_t value_type<std::int32_t>(){ return valu
 template<> inline constexpr std::uint8_t value_type<std::uint32_t>(){ return value_type_uint32; }
 template<> inline constexpr std::uint8_t value_type<std::int64_t>(){ return value_type_int64; }
 template<> inline constexpr std::uint8_t value_type<std::uint64_t>(){ return value_type_uint64; }
+
+
+template<typename symbol> inline constexpr double default_min_lookup_table_density(){ return default_min_lookup_table_density_default; }
+
+template<> inline constexpr double default_min_lookup_table_density<char>(){ return default_min_lookup_table_density_utf8; }
+template<> inline constexpr double default_min_lookup_table_density<char8_t>(){ return default_min_lookup_table_density_utf8; }
+template<> inline constexpr double default_min_lookup_table_density<char16_t>(){ return default_min_lookup_table_density_utf16; }
+template<> inline constexpr double default_min_lookup_table_density<char32_t>(){ return default_min_lookup_table_density_utf32; }
 
 }
 
