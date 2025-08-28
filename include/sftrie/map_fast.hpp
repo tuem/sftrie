@@ -683,24 +683,12 @@ struct map_fast<text, item, integer>::virtual_node
 
 	child_iterator children() const
 	{
-		if(trie.data[id].ref + depth < trie.data[id + 1].ref){
+		if(trie.data[id].ref + depth < trie.data[id + 1].ref)
 			return child_iterator(trie, id, depth + 1, 0);
-		}
-		else if(!trie.data[id].leaf){
-			// find first child
-			integer start = trie.data[id].next;
-			integer end = trie.data[start].next;
-			integer next = start;
-			if(end - start == trie.alphabet_size)
-				while(next < end && trie.data[next].label !=
-						static_cast<symbol>(trie.alphabet_range.first + (next - start)))
-					++next;
-
-			return child_iterator(trie, next, 0, trie.data[next].next);
-		}
-		else{
+		else if(!trie.data[id].leaf)
+			return child_iterator(trie, id);
+		else
 			return child_iterator(trie, trie.data.size() - 1, 0, trie.data.size() - 1);
-		}
 	}
 };
 
@@ -708,20 +696,40 @@ template<lexicographically_comparable text, default_constructible item, std::int
 struct map_fast<text, item, integer>::child_iterator
 {
 	virtual_node current;
-	const integer last;
+	integer last;
+	bool lut;
 
 	child_iterator(const map_fast<text, item, integer>& trie):
-		current(trie, 0, 0), last(1)
+		current(trie, 0, 0), last(1), lut(false)
 	{}
 
 	child_iterator(const map_fast<text, item, integer>& trie, const integer parent):
 		current(trie, trie.data[parent].next, 0),
-		last(trie.data[parent].next < trie.data.size() ? trie.data[trie.data[parent].next].next : trie.data.size())
-	{}
+		last(trie.data[parent].next < trie.data.size() ? trie.data[trie.data[parent].next].next : trie.data.size()),
+		lut(last - current.id == trie.alphabet_size)
+	{
+		if(lut){
+			integer start = current.id;
+
+			while(current.id < last && trie.data[last - 1].label !=
+					static_cast<symbol>(trie.alphabet_range.first + last - 1 - start))
+				--last;
+
+			while(current.id < last && trie.data[current.id].label !=
+					static_cast<symbol>(trie.alphabet_range.first + (current.id - start)))
+				++current.id;
+		}
+	}
 
 	child_iterator(const map_fast<text, item, integer>& trie, integer id, integer depth, integer last):
-		current(trie, id, depth), last(last)
-	{}
+		current(trie, id, depth), last(last), lut(last - current.id == trie.alphabet_size)
+	{
+		if(depth > 0 && lut){
+			integer target_diff = current.id - static_cast<integer>(current.label() - current.trie.alphabet_range.first);
+			while(current.id < last - 1 && current.id - static_cast<integer>(current.label() - current.trie.alphabet_range.first) != target_diff)
+				++current.id;
+		}
+	}
 
 	child_iterator begin() const
 	{
@@ -754,10 +762,18 @@ struct map_fast<text, item, integer>::child_iterator
 
 	void operator++()
 	{
-		if(last > 0)
+		if(last > 0){
+			integer target_diff = current.id - static_cast<integer>(current.label() - current.trie.alphabet_range.first);
 			++current.id;
-		else
+			if(lut){
+				while(current.id < last - 1 &&
+						current.id - static_cast<integer>(current.label() - current.trie.alphabet_range.first) != target_diff)
+					++current.id;
+			}
+		}
+		else{
 			current.id = last;
+		}
 	}
 
 	virtual_node operator*() const
@@ -870,10 +886,11 @@ struct map_fast<text, item, integer>::subtree_iterator
 				integer start = searcher.trie.data[searcher.path.back()].next;
 				integer end = searcher.trie.data[start].next;
 				integer next = start;
-				if(end - start == searcher.trie.alphabet_size)
+				if(end - start == searcher.trie.alphabet_size){
 					while(next < end && searcher.trie.data[next].label !=
 							static_cast<symbol>(searcher.trie.alphabet_range.first + (next - start)))
 						++next;
+				}
 
 				searcher.path.push_back(next);
 				searcher.result.push_back(searcher.trie.data[next].label);
