@@ -70,12 +70,12 @@ public:
 	template<std::random_access_iterator iterator>
 	map_fast(iterator begin, iterator end, bool two_pass = true,
 		lookup_table_mode lut_mode = lookup_table_mode::root_only,
-		number min_lookup_table_density = static_cast<number>(constants::default_min_lookup_table_density<symbol>()),
+		integer min_lookup_table_children = static_cast<integer>(constants::default_min_lookup_table_children<symbol>()),
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<random_access_container container>
 	map_fast(const container& texts, bool two_pass = true,
 		lookup_table_mode lut_mode = lookup_table_mode::root_only,
-		number min_lookup_table_density = static_cast<number>(constants::default_min_lookup_table_density<symbol>()),
+		integer min_lookup_table_children = static_cast<integer>(constants::default_min_lookup_table_children<symbol>()),
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_fast(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
@@ -119,7 +119,7 @@ protected:
 	lookup_table_mode lut_mode;
 	std::pair<symbol, symbol> alphabet_range;
 	integer alphabet_size;
-	integer max_sorted_array_size;
+	integer min_lookup_table_children;
 	const integer min_binary_search;
 
 	size_type num_texts;
@@ -158,18 +158,18 @@ struct map_fast<text, item, integer>::node
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_fast<text, item, integer>::map_fast():
 	lut_mode(lookup_table_mode::unknown), alphabet_range({0, 0}),  alphabet_size(1),
-	max_sorted_array_size(0), min_binary_search(0),
+	min_lookup_table_children(0), min_binary_search(0),
 	num_texts(0), data(1, {false, true, 1, 0, {}, {}})
 {}
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<std::random_access_iterator iterator>
 map_fast<text, item, integer>::map_fast(iterator begin, iterator end, bool two_pass,
-		lookup_table_mode lut_mode, number min_lookup_table_density, integer min_binary_search):
+		lookup_table_mode lut_mode, integer min_lookup_table_children, integer min_binary_search):
 	lut_mode(lut_mode),
 	alphabet_range(actual_alphabet_range<text, item, integer>(begin, end)),
 	alphabet_size(alphabet_range.second - alphabet_range.first + 1),
-	max_sorted_array_size((alphabet_range.second - alphabet_range.first + 1) * min_lookup_table_density),
+	min_lookup_table_children(min_lookup_table_children),
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}})
 {
@@ -179,11 +179,11 @@ map_fast<text, item, integer>::map_fast(iterator begin, iterator end, bool two_p
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<random_access_container container>
 map_fast<text, item, integer>::map_fast(const container& texts, bool two_pass,
-		lookup_table_mode lut_mode, number min_lookup_table_density, integer min_binary_search):
+		lookup_table_mode lut_mode, integer min_lookup_table_children, integer min_binary_search):
 	lut_mode(lut_mode),
 	alphabet_range(actual_alphabet_range<text, item, integer>(std::begin(texts), std::end(texts))),
 	alphabet_size(alphabet_range.second - alphabet_range.first + 1),
-	max_sorted_array_size((alphabet_range.second - alphabet_range.first + 1) * min_lookup_table_density),
+	min_lookup_table_children(min_lookup_table_children),
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
@@ -194,7 +194,7 @@ template<lexicographically_comparable text, default_constructible item, std::int
 template<typename input_stream>
 map_fast<text, item, integer>::map_fast(input_stream& is, integer min_binary_search):
 	lut_mode(lookup_table_mode::unknown), alphabet_range({0, 0}),  alphabet_size(1),
-	max_sorted_array_size((alphabet_range.second - alphabet_range.first + 1) * 0.5),
+	min_lookup_table_children(static_cast<integer>((alphabet_range.second - alphabet_range.first) * 0.5)),
 	min_binary_search(min_binary_search)
 {
 	num_texts = load(is);
@@ -203,7 +203,7 @@ map_fast<text, item, integer>::map_fast(input_stream& is, integer min_binary_sea
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_fast<text, item, integer>::map_fast(const std::string path, integer min_binary_search):
 	lut_mode(lookup_table_mode::unknown), alphabet_range({0, 0}),  alphabet_size(1),
-	max_sorted_array_size((alphabet_range.second - alphabet_range.first) * 0.5),
+	min_lookup_table_children(static_cast<integer>((alphabet_range.second - alphabet_range.first) * 0.5)),
 	min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
@@ -361,7 +361,7 @@ void map_fast<text, item, integer>::save(output_stream& os) const
 	os.write(reinterpret_cast<const char*>(&alphabet_range.first), static_cast<std::streamsize>(sizeof(symbol)));
 	os.write(reinterpret_cast<const char*>(&alphabet_range.second), static_cast<std::streamsize>(sizeof(symbol)));
 	os.write(reinterpret_cast<const char*>(&alphabet_size), static_cast<std::streamsize>(sizeof(integer)));
-	os.write(reinterpret_cast<const char*>(&max_sorted_array_size), static_cast<std::streamsize>(sizeof(integer)));
+	os.write(reinterpret_cast<const char*>(&min_lookup_table_children), static_cast<std::streamsize>(sizeof(integer)));
 
 	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
 
@@ -412,7 +412,7 @@ integer map_fast<text, item, integer>::load(input_stream& is)
 	is.read(reinterpret_cast<char*>(&alphabet_range.first), static_cast<std::streamsize>(sizeof(symbol)));
 	is.read(reinterpret_cast<char*>(&alphabet_range.second), static_cast<std::streamsize>(sizeof(symbol)));
 	is.read(reinterpret_cast<char*>(&alphabet_size), static_cast<std::streamsize>(sizeof(integer)));
-	is.read(reinterpret_cast<char*>(&max_sorted_array_size), static_cast<std::streamsize>(sizeof(integer)));
+	is.read(reinterpret_cast<char*>(&min_lookup_table_children), static_cast<std::streamsize>(sizeof(integer)));
 
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
@@ -476,7 +476,7 @@ std::pair<integer, integer> map_fast<text, item, integer>::estimate(iterator beg
 	integer num_children = 0;
 	for(iterator i = begin; i < end; ++num_children)
 		for(symbol c = selector::key(*i)[depth]; i < end && selector::key(*i)[depth] == c; ++i);
-	if(num_children > max_sorted_array_size)
+	if(num_children >= min_lookup_table_children)
 		node_count += static_cast<integer>(alphabet_size) - num_children;
 
 	for(iterator i = begin; i < end; begin = i){
@@ -549,7 +549,7 @@ void map_fast<text, item, integer>::construct(iterator begin, iterator end, inte
 	for(iterator i = begin; i < end; head.push_back(i))
 		for(symbol c = selector::key(*i)[depth]; i < end && selector::key(*i)[depth] == c; ++i);
 
-	if(container_size(head) - 1 > static_cast<integer>(max_sorted_array_size) && (
+	if(container_size(head) - 1 >= min_lookup_table_children && (
 		(lut_mode == lookup_table_mode::root_only && depth == 0) ||
 		(lut_mode == lookup_table_mode::adaptive)
 	)){
