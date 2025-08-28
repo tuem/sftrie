@@ -34,6 +34,10 @@ template<typename symbol> constexpr std::uint32_t default_min_binary_search() { 
 template<> inline constexpr std::uint32_t default_min_binary_search<char16_t>() { return 64; }
 template<> inline constexpr std::uint32_t default_min_binary_search<char32_t>() { return 64; }
 
+template<typename symbol> inline constexpr std::uint32_t default_min_lookup_table_children(){ return 64; }
+template<> inline constexpr std::uint32_t default_min_lookup_table_children<char16_t>(){ return 768; }
+template<> inline constexpr std::uint32_t default_min_lookup_table_children<char32_t>(){ return 1024; }
+
 
 // header values
 
@@ -80,11 +84,6 @@ inline constexpr std::uint8_t value_type_uint64 = 7;
 inline constexpr std::uint8_t value_type_int64 = 8;
 inline constexpr std::uint8_t value_type_user_defined = 0xff;
 
-inline constexpr std::uint32_t default_min_lookup_table_children_default = 64;
-inline constexpr std::uint32_t default_min_lookup_table_children_utf8 = 64;
-inline constexpr std::uint32_t default_min_lookup_table_children_utf16 = 768;
-inline constexpr std::uint32_t default_min_lookup_table_children_utf32 = 1024;
-
 
 template<typename text> constexpr std::uint8_t text_charset() { return text_charset_system_default; }
 
@@ -123,14 +122,6 @@ template<> inline constexpr std::uint8_t value_type<std::int32_t>(){ return valu
 template<> inline constexpr std::uint8_t value_type<std::uint32_t>(){ return value_type_uint32; }
 template<> inline constexpr std::uint8_t value_type<std::int64_t>(){ return value_type_int64; }
 template<> inline constexpr std::uint8_t value_type<std::uint64_t>(){ return value_type_uint64; }
-
-
-template<typename symbol> inline constexpr std::uint32_t default_min_lookup_table_children(){ return default_min_lookup_table_children_default; }
-
-template<> inline constexpr std::uint32_t default_min_lookup_table_children<char>(){ return default_min_lookup_table_children_utf8; }
-template<> inline constexpr std::uint32_t default_min_lookup_table_children<char8_t>(){ return default_min_lookup_table_children_utf8; }
-template<> inline constexpr std::uint32_t default_min_lookup_table_children<char16_t>(){ return default_min_lookup_table_children_utf16; }
-template<> inline constexpr std::uint32_t default_min_lookup_table_children<char32_t>(){ return default_min_lookup_table_children_utf32; }
 
 }
 
