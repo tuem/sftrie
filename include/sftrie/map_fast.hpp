@@ -69,11 +69,13 @@ public:
 	map_fast();
 	template<std::random_access_iterator iterator>
 	map_fast(iterator begin, iterator end, bool two_pass = true,
-		lookup_table_mode lut_mode = lookup_table_mode::none, number min_lookup_table_density = 0.75,
+		lookup_table_mode lut_mode = lookup_table_mode::root_only,
+		number min_lookup_table_density = static_cast<number>(constants::default_min_lookup_table_density<symbol>()),
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<random_access_container container>
 	map_fast(const container& texts, bool two_pass = true,
-		lookup_table_mode lut_mode = lookup_table_mode::none, number min_lookup_table_density = 0.75,
+		lookup_table_mode lut_mode = lookup_table_mode::root_only,
+		number min_lookup_table_density = static_cast<number>(constants::default_min_lookup_table_density<symbol>()),
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
 	template<typename input_stream> map_fast(input_stream& is,
 		integer min_binary_search = static_cast<integer>(constants::default_min_binary_search<symbol>()));
