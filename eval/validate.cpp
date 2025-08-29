@@ -255,14 +255,9 @@ std::map<std::string, size_t> validate_map_predictive_search(const map& index,
 
 template<typename text, typename item, typename integer>
 bool exec(const std::string& corpus_path, const std::string& container_type, const std::string& index_mode,
-	bool two_pass, sftrie::lookup_table_mode lut_mode, int min_lookup_table_children, int min_binary_search)
+	bool two_pass, sftrie::lookup_table_mode lut_mode, int min_lut, int min_binary_search)
 {
 	using symbol = typename text::value_type;
-
-	min_lookup_table_children = min_lookup_table_children > 0 ? min_lookup_table_children :
-		sftrie::constants::default_min_lookup_table_children<symbol>();
-	min_binary_search = min_binary_search > 0 ? min_binary_search :
-		sftrie::constants::default_min_binary_search<symbol>();
 
 	std::cerr << "loading texts...";
 	std::vector<text> texts;
@@ -401,7 +396,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, con
 	else if(container_type == "set" && index_mode == "fast"){
 		std::cerr << "constructing index...";
 		sftrie::set_fast<text, integer> index(std::begin(texts), std::end(texts),
-			two_pass, lut_mode, min_lookup_table_children, min_binary_search);
+			two_pass, lut_mode, min_lut, min_binary_search);
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "validating...";
@@ -437,7 +432,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, con
 	else if(container_type == "map" && index_mode == "fast"){
 		std::cerr << "constructing index...";
 		sftrie::map_fast<text, item, integer> index(std::begin(text_item_pairs), std::end(text_item_pairs),
-			two_pass, lut_mode, min_lookup_table_children, min_binary_search);
+			two_pass, lut_mode, min_lut, min_binary_search);
 		std::cerr << "done." << std::endl;
 
 		std::cerr << "validating...";
@@ -495,7 +490,7 @@ bool exec(const std::string& corpus_path, const std::string& container_type, con
 int main(int argc, char* argv[])
 {
 	paramset::definitions defs = {
-		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar, char16_t or char32_t)"},
+		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, char16_t or char32_t)"},
 		{"container_type", "set", {"common", "container_type"}, "container-type", 'c', "container type (set or map)"},
 		{"index_mode", "fast", {"sftrie", "index_mode"}, "index-mode", 'i', "indexing mode (original, compact or fast)"},
 		{"two_pass", false, {"sftrie", "two_pass_construction"}, "two-pass-construction", 'p', "enable 2-pass construction to save temporary memory consumption in construction (default: false)"},
@@ -514,6 +509,8 @@ int main(int argc, char* argv[])
 
 		std::string corpus_path = pm["corpus_path"];
 		std::string symbol_type = pm["symbol_type"];
+		if(!(symbol_type == "char" || symbol_type == "char16_t" || symbol_type == "char32_t"))
+			throw std::runtime_error("unknown symbol type: " + symbol_type);
 		std::string container_type = pm["container_type"];
 		std::string index_mode = pm["index_mode"];
 		bool two_pass = pm["two_pass"];
@@ -522,8 +519,24 @@ int main(int argc, char* argv[])
 			lut_mode = sftrie::lookup_table_mode::none;
 		else if(pm.get<std::string>("lut_mode") == "adaptive")
 			lut_mode = sftrie::lookup_table_mode::adaptive;
-		int min_lookup_table_children = pm["min_lut"];
+		int min_lut = pm["min_lut"];
+		if(min_lut == 0){
+			if(symbol_type == "char")
+				min_lut = sftrie::constants::default_min_lut<char>();
+			else if(symbol_type == "char16_t")
+				min_lut = sftrie::constants::default_min_lut<char16_t>();
+			else
+				min_lut = sftrie::constants::default_min_lut<char32_t>();
+		}
 		int min_binary_search = pm["min_binary_search"];
+		if(min_binary_search == 0){
+			if(symbol_type == "char")
+				min_binary_search = sftrie::constants::default_min_binary_search<char>();
+			else if(symbol_type == "char16_t")
+				min_binary_search = sftrie::constants::default_min_binary_search<char16_t>();
+			else
+				min_binary_search = sftrie::constants::default_min_binary_search<char32_t>();
+		}
 
 		std::cout << "[configuration]" << std::endl;
 		std::cout << std::setw(30) << std::left << "corpus_path" << corpus_path << std::endl;
@@ -539,23 +552,20 @@ int main(int argc, char* argv[])
 		else
 			std::cout << "none";
 		std::cout << std::endl;
-		std::cout << std::setw(30) << std::left << "min_lookup_table_children" << min_lookup_table_children << std::endl;
+		std::cout << std::setw(30) << std::left << "min_lut" << min_lut << std::endl;
 		std::cout << std::setw(30) << std::left << "min_binary_search" << min_binary_search << std::endl;
 		std::cout << std::endl;
 
 		bool passed;
 		if(symbol_type == "char")
 			passed = exec<std::string, item, integer>(corpus_path, container_type, index_mode,
-				two_pass, lut_mode, min_lookup_table_children, min_binary_search);
-		else if(symbol_type == "wchar_t")
-			passed = exec<std::wstring, item, integer>(corpus_path, container_type, index_mode,
-				two_pass, lut_mode, min_lookup_table_children, min_binary_search);
+				two_pass, lut_mode, min_lut, min_binary_search);
 		else if(symbol_type == "char16_t")
 			passed = exec<std::u16string, item, integer>(corpus_path, container_type, index_mode,
-				two_pass, lut_mode, min_lookup_table_children, min_binary_search);
+				two_pass, lut_mode, min_lut, min_binary_search);
 		else if(symbol_type == "char32_t")
 			passed = exec<std::u32string, item, integer>(corpus_path, container_type, index_mode,
-				two_pass, lut_mode, min_lookup_table_children, min_binary_search);
+				two_pass, lut_mode, min_lut, min_binary_search);
 		else
 			throw std::runtime_error("unknown symbol type: " + symbol_type);
 
