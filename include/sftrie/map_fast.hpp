@@ -87,6 +87,7 @@ public:
 	size_type node_size() const;
 	size_type trie_size() const;
 	size_type total_space() const;
+	size_type alphabet_size() const;
 
 	// construction
 	template<typename iterator>
@@ -121,7 +122,6 @@ public:
 
 protected:
 	std::pair<symbol, symbol> alphabet_range;
-	integer alphabet_size;
 	const integer min_binary_search;
 
 	size_type num_texts;
@@ -163,7 +163,7 @@ struct map_fast<text, item, integer>::node
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_fast<text, item, integer>::map_fast():
-	alphabet_range({0, 0}),  alphabet_size(1), min_binary_search(0),
+	alphabet_range({0, 0}),  min_binary_search(0),
 	num_texts(0), data(1, {false, true, 1, 0, {}, {}})
 {}
 
@@ -172,7 +172,6 @@ template<std::random_access_iterator iterator>
 map_fast<text, item, integer>::map_fast(iterator begin, iterator end, bool two_pass,
 		lookup_table_mode lut_mode, integer min_lookup_table_children, integer min_binary_search):
 	alphabet_range(actual_alphabet_range<text, item, integer>(begin, end)),
-	alphabet_size(alphabet_range.second - alphabet_range.first + 1),
 	min_binary_search(min_binary_search),
 	num_texts(end - begin), data(1, {false, false, 1, 0, {}, {}})
 {
@@ -184,7 +183,6 @@ template<random_access_container container>
 map_fast<text, item, integer>::map_fast(const container& texts, bool two_pass,
 		lookup_table_mode lut_mode, integer min_lookup_table_children, integer min_binary_search):
 	alphabet_range(actual_alphabet_range<text, item, integer>(std::begin(texts), std::end(texts))),
-	alphabet_size(alphabet_range.second - alphabet_range.first + 1),
 	min_binary_search(min_binary_search),
 	num_texts(std::size(texts)), data(1, {false, false, 1, 0, {}, {}})
 {
@@ -194,14 +192,14 @@ map_fast<text, item, integer>::map_fast(const container& texts, bool two_pass,
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 template<typename input_stream>
 map_fast<text, item, integer>::map_fast(input_stream& is, integer min_binary_search):
-	alphabet_range({0, 0}),  alphabet_size(1), min_binary_search(min_binary_search)
+	alphabet_range({0, 0}),  min_binary_search(min_binary_search)
 {
 	num_texts = load(is);
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
 map_fast<text, item, integer>::map_fast(const std::string path, integer min_binary_search):
-	alphabet_range({0, 0}),  alphabet_size(1), min_binary_search(min_binary_search)
+	alphabet_range({0, 0}),  min_binary_search(min_binary_search)
 {
 	std::ifstream ifs(path);
 	num_texts = load(ifs);
@@ -226,6 +224,12 @@ template<lexicographically_comparable text, default_constructible item, std::int
 typename map_fast<text, item, integer>::size_type map_fast<text, item, integer>::trie_size() const
 {
 	return data.size();
+}
+
+template<lexicographically_comparable text, default_constructible item, std::integral integer>
+typename map_fast<text, item, integer>::size_type map_fast<text, item, integer>::alphabet_size() const
+{
+	return static_cast<integer>(alphabet_range.second - alphabet_range.first) + 1;
 }
 
 template<lexicographically_comparable text, default_constructible item, std::integral integer>
@@ -254,7 +258,7 @@ map_fast<text, item, integer>::find(const text& pattern) const
 		// find child
 		current = data[current].next;
 		integer end = data[current].next;
-		if(end - current == alphabet_size){
+		if(end - current == alphabet_size()){
 			current += pattern[i] - alphabet_range.first;
 			if(data[current].label != pattern[i++])
 				return {*this, container_size(data) - 1, 0};
@@ -357,7 +361,6 @@ void map_fast<text, item, integer>::save(output_stream& os) const
 
 	os.write(reinterpret_cast<const char*>(&alphabet_range.first), static_cast<std::streamsize>(sizeof(symbol)));
 	os.write(reinterpret_cast<const char*>(&alphabet_range.second), static_cast<std::streamsize>(sizeof(symbol)));
-	os.write(reinterpret_cast<const char*>(&alphabet_size), static_cast<std::streamsize>(sizeof(integer)));
 
 	os.write(reinterpret_cast<const char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * data.size()));
 
@@ -407,7 +410,6 @@ integer map_fast<text, item, integer>::load(input_stream& is)
 
 	is.read(reinterpret_cast<char*>(&alphabet_range.first), static_cast<std::streamsize>(sizeof(symbol)));
 	is.read(reinterpret_cast<char*>(&alphabet_range.second), static_cast<std::streamsize>(sizeof(symbol)));
-	is.read(reinterpret_cast<char*>(&alphabet_size), static_cast<std::streamsize>(sizeof(integer)));
 
 	data.resize(header.node_count);
 	is.read(reinterpret_cast<char*>(data.data()), static_cast<std::streamsize>(sizeof(node) * header.node_count));
@@ -477,7 +479,7 @@ std::pair<integer, integer> map_fast<text, item, integer>::estimate(iterator beg
 		(lut_mode == lookup_table_mode::root_only && depth == 0) ||
 		(lut_mode == lookup_table_mode::adaptive)
 	))
-		node_count += static_cast<integer>(alphabet_size) - num_children;
+		node_count += alphabet_size() - num_children;
 
 	for(iterator i = begin; i < end; begin = i){
 		for(symbol c = selector::key(*i)[depth]; i < end &&
@@ -504,7 +506,6 @@ integer map_fast<text, item, integer>::construct(iterator begin, iterator end,
 	bool two_pass, lookup_table_mode lut_mode, integer min_lookup_table_children)
 {
 	alphabet_range = actual_alphabet_range<text, item, integer>(begin, end);
-	alphabet_size = alphabet_range.second - alphabet_range.first + 1;
 
 	if(two_pass){
 		auto [node_count, label_count] = estimate(begin, end, lut_mode, min_lookup_table_children);
@@ -710,7 +711,7 @@ struct map_fast<text, item, integer>::child_iterator
 	child_iterator(const map_fast<text, item, integer>& trie, const integer parent):
 		current(trie, trie.data[parent].next, 0),
 		last(trie.data[parent].next < trie.data.size() ? trie.data[trie.data[parent].next].next : trie.data.size()),
-		lut(last - current.id == trie.alphabet_size)
+		lut(last - current.id == trie.alphabet_size())
 	{
 		if(lut){
 			integer start = current.id;
@@ -724,7 +725,7 @@ struct map_fast<text, item, integer>::child_iterator
 	}
 
 	child_iterator(const map_fast<text, item, integer>& trie, integer id, integer depth, integer last):
-		current(trie, id, depth), last(last), lut(last - current.id == trie.alphabet_size)
+		current(trie, id, depth), last(last), lut(last - current.id == trie.alphabet_size())
 	{
 		if(depth > 0 && lut){
 			integer target_diff = current.id - static_cast<integer>(current.label() - current.trie.alphabet_range.first);
@@ -889,7 +890,7 @@ struct map_fast<text, item, integer>::subtree_iterator
 				integer start = searcher.trie.data[searcher.path.back()].next;
 				integer end = searcher.trie.data[start].next;
 				integer next = start;
-				if(end - start == searcher.trie.alphabet_size){
+				if(end - start == searcher.trie.alphabet_size()){
 					while(next < end && searcher.trie.data[next].label !=
 							static_cast<symbol>(searcher.trie.alphabet_range.first + (next - start)))
 						++next;
@@ -920,7 +921,7 @@ struct map_fast<text, item, integer>::subtree_iterator
 						integer start = searcher.trie.data[searcher.path.back()].next;
 						integer end = searcher.trie.data[start].next;
 						integer next = prev + 1;
-						if(end - start == searcher.trie.alphabet_size)
+						if(end - start == searcher.trie.alphabet_size())
 							while(next < end && searcher.trie.data[next].label !=
 									static_cast<symbol>(searcher.trie.alphabet_range.first + (next - start)))
 								++next;
@@ -995,7 +996,7 @@ struct map_fast<text, item, integer>::prefix_iterator
 			// find child
 			current = searcher.trie.data[current].next;
 			integer end = searcher.trie.data[current].next;
-			if(end - current == static_cast<integer>(searcher.trie.alphabet_size)){
+			if(end - current == static_cast<integer>(searcher.trie.alphabet_size())){
 				current += pattern[depth] - searcher.trie.alphabet_range.first;
 			}
 			else{
