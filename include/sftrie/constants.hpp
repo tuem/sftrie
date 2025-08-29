@@ -34,9 +34,9 @@ template<typename symbol> constexpr std::uint32_t default_min_binary_search() { 
 template<> inline constexpr std::uint32_t default_min_binary_search<char16_t>() { return 64; }
 template<> inline constexpr std::uint32_t default_min_binary_search<char32_t>() { return 64; }
 
-template<typename symbol> inline constexpr std::uint32_t default_min_lookup_table_children(){ return 64; }
-template<> inline constexpr std::uint32_t default_min_lookup_table_children<char16_t>(){ return 768; }
-template<> inline constexpr std::uint32_t default_min_lookup_table_children<char32_t>(){ return 1024; }
+template<typename symbol> inline constexpr std::uint32_t default_min_lut(){ return 64; }
+template<> inline constexpr std::uint32_t default_min_lut<char16_t>(){ return 768; }
+template<> inline constexpr std::uint32_t default_min_lut<char32_t>(){ return 1024; }
 
 
 // header values
