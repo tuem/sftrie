@@ -223,7 +223,10 @@ void exec(const std::string& corpus_path, const std::string& index_type, int max
 {
 	using symbol = typename text::value_type;
 
-	min_binary_search = min_binary_search > 0 ? min_binary_search : sftrie::constants::default_min_binary_search<symbol>();
+	min_lookup_table_children = min_lookup_table_children > 0 ? min_lookup_table_children :
+		sftrie::constants::default_min_lookup_table_children<symbol>();
+	min_binary_search = min_binary_search > 0 ? min_binary_search :
+		sftrie::constants::default_min_binary_search<symbol>();
 
 	History history;
 
@@ -414,10 +417,10 @@ int main(int argc, char* argv[])
 	paramset::definitions defs = {
 		{"symbol_type", "char", {"common", "symbol_type"}, "symbol-type", 's', "symbol type (char, wchar_t, char16_t or char32_t)"},
 		{"index_type", "set", {"common", "index_type"}, "index-type", 'i', "index type (set or map)"},
-		{"optimization_mode", "compact", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original, compact or fast)"},
+		{"optimization_mode", "fast", {"sftrie", "optimization_mode"}, "optimization-mode", 'o', "sftrie optimization mode (original, compact or fast)"},
 		{"two_pass", false, {"sftrie", "two_pass_construction"}, "two-pass-construction", 'p', "enable 2-pass construction to save temporary memory consumption in construction (default: false)"},
 		{"lut_mode", "root", {"common", "lut_mode"}, "lut-mode", 'l', "lookup table mode (none, root or adaptive)"},
-		{"min_lookup_table_children", 20, {"sftrie", "min_lookup_table_children"}, "min-lut", 'm', "threshold to use lookup tables for each node"},
+		{"min_lut", 0, {"sftrie", "min_lut"}, "min-lut", 'm', "threshold to use lookup tables for each node"},
 		{"min_binary_search", 0, {"sftrie", "min_binary_search"}, "min-binary-search", 'b', "do binary search if number of children is less than the value (set 0 to use default setting)"},
 		{"max_result", 0, {"sftrie", "max_result"}, "max-result", 'n', "max number of results in common-prefix search and predictive search"},
 		{"conf_path", "", "config", 'c', "config file path"}
@@ -435,14 +438,12 @@ int main(int argc, char* argv[])
 		std::string index_type = pm["index_type"];
 		std::string optimization_mode = pm["optimization_mode"];
 		bool two_pass = pm["two_pass"];
-		sftrie::lookup_table_mode lut_mode = sftrie::lookup_table_mode::none;
-		if(pm.get<std::string>("lut_mode") == "root")
-			lut_mode = sftrie::lookup_table_mode::root_only;
+		sftrie::lookup_table_mode lut_mode = sftrie::lookup_table_mode::root_only;
+		if(pm.get<std::string>("lut_mode") == "none")
+			lut_mode = sftrie::lookup_table_mode::none;
 		else if(pm.get<std::string>("lut_mode") == "adaptive")
 			lut_mode = sftrie::lookup_table_mode::adaptive;
-		else
-			lut_mode = sftrie::lookup_table_mode::none;
-		int min_lookup_table_children = pm["min_lookup_table_children"];
+		int min_lookup_table_children = pm["min_lut"];
 		int min_binary_search = pm["min_binary_search"];
 		int max_result = pm["max_result"];
 
@@ -451,10 +452,10 @@ int main(int argc, char* argv[])
 		std::cout << std::setw(30) << std::left << "symbol_type" << symbol_type << std::endl;
 		std::cout << std::setw(30) << std::left << "index_type" << index_type << std::endl;
 		std::cout << std::setw(30) << std::left << "mode" << optimization_mode << std::endl;
-		std::cout << std::setw(30) << std::left << "two_pass_construction" << (two_pass ? "true" : "false") << std::endl;
+		std::cout << std::setw(30) << std::left << "two_pass" << (two_pass ? "true" : "false") << std::endl;
 		std::cout << std::setw(30) << std::left << "lut_mode";
 		if(lut_mode == sftrie::lookup_table_mode::root_only)
-			std::cout << "root_only";
+			std::cout << "root";
 		else if(lut_mode == sftrie::lookup_table_mode::adaptive)
 			std::cout << "adaptive";
 		else
