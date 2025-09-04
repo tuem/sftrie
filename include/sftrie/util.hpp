@@ -27,6 +27,7 @@ limitations under the License.
 #include <vector>
 
 #include "constants.hpp"
+#include "lookup_table_mode.hpp"
 
 namespace sftrie{
 
@@ -207,6 +208,26 @@ cast_text_item_pairs(const std::vector<std::pair<src_type, item>>& texts)
 	return results;
 }
 
+template<typename text, typename item, typename integer>
+struct key_value_selector;
+
+template<typename text, typename item, typename integer, std::random_access_iterator iterator>
+std::pair<typename text::value_type, typename text::value_type>
+actual_alphabet_range(iterator begin, iterator end){
+	using symbol = typename text::value_type;
+	using selector = key_value_selector<text, item, integer>;
+
+	symbol actual_min = max_symbol<symbol>(), actual_max = min_symbol<symbol>();
+	for(auto i = begin; i != end; ++i){
+		for(auto j = std::begin(selector::key(*i)); j < std::end(selector::key(*i)); ++j){
+			if(*j < actual_min)
+				actual_min = *j;
+			if(*j > actual_max)
+				actual_max = *j;
+		}
+	}
+	return {actual_min, actual_max};
+}
 
 // type traits and key/value selectors
 

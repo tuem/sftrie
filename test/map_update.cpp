@@ -91,6 +91,10 @@ void test_map_update_all_classes(
 	SECTION("map_compact"){
 		test_map_update<sftrie::map_compact<text, item, integer>>(before, operations, after);
 	}
+
+	SECTION("map_fast"){
+		test_map_update<sftrie::map_fast<text, item, integer>>(before, operations, after);
+	}
 }
 
 void test_map_update_all(
