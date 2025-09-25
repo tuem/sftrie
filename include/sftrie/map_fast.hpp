@@ -122,6 +122,7 @@ public:
 
 protected:
 	std::pair<symbol, symbol> alphabet_range;
+	std::pair<symbol, symbol> root_range;
 	const integer min_binary_search;
 
 	size_type num_texts;
@@ -519,6 +520,18 @@ integer map_fast<text, item, integer>::construct(iterator begin, iterator end,
 		if(selector::key(*begin).size() == 0)
 			data[0].value = selector::value(*begin);
 		construct(begin, end, 0, 0, lut_mode, min_lut);
+
+		root_range.first = data[0].next;
+		root_range.second = data[root_range.first].next;
+		if(lut_mode != lookup_table_mode::none){
+			integer start = root_range.first;
+			while(root_range.first < root_range.second && data[root_range.second - 1].label !=
+					static_cast<symbol>(alphabet_range.first + root_range.second - 1 - start))
+				--root_range.second;
+			while(root_range.first < root_range.second && data[root_range.first].label !=
+					static_cast<symbol>(alphabet_range.first + (root_range.first - start)))
+				++root_range.first;
+		}
 	}
 	data.push_back({false, false, container_size(data), container_size(labels), {}, {}});
 
@@ -714,13 +727,19 @@ struct map_fast<text, item, integer>::child_iterator
 		lut(last - current.id == trie.alphabet_size())
 	{
 		if(lut){
-			integer start = current.id;
-			while(current.id < last && trie.data[last - 1].label !=
-					static_cast<symbol>(trie.alphabet_range.first + last - 1 - start))
-				--last;
-			while(current.id < last && trie.data[current.id].label !=
-					static_cast<symbol>(trie.alphabet_range.first + (current.id - start)))
-				++current.id;
+			if(parent == 0){
+				current.id = trie.root_range.first;
+				last = trie.root_range.second;
+			}
+			else{
+				integer start = current.id;
+				while(current.id < last && trie.data[last - 1].label !=
+						static_cast<symbol>(trie.alphabet_range.first + last - 1 - start))
+					--last;
+				while(current.id < last && trie.data[current.id].label !=
+						static_cast<symbol>(trie.alphabet_range.first + (current.id - start)))
+					++current.id;
+			}
 		}
 	}
 
