@@ -28,7 +28,7 @@ limitations under the License.
 
 #if defined SFTRIE_SET_USE_ORIGINAL
 	#define SFTRIE_SET_TYPE set_original
-#elif defined SFTRIE_SET_USE_COMACT
+#elif defined SFTRIE_SET_USE_COMPACT
 	#define SFTRIE_SET_TYPE set_compact
 #elif defined SFTRIE_MAP_USE_FAST
 	#define SFTRIE_SET_TYPE set_fast
