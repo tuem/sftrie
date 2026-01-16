@@ -523,7 +523,7 @@ integer map_fast<text, item, integer>::construct(iterator begin, iterator end,
 
 		root_range.first = data[0].next;
 		root_range.second = data[root_range.first].next;
-		if(lut_mode != lookup_table_mode::none){
+		if(data[0].next != data.size() && lut_mode != lookup_table_mode::none){
 			integer start = root_range.first;
 			while(root_range.first < root_range.second && data[root_range.second - 1].label !=
 					static_cast<symbol>(alphabet_range.first + root_range.second - 1 - start))
